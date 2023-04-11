@@ -196,7 +196,7 @@ int SGX_CDECL main(int argc, char *argv[])
         return -1; 
     }
  
-    /* Utilize edger8r attributes */
+    //client part
     put(1,10);
     put(2,20);
     put(3,30);
