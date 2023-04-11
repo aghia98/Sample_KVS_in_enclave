@@ -182,6 +182,7 @@ void ocall_print_string(const char *str)
 }
 
 
+
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[])
 {
