@@ -60,9 +60,7 @@ void ecall_put(int key, int val)
 
 }
 
-void ecall_get(int key)
+void ecall_get(int key, int *val)
 {
-    myMap[key]=val;
-    printf("value = %d successfully inserted \n",myMap[key]);
-
+    *val= myMap.find(key)->second;
 }

@@ -198,7 +198,11 @@ int SGX_CDECL main(int argc, char *argv[])
  
     /* Utilize edger8r attributes */
     put(1,10);
-    printf("value is = %d \n", get(1));
+    put(2,20);
+    put(3,30);
+    printf("get(1) = %d \n", get(1));
+    printf("get(2) = %d \n", get(2));
+    printf("get(3) = %d \n", get(3));
     
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);

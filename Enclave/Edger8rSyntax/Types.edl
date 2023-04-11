@@ -71,7 +71,7 @@ enclave {
 
         
         public void ecall_put(int key, int value);
-        public void ecall_get(int key, [out] int* value);
+        public void ecall_get(int key, [out] int *value);
 
         
         /* for using user defined types, please refer to Pointers.edl, Arrays.edl. */

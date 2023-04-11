@@ -53,4 +53,6 @@ int get(int k){
     ret = ecall_get(global_eid, (int)k, &value);
     if (ret != SGX_SUCCESS)
         abort();
+
+    return value;
 }
