@@ -3,8 +3,10 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/home/aghia/sgx_workspace/sgxsdk/include/**"
+                "${workspaceFolder}/eRPC_module/**",
+                "${HOME}/erpc/erpc_c/**",
+                "${HOME}/sgx_workspace/sgxsdk/include/**",
+                "${workspaceFolder}/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

@@ -30,29 +30,37 @@
  */
 
 
-#include "../App.h"
-#include "Enclave_u.h"
+/* Test Basic Types */
 
-/* edger8r_type_attributes:
- *   Invokes ECALLs declared with basic types.
+#include "sgx_trts.h"
+#include "../Enclave.h"
+#include "Enclave_t.h"
+#include <limits>
+#include <cmath>
+
+#include <map>
+using namespace std;
+// Declare myMap as a global variable
+map<int, int> myMap;
+
+/* used to eliminate `unused variable' warning */
+#define UNUSED(val) (void)(val)
+
+#define ULP 2
+
+
+
+/* ecall_type_int:
+ *   [int] value passed by App.
  */
-void put(int k, int v)
+void ecall_put(int key, int val)
 {
-    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-
-    ret = ecall_put(global_eid, (int)k, (int)v);
-    if (ret != SGX_SUCCESS)
-        abort();
+    myMap[key]=val;
+    //printf("value = %d successfully inserted \n",myMap[key]);
 
 }
 
-int get(int k){
-    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    int value;
-
-    ret = ecall_get(global_eid, (int)k, &value);
-    if (ret != SGX_SUCCESS)
-        abort();
-
-    return value;
+void ecall_get(int key, int *val)
+{
+    *val= myMap.find(key)->second;
 }

@@ -40,6 +40,10 @@
 
 #include "sgx_urts.h"
 #include "App.h"
+
+#include "../../eRPC_module/erpc_common.h"
+#include "../../eRPC_module/erpc_server.h" /* implement erpcGet() and erpcPUT()*/
+
 #include "Enclave_u.h"
 
 /* Global EID shared by multiple threads */
@@ -135,6 +139,14 @@ static sgx_errlist_t sgx_errlist[] = {
     },
 };
 
+void erpcPut(int k, int v){
+    put(k,v);
+}
+
+void erpcGet(int k, int* v){
+    *v =  get(k);
+}
+
 /* Check error conditions for loading enclave */
 void print_error_message(sgx_status_t ret)
 {
@@ -189,21 +201,31 @@ int SGX_CDECL main(int argc, char *argv[])
     (void)(argc);
     (void)(argv);
 
-
+    printf("SMS server started... \n"); 
     /* Initialize the enclave */
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
         getchar();
         return -1; 
     }
- 
-    //client part
-    put(1,10);
-    put(2,20);
-    put(3,30);
-    printf("get(1) = %d \n", get(1));
-    printf("get(2) = %d \n", get(2));
-    printf("get(3) = %d \n", get(3));
+
+    erpc_transport_t transport = erpc_transport_tcp_init("127.0.0.1",5407, true); 
+    
+    erpc_mbf_t message_buffer_factory = erpc_mbf_dynamic_init();
+
+    
+    auto server = erpc_server_init(transport, message_buffer_factory);
+
+    erpc_service_t service = create_AccessKVS_service();
+
+    erpc_add_service_to_server(server, service);
+
+    erpc_server_run(server); 
+    
+   
+    erpc_transport_tcp_close();
+
+    printf("Server closed \n");
     
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);

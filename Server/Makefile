@@ -83,8 +83,15 @@ else
 	Urts_Library_Name := sgx_urts
 endif
 
+INCLUDE1_erpc = $(HOME)/erpc/erpc_c/setup/
+INCLUDE2_erpc = $(HOME)/erpc/erpc_c/infra/
+INCLUDE3_erpc = $(HOME)/erpc/erpc_c/port/
+INCLUDE4_erpc = $(HOME)/erpc/erpc_c/config/
+INCLUDE5_erpc = $(HOME)/erpc/erpc_c/transports/
+LIBRARY_erpckvs_server = ../eRPC_module/
+
 App_Cpp_Files := App/App.cpp $(wildcard App/Edger8rSyntax/*.cpp) $(wildcard App/TrustedLibrary/*.cpp)
-App_Include_Paths := -IInclude -IApp -I$(SGX_SDK)/include
+App_Include_Paths := -IInclude -IApp -I$(SGX_SDK)/include -I$(INCLUDE1_erpc) -I$(INCLUDE2_erpc) -I$(INCLUDE3_erpc) -I$(INCLUDE4_erpc) -I$(INCLUDE5_erpc)  
 
 App_C_Flags := -fPIC -Wno-attributes $(App_Include_Paths)
 
@@ -101,7 +108,7 @@ else
 endif
 
 App_Cpp_Flags := $(App_C_Flags)
-App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -lpthread 
+App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_erpckvs_server) -lerpckvs_server -lpthread
 
 App_Cpp_Objects := $(App_Cpp_Files:.cpp=.o)
 
