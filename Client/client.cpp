@@ -9,7 +9,7 @@ int main()
     int v;
     /* Init eRPC client environment */
     /* UART transport layer initialization */
-    erpc_transport_t transport = erpc_transport_tcp_init("127.0.0.1",5407, false);
+    erpc_transport_t transport = erpc_transport_tcp_init("127.0.0.1",5401, false);
 
     /* MessageBufferFactory initialization */
     erpc_mbf_t message_buffer_factory = erpc_mbf_dynamic_init();
@@ -27,6 +27,12 @@ int main()
     erpcPut(4, 40);
     erpcPut(5, 50);
     erpcPut(6, 60);
+
+    erpcGet(1, &v);
+    erpcGet(2, &v);
+    erpcGet(3, &v);
+    erpcGet(4, &v);
+    erpcGet(5, &v);
     erpcGet(6, &v);
 
     std::cout << "Value is " << v << '\n' ;

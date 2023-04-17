@@ -31,6 +31,7 @@
 
 
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <assert.h>
 
@@ -198,18 +199,27 @@ void ocall_print_string(const char *str)
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[])
 {
-    (void)(argc);
-    (void)(argv);
+    int port = 5407;
+    int opt;
+    while ((opt = getopt(argc, argv, "p:")) != -1) {
+        switch (opt) {
+            case 'p':
+                port = atoi(optarg);
+                break;
+            default:
+                printf("Invalid option\n");
+                exit(1);
+        }
+    }
 
-    printf("SMS server started... \n"); 
-    /* Initialize the enclave */
+    printf("SMS server started on port %d...\n", port);
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
         getchar();
         return -1; 
     }
 
-    erpc_transport_t transport = erpc_transport_tcp_init("127.0.0.1",5407, true); 
+    erpc_transport_t transport = erpc_transport_tcp_init("127.0.0.1",port, true); 
     
     erpc_mbf_t message_buffer_factory = erpc_mbf_dynamic_init();
 
@@ -220,9 +230,10 @@ int SGX_CDECL main(int argc, char *argv[])
 
     erpc_add_service_to_server(server, service);
 
-    erpc_server_run(server); 
+    while(true){
+        erpc_server_run(server); 
+    }
     
-   
     erpc_transport_tcp_close();
 
     printf("Server closed \n");
