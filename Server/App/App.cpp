@@ -235,16 +235,13 @@ int SGX_CDECL main(int argc, char *argv[])
     }
     
     erpc_transport_tcp_close();
-
-    printf("Server closed \n");
     
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);
-    
-    printf("Info: SampleEnclave successfully returned.\n");
 
-    printf("Enter a character before exit ...\n");
-    getchar();
+    printf("Server closed \n");
+    
+
     return 0;
 }
 

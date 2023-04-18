@@ -8,7 +8,6 @@ int main()
 
     int v;
     /* Init eRPC client environment */
-    /* UART transport layer initialization */
     erpc_transport_t transport = erpc_transport_tcp_init("127.0.0.1",5401, false);
 
     /* MessageBufferFactory initialization */
