@@ -42,8 +42,7 @@
 #include "sgx_urts.h"
 #include "App.h"
 
-#include "../../eRPC_module/erpc_common.h"
-#include "../../eRPC_module/erpc_server.h" /* implement erpcGet() and erpcPUT()*/
+#include "../../gRPC_module/grpc.h"
 
 #include "Enclave_u.h"
 
@@ -140,12 +139,53 @@ static sgx_errlist_t sgx_errlist[] = {
     },
 };
 
-void erpcPut(int k, int v){
-    put(k,v);
-}
+using grpc::Server;
+using grpc::ServerBuilder;
+using grpc::ServerContext;
+using grpc::Status;
 
-void erpcGet(int k, int* v){
-    *v =  get(k);
+using keyvaluestore::KVS;
+using keyvaluestore::Key;
+using keyvaluestore::Value;
+using keyvaluestore::KV_pair;
+
+
+ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
+
+// Logic and data behind the server's behavior.
+class KVSServiceImpl final : public KVS::Service {
+  //Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response)
+  Status Get(ServerContext* context, const Key* key, Value* value) override {
+    value->set_value(get(key->key()));
+    return Status::OK;
+  }
+
+  Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
+    put(request->key(), request->value());
+    response->set_value(0);
+    return Status::OK;
+  }
+};
+
+void RunServer(uint16_t port) {
+  std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
+  KVSServiceImpl service;
+
+  grpc::EnableDefaultHealthCheckService(true);
+  grpc::reflection::InitProtoReflectionServerBuilderPlugin();
+  ServerBuilder builder;
+  // Listen on the given address without any authentication mechanism.
+  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  // Register "service" as the instance through which we'll communicate with
+  // clients. In this case it corresponds to an *synchronous* service.
+  builder.RegisterService(&service);
+  // Finally assemble the server.
+  std::unique_ptr<Server> server(builder.BuildAndStart());
+  std::cout << "Server listening on " << server_address << std::endl;
+
+  // Wait for the server to shutdown. Note that some other thread must be
+  // responsible for shutting down the server for this call to ever return.
+  server->Wait();
 }
 
 /* Check error conditions for loading enclave */
@@ -199,43 +239,17 @@ void ocall_print_string(const char *str)
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[])
 {
-    int port = 5407;
-    int opt;
-    while ((opt = getopt(argc, argv, "p:")) != -1) {
-        switch (opt) {
-            case 'p':
-                port = atoi(optarg);
-                break;
-            default:
-                printf("Invalid option\n");
-                exit(1);
-        }
-    }
 
-    printf("SMS server started on port %d...\n", port);
+    printf("SMS server started on port 50001...\n");
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
         getchar();
         return -1; 
     }
 
-    erpc_transport_t transport = erpc_transport_tcp_init("127.0.0.1",port, true); 
-    
-    erpc_mbf_t message_buffer_factory = erpc_mbf_dynamic_init();
+    absl::ParseCommandLine(argc, argv);
+    RunServer(absl::GetFlag(FLAGS_port));
 
-    
-    auto server = erpc_server_init(transport, message_buffer_factory);
-
-    erpc_service_t service = create_AccessKVS_service();
-
-    erpc_add_service_to_server(server, service);
-
-    while(true){
-        erpc_server_run(server); 
-    }
-    
-    erpc_transport_tcp_close();
-    
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);
 

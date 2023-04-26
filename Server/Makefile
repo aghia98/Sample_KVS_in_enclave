@@ -73,7 +73,7 @@ SGX_COMMON_FLAGS += -Wall -Wextra -Winit-self -Wpointer-arith -Wreturn-type \
                     -Wmissing-include-dirs -Wfloat-equal -Wundef -Wshadow \
                     -Wcast-align -Wcast-qual -Wconversion -Wredundant-decls
 SGX_COMMON_CFLAGS := $(SGX_COMMON_FLAGS) -Wjump-misses-init -Wstrict-prototypes -Wunsuffixed-float-constants
-SGX_COMMON_CXXFLAGS := $(SGX_COMMON_FLAGS) -Wnon-virtual-dtor -std=c++11
+SGX_COMMON_CXXFLAGS := $(SGX_COMMON_FLAGS) -Wnon-virtual-dtor -std=c++17
 
 ######## App Settings ########
 
@@ -83,15 +83,17 @@ else
 	Urts_Library_Name := sgx_urts
 endif
 
-INCLUDE1_erpc = $(HOME)/erpc/erpc_c/setup/
-INCLUDE2_erpc = $(HOME)/erpc/erpc_c/infra/
-INCLUDE3_erpc = $(HOME)/erpc/erpc_c/port/
-INCLUDE4_erpc = $(HOME)/erpc/erpc_c/config/
-INCLUDE5_erpc = $(HOME)/erpc/erpc_c/transports/
-LIBRARY_erpckvs_server = ../eRPC_module/
+INCLUDE_grpc = $(HOME)/usr/local/include 
+LIBRARY_grpckvs_server = ../gRPC_module/
+
+export PKG_CONFIG_PATH=~/usr/local/lib/pkgconfig
+FLAGS_grpckvs = `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`\
+           -pthread\
+           -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
+           -ldl 
 
 App_Cpp_Files := App/App.cpp $(wildcard App/Edger8rSyntax/*.cpp) $(wildcard App/TrustedLibrary/*.cpp)
-App_Include_Paths := -IInclude -IApp -I$(SGX_SDK)/include -I$(INCLUDE1_erpc) -I$(INCLUDE2_erpc) -I$(INCLUDE3_erpc) -I$(INCLUDE4_erpc) -I$(INCLUDE5_erpc)  
+App_Include_Paths := -IInclude -IApp -I$(SGX_SDK)/include -I$(INCLUDE_grpc)  
 
 App_C_Flags := -fPIC -Wno-attributes $(App_Include_Paths)
 
@@ -108,7 +110,7 @@ else
 endif
 
 App_Cpp_Flags := $(App_C_Flags)
-App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_erpckvs_server) -lerpckvs_server -lpthread
+App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs_server) -lgrpckvs_server $(FLAGS_grpckvs) -lpthread
 
 App_Cpp_Objects := $(App_Cpp_Files:.cpp=.o)
 
