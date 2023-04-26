@@ -1,46 +1,112 @@
-#include <iostream> 
-#include "../eRPC_module/erpc_common.h"
-#include "../eRPC_module/erpc_client.h" 
+/*
+ *
+ * Copyright 2015 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 
+#include <iostream>
+#include <memory>
+#include <string>
 
-int main()
-{
+#include "../gRPC_module/grpc_common.h"
 
-    int v;
-    /* Init eRPC client environment */
-    erpc_transport_t transport = erpc_transport_tcp_init("127.0.0.1",5401, false);
+ABSL_FLAG(std::string, target, "localhost:60001", "Server address");
 
-    /* MessageBufferFactory initialization */
-    erpc_mbf_t message_buffer_factory = erpc_mbf_dynamic_init();
+using grpc::Channel;
+using grpc::ClientContext;
+using grpc::Status;
 
-    /* eRPC client side initialization */
-    erpc_client_init(transport, message_buffer_factory);
+using keyvaluestore::KVS;
+using keyvaluestore::Key;
+using keyvaluestore::Value;
+using keyvaluestore::KV_pair;
 
-    /* other code like init matrix1 and matrix2 values */
+class KVSClient {
+ public:
+  KVSClient(std::shared_ptr<Channel> channel)
+      : stub_(KVS::NewStub(channel)) {}
 
-    
-    /* call eRPC functions */
-    erpcPut(1, 10);
-    erpcPut(2, 20);
-    erpcPut(3, 30);
-    erpcPut(4, 40);
-    erpcPut(5, 50);
-    erpcPut(6, 60);
+  // Assembles the client's payload, sends it and presents the response back
+  // from the server.
+  std::string Get(const int32_t k) {
+    // Data we are sending to the server.
+    Key key;
+    key.set_key(k);
 
-    erpcGet(1, &v);
-    erpcGet(2, &v);
-    erpcGet(3, &v);
-    erpcGet(4, &v);
-    erpcGet(5, &v);
-    erpcGet(6, &v);
+    // Container for the data we expect from the server.
+    Value reply;
 
-    std::cout << "Value is " << v << '\n' ;
+    // Context for the client. It could be used to convey extra information to
+    // the server and/or tweak certain RPC behaviors.
+    ClientContext context;
 
+    // The actual RPC.
+    Status status = stub_->Get(&context, key, &reply);
 
-    
-    erpc_transport_tcp_close();
+    // Act upon its status.
+    if (status.ok()) {
+      return std::to_string(reply.value());
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return "RPC failed";
+    }
+  }
 
-    
+  std::string Put(const int32_t k, const int32_t v) {
+    // Follows the same pattern as SayHello.
+    KV_pair request;
+    request.set_key(k);
+    request.set_value(v);
+    Value reply;
+    ClientContext context;
 
-    return 0;
+    // Here we can use the stub's newly available method we just added.
+    Status status = stub_->Put(&context, request, &reply);
+    if (status.ok()) {
+      return std::to_string(reply.value());
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return "RPC failed";
+    }
+  }
+
+ private:
+  std::unique_ptr<KVS::Stub> stub_;
+};
+
+int main(int argc, char** argv) {
+  absl::ParseCommandLine(argc, argv);
+  // Instantiate the client. It requires a channel, out of which the actual RPCs
+  // are created. This channel models a connection to an endpoint specified by
+  // the argument "--target=" which is the only expected argument.
+  std::string target_str = absl::GetFlag(FLAGS_target);
+  // We indicate that the channel isn't authenticated (use of
+  // InsecureChannelCredentials()).
+  KVSClient kvs(
+      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+  
+  int32_t k(1);
+  int32_t v(10);
+
+  std::string reply = kvs.Put(k,v);
+  std::cout << "Put(1,10): \t Client received: " << reply << std::endl;
+
+  reply = kvs.Get(k);
+  std::cout << "Get(1): \t Client received: " << reply << std::endl;
+
+  return 0;
 }

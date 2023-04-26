@@ -150,9 +150,6 @@ using keyvaluestore::Key;
 using keyvaluestore::Value;
 using keyvaluestore::KV_pair;
 
-
-ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
-
 // Logic and data behind the server's behavior.
 class KVSServiceImpl final : public KVS::Service {
   //Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response)
@@ -182,7 +179,7 @@ void RunServer(uint16_t port) {
   builder.RegisterService(&service);
   // Finally assemble the server.
   std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << server_address << std::endl;
+  std::cout << "SMS node listening on " << server_address << std::endl;
 
   // Wait for the server to shutdown. Note that some other thread must be
   // responsible for shutting down the server for this call to ever return.
@@ -236,12 +233,12 @@ void ocall_print_string(const char *str)
 }
 
 
+ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[])
 {
 
-    printf("SMS server started on port 50001...\n");
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
         getchar();

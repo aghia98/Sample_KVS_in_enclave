@@ -1,6 +1,6 @@
-#Generates Static then dynamic library
+
 all:
-	cd src && make server
+	cd src && make server && make client
 	
 clean:
-	rm libgrpckvs_server.a
+	rm libgrpckvs_server.a libgrpckvs_client.a

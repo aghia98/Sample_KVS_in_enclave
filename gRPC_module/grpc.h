@@ -11,13 +11,3 @@
 #else
 #include "src/KVS_access.grpc.pb.h"
 #endif
-
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
-using grpc::Status;
-
-using keyvaluestore::KVS;
-using keyvaluestore::Key;
-using keyvaluestore::Value;
-using keyvaluestore::KV_pair;

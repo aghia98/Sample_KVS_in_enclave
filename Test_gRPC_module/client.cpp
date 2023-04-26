@@ -28,7 +28,7 @@
 #ifdef BAZEL_BUILD
 #include "examples/protos/helloworld.grpc.pb.h"
 #else
-#include "KVS_access.grpc.pb.h"
+#include "src/KVS_access.grpc.pb.h"
 #endif
 
 ABSL_FLAG(std::string, target, "localhost:50001", "Server address");

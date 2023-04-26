@@ -11,4 +11,9 @@ server:
 	mv libgrpckvs_server.a ..
 	rm *.o
 
+client:
+	g++ -c KVS_access.pb.cc KVS_access.grpc.pb.cc $(INCLUDES)
+	ar rcs libgrpckvs_client.a *.o
+	mv libgrpckvs_client.a ..
+	rm *.o
 	
