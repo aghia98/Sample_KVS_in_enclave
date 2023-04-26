@@ -42,7 +42,8 @@
 #include "sgx_urts.h"
 #include "App.h"
 
-#include "../../gRPC_module/grpc.h"
+#include "../../gRPC_module/grpc_server.h"
+#include "../../gRPC_module/grpc_common.h"
 
 #include "Enclave_u.h"
 
