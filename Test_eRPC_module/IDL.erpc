@@ -1,9 +1,0 @@
-@outputDir("erpc_outputs") // output directory
-program erpc_access_KVS; // specify name of output files
-
-
-interface AccessKVS // cover functions for same topic
-{
-    erpcGet(in int32 k, out int32 v) -> void
-    erpcPut(in int32 k, in int32 v) -> void
-}
