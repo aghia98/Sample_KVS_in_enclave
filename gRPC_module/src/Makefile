@@ -5,6 +5,8 @@ LDFLAGS += `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_par
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
            -ldl
 
+all: server client
+
 server:
 	g++ -c KVS_access.pb.cc KVS_access.grpc.pb.cc $(INCLUDES)
 	ar rcs libgrpckvs_server.a *.o

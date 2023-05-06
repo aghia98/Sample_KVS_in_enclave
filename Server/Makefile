@@ -86,7 +86,6 @@ endif
 INCLUDE_grpc = $(HOME)/usr/local/include 
 LIBRARY_grpckvs_server = ../gRPC_module/
 
-export PKG_CONFIG_PATH=~/usr/local/lib/pkgconfig
 FLAGS_grpckvs = `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`\
            -pthread\
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\

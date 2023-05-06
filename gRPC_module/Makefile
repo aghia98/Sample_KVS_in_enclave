@@ -1,6 +1,6 @@
 
 all:
-	cd src && make server && make client
+	cd src && make
 	
 clean:
 	rm libgrpckvs_server.a libgrpckvs_client.a
