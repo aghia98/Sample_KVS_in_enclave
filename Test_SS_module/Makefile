@@ -1,9 +1,9 @@
 all: ssss-split ssss-combine
 
-ssss-split: ssss-split.c
-	gcc -c ssss-split.c
-	gcc ssss-split.o -W -Wall -O2 -lgmp -o ssss-split
-	rm ssss-split.o
+client-split: client-split.c
+	gcc -c client-split.c ssss-split.c
+	gcc client-split.o ssss-split.o -W -Wall -O2 -lgmp -o client-split
+	rm ssss-split.o client-split.o
 
 ssss-combine: ssss-combine.c
 
@@ -12,4 +12,4 @@ ssss-combine: ssss-combine.c
 	rm ssss-combine.o
 
 clean:
-	rm -rf ssss-split ssss-combine
+	rm -rf client-split ssss-combine

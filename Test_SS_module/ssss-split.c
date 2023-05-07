@@ -49,6 +49,7 @@
 #include <sys/mman.h>
 
 #include <gmp.h>
+#include "ssss-split.h"
 
 #define VERSION "0.5"
 #define RANDOM_SOURCE "/dev/random"
@@ -183,6 +184,8 @@ void field_print(FILE* stream, const mpz_t x, int hexmode)
       warning("binary data detected, use -x mode instead");
   }
 }
+
+
 
 /* basic field arithmetic in GF(2^deg) */
 
@@ -348,52 +351,15 @@ void horner(int n, mpz_t y, const mpz_t x, const mpz_t coeff[])
 #define MPZ_SWAP(A, B) \
   do { mpz_set(h, A); mpz_set(A, B); mpz_set(B, h); } while(0)
 
-int restore_secret(int n, mpz_t (*A)[n], mpz_t b[]) 
-{
-  mpz_t (*AA)[n] = (mpz_t (*)[n])A;
-  int i, j, k, found;
-  mpz_t h;
-  mpz_init(h);
-  for(i = 0; i < n; i++) {
-    if (! mpz_cmp_ui(AA[i][i], 0)) {
-      for(found = 0, j = i + 1; j < n; j++)
-	if (mpz_cmp_ui(AA[i][j], 0)) {
-	  found = 1;
-	  break;
-	}
-      if (! found) 
-	return -1;
-      for(k = i; k < n; k++) 
-	MPZ_SWAP(AA[k][i], AA[k][j]);
-      MPZ_SWAP(b[i], b[j]);
-    }
-    for(j = i + 1; j < n; j++) {
-      if (mpz_cmp_ui(AA[i][j], 0)) {
-	for(k = i + 1; k < n; k++) {
-	  field_mult(h, AA[k][i], AA[i][j]);
-	  field_mult(AA[k][j], AA[k][j], AA[i][i]);
-	  field_add(AA[k][j], AA[k][j], h);
-	}
-	field_mult(h, b[i], AA[i][j]);
-	field_mult(b[j], b[j], AA[i][i]);
-	field_add(b[j], b[j], h);
-      }
-    }
-  }
-  field_invert(h, AA[n - 1][n - 1]);
-  field_mult(b[n - 1], b[n - 1], h);
-  mpz_clear(h);
-  return 0;
-}
-
 /* Prompt for a secret, generate shares for it */
 
-void split(void)
+void split(int debug, char* shares[])
 {
   unsigned int fmt_len;
   mpz_t x, y, coeff[opt_threshold];
   char buf[MAXLINELEN];
   int deg, i;
+
   for(fmt_len = 1, i = opt_number; i >= 10; i /= 10, fmt_len++);
   if (! opt_quiet) {
     printf("Generating shares using a (%d,%d) scheme with ", 
@@ -438,6 +404,8 @@ void split(void)
   }
   
   cprng_init();
+
+
   for(i = 1; i < opt_threshold; i++) {
     mpz_init(coeff[i]);
     cprng_read(coeff[i]);
@@ -446,13 +414,50 @@ void split(void)
 
   mpz_init(x);
   mpz_init(y);
+
+  // Array to store the shares
+  int full_size;
+  int j;
+
   for(i = 0; i < opt_number; i++) {
+    
     mpz_set_ui(x, i + 1);
     horner(opt_threshold, y, x, (const mpz_t*)coeff);
     if (opt_token)
       printf("%s-", opt_token);
-    printf("%0*d-", fmt_len, i + 1);
-    field_print(stdout, y, 1);
+    if(debug){
+      printf("%0*d-", fmt_len, i + 1);
+      field_print(stdout, y, 1);  // Display the share //void field_print(FILE* stream, const mpz_t x, int hexmode)
+    }
+    
+
+    //copy to array
+    char* share_id;
+    char* share_value;
+    char* share_value_min;
+    char* share;
+
+    share_id = (char*)malloc((fmt_len + 2) * sizeof(char)); 
+    sprintf(share_id, "%0*d-", fmt_len, i + 1);
+
+    char leading_zeros[100] = "";
+    for(j = degree / 4 - mpz_sizeinbase(y, 16); j; j--)
+      strcat(leading_zeros, "0");
+    
+
+    share_value_min = mpz_get_str(NULL,16,y);
+    share_value = malloc(strlen(share_value_min) + strlen(leading_zeros) + 1);
+    memset(share_value, '0', strlen(leading_zeros));
+    strcpy(share_value, leading_zeros);
+    strcat(share_value, share_value_min);
+    //share_value = mpz_get_str(NULL,16,y);
+
+    full_size = strlen( share_id ) + strlen( share_value ) + 1;
+    share = (char *) malloc( full_size );
+
+    strcpy( share, share_id );
+    strcat( share, share_value);
+    shares[i] = share;
   }
   mpz_clear(x);
   mpz_clear(y);
@@ -460,32 +465,35 @@ void split(void)
   for(i = 0; i < opt_threshold; i++)
     mpz_clear(coeff[i]);
   field_deinit();
-}
 
+  // Access the shares from the array if required
+  if(debug){
+    for(i = 0; i < opt_number; i++) {
+      printf("Share %d = %s\n", i + 1, shares[i]);
+    } 
+  }
+}
 /* Prompt for shares, calculate the secret */
 
-int main(int argc, char *argv[])
-{
-  char *name;
+int shamir_split(int t, int n, int debug, char*** shares){
   int i;
-
-#if ! NOMLOCK
-  if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0)
-    switch(errno) {
-    case ENOMEM:
-      warning("couldn't get memory lock (ENOMEM, try to adjust RLIMIT_MEMLOCK!)");
-      break;
-    case EPERM:
-      warning("couldn't get memory lock (EPERM, try UID 0!)");
-      break;
-    case ENOSYS:
-      warning("couldn't get memory lock (ENOSYS, kernel doesn't allow page locking)");
-      break;
-    default:
-      warning("couldn't get memory lock");
-      break;
-    }
-#endif
+  #if ! NOMLOCK
+    if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0)
+      switch(errno) {
+      case ENOMEM:
+        warning("couldn't get memory lock (ENOMEM, try to adjust RLIMIT_MEMLOCK!)");
+        break;
+      case EPERM:
+        warning("couldn't get memory lock (EPERM, try UID 0!)");
+        break;
+      case ENOSYS:
+        warning("couldn't get memory lock (ENOSYS, kernel doesn't allow page locking)");
+        break;
+      default:
+        warning("couldn't get memory lock");
+        break;
+      }
+  #endif
 
   if (getuid() != geteuid())
     seteuid(getuid());
@@ -494,53 +502,17 @@ int main(int argc, char *argv[])
   echo_off = echo_orig;
   echo_off.c_lflag &= ~ECHO;
 
-  opt_help = argc == 1;
-  while((i = getopt(argc, argv, "vDhqQxs:t:n:w:")) != -1)
-    switch(i) {
-    case 'v': opt_showversion = 1; break;
-    case 'h': opt_help = 1; break;
-    case 'q': opt_quiet = 1; break;
-    case 'Q': opt_QUIET = opt_quiet = 1; break;
-    case 'x': opt_hex = 1; break;
-    case 's': opt_security = atoi(optarg); break;
-    case 't': opt_threshold = atoi(optarg); break;
-    case 'n': opt_number = atoi(optarg); break;
-    case 'w': opt_token = optarg; break;
-    case 'D': opt_diffusion = 0; break;
-    default:
-      exit(1);
-    }
-  if (! opt_help && (argc != optind))
-    fatal("invalid argument");
+  opt_threshold = t;
+  opt_number = n;
 
-  if ((name = strrchr(argv[0], '/')) == NULL)
-    name = argv[0];
+  if (opt_threshold < 2)
+      fatal("invalid parameters: invalid threshold value");
 
-  
-    if (opt_help || opt_showversion) {
-        puts("Split secrets using Shamir's Secret Sharing Scheme.\n"
-        "\n"
-        "ssss-split -t threshold -n shares [-w token] [-s level]"
-        " [-x] [-q] [-Q] [-D] [-v]"
-        );
-        if (opt_showversion)
-    puts("\nVersion: " VERSION);
-        exit(0);
-    }
+  if (opt_number < opt_threshold)
+      fatal("invalid parameters: number of shares smaller than threshold");
 
-    if (opt_threshold < 2)
-        fatal("invalid parameters: invalid threshold value");
-
-    if (opt_number < opt_threshold)
-        fatal("invalid parameters: number of shares smaller than threshold");
-
-    if (opt_security && ! field_size_valid(opt_security))
-        fatal("invalid parameters: invalid security level");
-
-    if (opt_token && (strlen(opt_token) > MAXTOKENLEN))
-        fatal("invalid parameters: token too long");
-
-    split();
+  *shares = (char**) malloc(opt_number*sizeof(char*)); 
+  split(debug, *shares);
   
   return 0;
 }
