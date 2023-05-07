@@ -21,6 +21,7 @@
 #include <string>
 
 #include "../gRPC_module/grpc_common.h"
+#include "../SS_module/ss-client.h"
 
 ABSL_FLAG(std::string, target, "localhost:60001", "Server address");
 
@@ -89,15 +90,36 @@ class KVSClient {
 };
 
 int main(int argc, char** argv) {
+
+  char** shares;
+  int t=3;
+  int n=5;
+  int debug=0;
+  int deg;
+
+  char input[MAXLINELEN];
+
+  printf("Generating shares using a (%d,%d) scheme with ", t, n);
+  printf("dynamic");
+  printf(" security level.\n");
+  
+  deg = MAXDEGREE;
+  fprintf(stderr, "Enter the secret, ");
+  fprintf(stderr, "at most %d ASCII characters: ", deg / 8);
+
+  fgets(input, sizeof(input), stdin);
+
+  shamir_split(t,n,debug, &shares, input);
+
+  for(int i=0; i<5; i++)
+    printf("%s\n", shares[i]);
+
   absl::ParseCommandLine(argc, argv);
-  // Instantiate the client. It requires a channel, out of which the actual RPCs
-  // are created. This channel models a connection to an endpoint specified by
-  // the argument "--target=" which is the only expected argument.
+
   std::string target_str = absl::GetFlag(FLAGS_target);
-  // We indicate that the channel isn't authenticated (use of
-  // InsecureChannelCredentials()).
-  KVSClient kvs(
-      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+  
+
+  KVSClient kvs(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
   
   int32_t k(1);
   int32_t v(10);
