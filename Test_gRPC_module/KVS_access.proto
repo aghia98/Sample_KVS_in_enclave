@@ -25,16 +25,16 @@ service KVS {
 
 // The request message containing the key
 message Key {
-  int32 key = 1;
+  string key = 1;
 }
 
 // The response message containing the value associated with the key
 message Value{
-  int32 value = 1;
+  string value = 1;
 }
 
 message KV_pair{
-  int32 key = 1;
-  int32 value = 2;
+  string key = 1;
+  string value = 2;
 }
 

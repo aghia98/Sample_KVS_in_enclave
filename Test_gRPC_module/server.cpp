@@ -37,7 +37,7 @@
 #include <map>
 using namespace std;
 // Declare myMap as a global variable
-map<int32_t, int32_t> myMap;
+map<string,string> myMap;
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -55,13 +55,18 @@ ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 class KVSServiceImpl final : public KVS::Service {
   //Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response)
   Status Get(ServerContext* context, const Key* key, Value* value) override {
-    value->set_value(myMap.find(key->key())->second);
+    auto iterator = myMap.find(key->key());
+    if(iterator != myMap.end()){
+      value->set_value(iterator->second);
+    }else{
+      value->set_value("Not found");
+    }
     return Status::OK;
   }
 
   Status Put(ServerContext* context, const KV_pair* request, Value* response) override{
     myMap[request->key()]=request->value();
-    response->set_value(0);
+    response->set_value("SUCCESS");
     return Status::OK;
   }
 };

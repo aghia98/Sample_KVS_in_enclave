@@ -155,15 +155,19 @@ class KVSServiceImpl final : public KVS::Service {
   //Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response)
   Status Get(ServerContext* context, const Key* key, Value* value) override {
     value->set_value(get(key->key()));
+    //value->set_value("get is successful");
     return Status::OK;
   }
 
   Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
+    
     put(request->key(), request->value());
-    response->set_value(0);
+    response->set_value("SUCCESS");
     return Status::OK;
   }
 };
+
+
 
 void RunServer(uint16_t port) {
   std::string server_address = absl::StrFormat("0.0.0.0:%d", port);

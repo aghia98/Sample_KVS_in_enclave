@@ -32,26 +32,41 @@
 
 #include "../App.h"
 #include "Enclave_u.h"
+#include <string>
+#include <cstring>
+#include <iostream>
+
+using namespace std;
 
 /* edger8r_type_attributes:
  *   Invokes ECALLs declared with basic types.
+
+ 
  */
-void put(int k, int v)
+
+char* convertCString(std::string str) {
+    char* cstr = new char[str.length() + 1];  // +1 for null-terminator
+    strcpy(cstr, str.c_str());
+    return cstr;
+}
+
+void put(string k, string v)
 {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_put(global_eid, (int)k, (int)v);
+    ret = ecall_put(global_eid, convertCString(k), convertCString(v));
     if (ret != SGX_SUCCESS)
         abort();
 
 }
 
-int get(int k){
-    int value;
-    
+string get(string k){
+    char* value;
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_get(global_eid, (int)k, &value);
+    ret = ecall_get(global_eid, convertCString(k), &value);
     if (ret != SGX_SUCCESS)
         abort();
 
-    return value;
+    string value_string(value); 
+
+    return value_string;
 }

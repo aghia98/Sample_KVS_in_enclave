@@ -37,9 +37,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string>
 
 #include "sgx_error.h"       /* sgx_status_t */
 #include "sgx_eid.h"     /* sgx_enclave_id_t */
+
+using namespace std;
 
 #ifndef TRUE
 # define TRUE 1
@@ -57,8 +60,8 @@ extern sgx_enclave_id_t global_eid;    /* global enclave id */
 extern "C" {
 #endif
 
-void put(int k, int v);
-int get(int k);
+void put(string k, string v);
+string get(string k);
 
 
 #if defined(__cplusplus)

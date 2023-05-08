@@ -187,13 +187,18 @@ class Key final :
   enum : int {
     kKeyFieldNumber = 1,
   };
-  // int32 key = 1;
+  // string key = 1;
   void clear_key();
-  int32_t key() const;
-  void set_key(int32_t value);
+  const std::string& key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_key();
+  PROTOBUF_NODISCARD std::string* release_key();
+  void set_allocated_key(std::string* key);
   private:
-  int32_t _internal_key() const;
-  void _internal_set_key(int32_t value);
+  const std::string& _internal_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_key(const std::string& value);
+  std::string* _internal_mutable_key();
   public:
 
   // @@protoc_insertion_point(class_scope:keyvaluestore.Key)
@@ -204,7 +209,7 @@ class Key final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
-    int32_t key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -335,13 +340,18 @@ class Value final :
   enum : int {
     kValueFieldNumber = 1,
   };
-  // int32 value = 1;
+  // string value = 1;
   void clear_value();
-  int32_t value() const;
-  void set_value(int32_t value);
+  const std::string& value() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_value(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_value();
+  PROTOBUF_NODISCARD std::string* release_value();
+  void set_allocated_value(std::string* value);
   private:
-  int32_t _internal_value() const;
-  void _internal_set_value(int32_t value);
+  const std::string& _internal_value() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_value(const std::string& value);
+  std::string* _internal_mutable_value();
   public:
 
   // @@protoc_insertion_point(class_scope:keyvaluestore.Value)
@@ -352,7 +362,7 @@ class Value final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
-    int32_t value_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr value_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -484,22 +494,32 @@ class KV_pair final :
     kKeyFieldNumber = 1,
     kValueFieldNumber = 2,
   };
-  // int32 key = 1;
+  // string key = 1;
   void clear_key();
-  int32_t key() const;
-  void set_key(int32_t value);
+  const std::string& key() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_key(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_key();
+  PROTOBUF_NODISCARD std::string* release_key();
+  void set_allocated_key(std::string* key);
   private:
-  int32_t _internal_key() const;
-  void _internal_set_key(int32_t value);
+  const std::string& _internal_key() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_key(const std::string& value);
+  std::string* _internal_mutable_key();
   public:
 
-  // int32 value = 2;
+  // string value = 2;
   void clear_value();
-  int32_t value() const;
-  void set_value(int32_t value);
+  const std::string& value() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_value(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_value();
+  PROTOBUF_NODISCARD std::string* release_value();
+  void set_allocated_value(std::string* value);
   private:
-  int32_t _internal_value() const;
-  void _internal_set_value(int32_t value);
+  const std::string& _internal_value() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_value(const std::string& value);
+  std::string* _internal_mutable_value();
   public:
 
   // @@protoc_insertion_point(class_scope:keyvaluestore.KV_pair)
@@ -510,8 +530,8 @@ class KV_pair final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
-    int32_t key_;
-    int32_t value_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr value_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -528,92 +548,212 @@ class KV_pair final :
 #endif  // __GNUC__
 // Key
 
-// int32 key = 1;
+// string key = 1;
 inline void Key::clear_key() {
-  _impl_.key_ = 0;
+  _impl_.key_.ClearToEmpty();
 }
-inline int32_t Key::_internal_key() const {
-  return _impl_.key_;
-}
-inline int32_t Key::key() const {
+inline const std::string& Key::key() const {
   // @@protoc_insertion_point(field_get:keyvaluestore.Key.key)
   return _internal_key();
 }
-inline void Key::_internal_set_key(int32_t value) {
-  
-  _impl_.key_ = value;
-}
-inline void Key::set_key(int32_t value) {
-  _internal_set_key(value);
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Key::set_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:keyvaluestore.Key.key)
+}
+inline std::string* Key::mutable_key() {
+  std::string* _s = _internal_mutable_key();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.Key.key)
+  return _s;
+}
+inline const std::string& Key::_internal_key() const {
+  return _impl_.key_.Get();
+}
+inline void Key::_internal_set_key(const std::string& value) {
+  
+  _impl_.key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Key::_internal_mutable_key() {
+  
+  return _impl_.key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Key::release_key() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.Key.key)
+  return _impl_.key_.Release();
+}
+inline void Key::set_allocated_key(std::string* key) {
+  if (key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.key_.SetAllocated(key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.key_.IsDefault()) {
+    _impl_.key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.Key.key)
 }
 
 // -------------------------------------------------------------------
 
 // Value
 
-// int32 value = 1;
+// string value = 1;
 inline void Value::clear_value() {
-  _impl_.value_ = 0;
+  _impl_.value_.ClearToEmpty();
 }
-inline int32_t Value::_internal_value() const {
-  return _impl_.value_;
-}
-inline int32_t Value::value() const {
+inline const std::string& Value::value() const {
   // @@protoc_insertion_point(field_get:keyvaluestore.Value.value)
   return _internal_value();
 }
-inline void Value::_internal_set_value(int32_t value) {
-  
-  _impl_.value_ = value;
-}
-inline void Value::set_value(int32_t value) {
-  _internal_set_value(value);
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Value::set_value(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.value_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:keyvaluestore.Value.value)
+}
+inline std::string* Value::mutable_value() {
+  std::string* _s = _internal_mutable_value();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.Value.value)
+  return _s;
+}
+inline const std::string& Value::_internal_value() const {
+  return _impl_.value_.Get();
+}
+inline void Value::_internal_set_value(const std::string& value) {
+  
+  _impl_.value_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Value::_internal_mutable_value() {
+  
+  return _impl_.value_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Value::release_value() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.Value.value)
+  return _impl_.value_.Release();
+}
+inline void Value::set_allocated_value(std::string* value) {
+  if (value != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.value_.SetAllocated(value, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.value_.IsDefault()) {
+    _impl_.value_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.Value.value)
 }
 
 // -------------------------------------------------------------------
 
 // KV_pair
 
-// int32 key = 1;
+// string key = 1;
 inline void KV_pair::clear_key() {
-  _impl_.key_ = 0;
+  _impl_.key_.ClearToEmpty();
 }
-inline int32_t KV_pair::_internal_key() const {
-  return _impl_.key_;
-}
-inline int32_t KV_pair::key() const {
+inline const std::string& KV_pair::key() const {
   // @@protoc_insertion_point(field_get:keyvaluestore.KV_pair.key)
   return _internal_key();
 }
-inline void KV_pair::_internal_set_key(int32_t value) {
-  
-  _impl_.key_ = value;
-}
-inline void KV_pair::set_key(int32_t value) {
-  _internal_set_key(value);
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void KV_pair::set_key(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:keyvaluestore.KV_pair.key)
 }
+inline std::string* KV_pair::mutable_key() {
+  std::string* _s = _internal_mutable_key();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.KV_pair.key)
+  return _s;
+}
+inline const std::string& KV_pair::_internal_key() const {
+  return _impl_.key_.Get();
+}
+inline void KV_pair::_internal_set_key(const std::string& value) {
+  
+  _impl_.key_.Set(value, GetArenaForAllocation());
+}
+inline std::string* KV_pair::_internal_mutable_key() {
+  
+  return _impl_.key_.Mutable(GetArenaForAllocation());
+}
+inline std::string* KV_pair::release_key() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.KV_pair.key)
+  return _impl_.key_.Release();
+}
+inline void KV_pair::set_allocated_key(std::string* key) {
+  if (key != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.key_.SetAllocated(key, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.key_.IsDefault()) {
+    _impl_.key_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.KV_pair.key)
+}
 
-// int32 value = 2;
+// string value = 2;
 inline void KV_pair::clear_value() {
-  _impl_.value_ = 0;
+  _impl_.value_.ClearToEmpty();
 }
-inline int32_t KV_pair::_internal_value() const {
-  return _impl_.value_;
-}
-inline int32_t KV_pair::value() const {
+inline const std::string& KV_pair::value() const {
   // @@protoc_insertion_point(field_get:keyvaluestore.KV_pair.value)
   return _internal_value();
 }
-inline void KV_pair::_internal_set_value(int32_t value) {
-  
-  _impl_.value_ = value;
-}
-inline void KV_pair::set_value(int32_t value) {
-  _internal_set_value(value);
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void KV_pair::set_value(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.value_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:keyvaluestore.KV_pair.value)
+}
+inline std::string* KV_pair::mutable_value() {
+  std::string* _s = _internal_mutable_value();
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.KV_pair.value)
+  return _s;
+}
+inline const std::string& KV_pair::_internal_value() const {
+  return _impl_.value_.Get();
+}
+inline void KV_pair::_internal_set_value(const std::string& value) {
+  
+  _impl_.value_.Set(value, GetArenaForAllocation());
+}
+inline std::string* KV_pair::_internal_mutable_value() {
+  
+  return _impl_.value_.Mutable(GetArenaForAllocation());
+}
+inline std::string* KV_pair::release_value() {
+  // @@protoc_insertion_point(field_release:keyvaluestore.KV_pair.value)
+  return _impl_.value_.Release();
+}
+inline void KV_pair::set_allocated_value(std::string* value) {
+  if (value != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.value_.SetAllocated(value, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.value_.IsDefault()) {
+    _impl_.value_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:keyvaluestore.KV_pair.value)
 }
 
 #ifdef __GNUC__

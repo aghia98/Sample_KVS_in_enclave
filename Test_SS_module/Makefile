@@ -1,8 +1,8 @@
 all: ssss-split ssss-combine
 
-client-split: client-split.c
-	gcc -c client-split.c ssss-split.c
-	gcc client-split.o ssss-split.o -W -Wall -O2 -lgmp -o client-split
+client-split: client-split.cpp
+	g++ -c client-split.cpp ssss-split.cpp
+	g++ client-split.o ssss-split.o -W -Wall -O2 -lgmp -o client-split
 	rm ssss-split.o client-split.o
 
 ssss-combine: ssss-combine.c

@@ -35,32 +35,59 @@
 #include "sgx_trts.h"
 #include "../Enclave.h"
 #include "Enclave_t.h"
-#include <limits>
-#include <cmath>
+//#include <limits>
+//#include <cmath>
+#include <string>
+
 
 #include <map>
+
 using namespace std;
 // Declare myMap as a global variable
-map<int, int> myMap;
+map<string, string> myMap;
 
 /* used to eliminate `unused variable' warning */
 #define UNUSED(val) (void)(val)
 
 #define ULP 2
 
+/*char* convertCString(std::string str) {
+    char* cstr = new char[str.length() + 1];  // +1 for null-terminator
+    strcpy(cstr, str.c_str());
+    return cstr;
+}*/
+
+void copyString(std::string source, char* destination) {
+    for (std::size_t i = 0; i < source.length(); ++i) {
+        destination[i] = source[i];
+    }
+    destination[source.length()] = '\0'; // Append null character to terminate the string
+}
+
 
 
 /* ecall_type_int:
  *   [int] value passed by App.
  */
-void ecall_put(int key, int val)
-{
-    myMap[key]=val;
-    //printf("value = %d successfully inserted \n",myMap[key]);
+void ecall_put(char key[], char val[]){
+    string key_string(key);
+    string val_string(val);
+    myMap[key_string]=val;
 
 }
 
-void ecall_get(int key, int *val)
-{
-    *val= myMap.find(key)->second;
+void ecall_get(char key[], char** val){
+  string key_string(key);
+  
+  auto iterator = myMap.find(key_string);
+  if(iterator != myMap.end()){
+    string source = iterator->second;
+    char destination[200];
+
+    copyString(source, destination); 
+    *val = destination;
+  }else{
+    *val="buggg";
+  }
+
 }

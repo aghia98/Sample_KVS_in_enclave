@@ -28,7 +28,7 @@
 #ifdef BAZEL_BUILD
 #include "examples/protos/helloworld.grpc.pb.h"
 #else
-#include "src/KVS_access.grpc.pb.h"
+#include "KVS_access.grpc.pb.h"
 #endif
 
 ABSL_FLAG(std::string, target, "localhost:50001", "Server address");
@@ -42,14 +42,14 @@ using keyvaluestore::Key;
 using keyvaluestore::Value;
 using keyvaluestore::KV_pair;
 
+using namespace std;
+
 class KVSClient {
  public:
   KVSClient(std::shared_ptr<Channel> channel)
       : stub_(KVS::NewStub(channel)) {}
 
-  // Assembles the client's payload, sends it and presents the response back
-  // from the server.
-  std::string Get(const int32_t k) {
+  string Get(const string k) {
     // Data we are sending to the server.
     Key key;
     key.set_key(k);
@@ -66,7 +66,7 @@ class KVSClient {
 
     // Act upon its status.
     if (status.ok()) {
-      return std::to_string(reply.value());
+      return reply.value();
     } else {
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;
@@ -74,7 +74,7 @@ class KVSClient {
     }
   }
 
-  std::string Put(const int32_t k, const int32_t v) {
+  std::string Put(const string k, const string v) {
     // Follows the same pattern as SayHello.
     KV_pair request;
     request.set_key(k);
@@ -85,7 +85,7 @@ class KVSClient {
     // Here we can use the stub's newly available method we just added.
     Status status = stub_->Put(&context, request, &reply);
     if (status.ok()) {
-      return std::to_string(reply.value());
+      return reply.value();
     } else {
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;
@@ -97,21 +97,19 @@ class KVSClient {
   std::unique_ptr<KVS::Stub> stub_;
 };
 
+
 int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
-  // Instantiate the client. It requires a channel, out of which the actual RPCs
-  // are created. This channel models a connection to an endpoint specified by
-  // the argument "--target=" which is the only expected argument.
+  
   std::string target_str = absl::GetFlag(FLAGS_target);
-  // We indicate that the channel isn't authenticated (use of
-  // InsecureChannelCredentials()).
+ 
   KVSClient kvs(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
   
-  int32_t k(1);
-  int32_t v(10);
+  string k("aghiles");
+  string v("0758908571");
 
-  std::string reply = kvs.Put(k,v);
+  string reply = kvs.Put(k,v);
   std::cout << "Client received: " << reply << std::endl;
 
   reply = kvs.Get(k);

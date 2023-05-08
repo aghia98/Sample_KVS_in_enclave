@@ -55,7 +55,6 @@
 #define RANDOM_SOURCE "/dev/random"
 #define MAXDEGREE 1024
 #define MAXTOKENLEN 128
-#define MAXLINELEN (MAXTOKENLEN + 1 + 10 + 1 + MAXDEGREE / 4 + 10)
 
 /* coefficients of some irreducible polynomials over GF(2) */
 static const unsigned char irred_coeff[] = {
@@ -353,38 +352,20 @@ void horner(int n, mpz_t y, const mpz_t x, const mpz_t coeff[])
 
 /* Prompt for a secret, generate shares for it */
 
-void split(int debug, char* shares[])
-{
+void split(int debug, char* shares[], char* input){
+  
   unsigned int fmt_len;
   mpz_t x, y, coeff[opt_threshold];
-  char buf[MAXLINELEN];
   int deg, i;
 
   for(fmt_len = 1, i = opt_number; i >= 10; i /= 10, fmt_len++);
-  if (! opt_quiet) {
-    printf("Generating shares using a (%d,%d) scheme with ", 
-	   opt_threshold, opt_number);
-    if (opt_security)
-      printf("a %d bit", opt_security);
-    else
-      printf("dynamic");
-    printf(" security level.\n");
-    
-    deg = opt_security ? opt_security : MAXDEGREE;
-    fprintf(stderr, "Enter the secret, ");
-    if (opt_hex)
-      fprintf(stderr, "as most %d hex digits: ", deg / 4);
-    else 
-      fprintf(stderr, "at most %d ASCII characters: ", deg / 8);
-  }
+
   tcsetattr(0, TCSANOW, &echo_off);
-  if (! fgets(buf, sizeof(buf), stdin))
-    fatal("I/O error while reading secret");
   tcsetattr(0, TCSANOW, &echo_orig);
-  buf[strcspn(buf, "\r\n")] = '\0';
+  input[strcspn(input, "\r\n")] = '\0';
 
   if (! opt_security) {
-    opt_security = opt_hex ? 4 * ((strlen(buf) + 1) & ~1): 8 * strlen(buf);
+    opt_security = opt_hex ? 4 * ((strlen(input) + 1) & ~1): 8 * strlen(input);
     if (! field_size_valid(opt_security))
       fatal("security level invalid (secret too long?)");
     if (! opt_quiet)
@@ -394,7 +375,7 @@ void split(int debug, char* shares[])
   field_init(opt_security);
 
   mpz_init(coeff[0]);
-  field_import(coeff[0], buf, opt_hex);
+  field_import(coeff[0], input, opt_hex);
 
   if (opt_diffusion) {
     if (degree >= 64)
@@ -446,7 +427,7 @@ void split(int debug, char* shares[])
     
 
     share_value_min = mpz_get_str(NULL,16,y);
-    share_value = malloc(strlen(share_value_min) + strlen(leading_zeros) + 1);
+    share_value = (char*) malloc(strlen(share_value_min) + strlen(leading_zeros) + 1);
     memset(share_value, '0', strlen(leading_zeros));
     strcpy(share_value, leading_zeros);
     strcat(share_value, share_value_min);
@@ -467,33 +448,16 @@ void split(int debug, char* shares[])
   field_deinit();
 
   // Access the shares from the array if required
-  if(debug){
+  /*if(debug){
     for(i = 0; i < opt_number; i++) {
       printf("Share %d = %s\n", i + 1, shares[i]);
     } 
-  }
+  }*/
 }
-/* Prompt for shares, calculate the secret */
+/***********************************************************************************************************/
 
-int shamir_split(int t, int n, int debug, char*** shares){
+int shamir_split(int t, int n, int debug, char*** shares, char* input){
   int i;
-  #if ! NOMLOCK
-    if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0)
-      switch(errno) {
-      case ENOMEM:
-        warning("couldn't get memory lock (ENOMEM, try to adjust RLIMIT_MEMLOCK!)");
-        break;
-      case EPERM:
-        warning("couldn't get memory lock (EPERM, try UID 0!)");
-        break;
-      case ENOSYS:
-        warning("couldn't get memory lock (ENOSYS, kernel doesn't allow page locking)");
-        break;
-      default:
-        warning("couldn't get memory lock");
-        break;
-      }
-  #endif
 
   if (getuid() != geteuid())
     seteuid(getuid());
@@ -512,7 +476,7 @@ int shamir_split(int t, int n, int debug, char*** shares){
       fatal("invalid parameters: number of shares smaller than threshold");
 
   *shares = (char**) malloc(opt_number*sizeof(char*)); 
-  split(debug, *shares);
+  split(debug, *shares, input);
   
   return 0;
 }

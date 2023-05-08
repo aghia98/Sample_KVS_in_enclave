@@ -214,6 +214,9 @@ endif
 
 endif
 
+print_cxx:
+	@echo $(CXX)
+
 run: all
 ifneq ($(Build_Mode), HW_RELEASE)
 	@$(CURDIR)/$(App_Name)

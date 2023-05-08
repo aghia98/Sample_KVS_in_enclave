@@ -21,27 +21,21 @@
 #include <string>
 
 #include "../gRPC_module/grpc_common.h"
+#include "../gRPC_module/grpc_client.h"
 #include "../SS_module/ss-client.h"
 
-ABSL_FLAG(std::string, target, "localhost:60001", "Server address");
+using namespace std;
 
-using grpc::Channel;
-using grpc::ClientContext;
-using grpc::Status;
 
-using keyvaluestore::KVS;
-using keyvaluestore::Key;
-using keyvaluestore::Value;
-using keyvaluestore::KV_pair;
+ABSL_FLAG(std::string, target, "localhost:50001", "Server address");
+
 
 class KVSClient {
  public:
   KVSClient(std::shared_ptr<Channel> channel)
       : stub_(KVS::NewStub(channel)) {}
 
-  // Assembles the client's payload, sends it and presents the response back
-  // from the server.
-  std::string Get(const int32_t k) {
+  string Get(const string k) {
     // Data we are sending to the server.
     Key key;
     key.set_key(k);
@@ -58,7 +52,7 @@ class KVSClient {
 
     // Act upon its status.
     if (status.ok()) {
-      return std::to_string(reply.value());
+      return reply.value();
     } else {
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;
@@ -66,7 +60,7 @@ class KVSClient {
     }
   }
 
-  std::string Put(const int32_t k, const int32_t v) {
+  std::string Put(const string k, const string v) {
     // Follows the same pattern as SayHello.
     KV_pair request;
     request.set_key(k);
@@ -77,7 +71,7 @@ class KVSClient {
     // Here we can use the stub's newly available method we just added.
     Status status = stub_->Put(&context, request, &reply);
     if (status.ok()) {
-      return std::to_string(reply.value());
+      return reply.value();
     } else {
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;
@@ -89,7 +83,7 @@ class KVSClient {
   std::unique_ptr<KVS::Stub> stub_;
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) { // ./client --target=localhost:60002
 
   char** shares;
   int t=3;
@@ -112,23 +106,23 @@ int main(int argc, char** argv) {
   shamir_split(t,n,debug, &shares, input);
 
   for(int i=0; i<5; i++)
-    printf("%s\n", shares[i]);
-
-  absl::ParseCommandLine(argc, argv);
-
+    printf("%s\n", shares[i]); 
+  //********************************************************************************************************
+   absl::ParseCommandLine(argc, argv);
+  
   std::string target_str = absl::GetFlag(FLAGS_target);
+ 
+  KVSClient kvs(
+      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
   
+  string k("aghiles");
+  string v("this is randommmmmmmmm");
 
-  KVSClient kvs(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-  
-  int32_t k(1);
-  int32_t v(10);
-
-  std::string reply = kvs.Put(k,v);
-  std::cout << "Put(1,10): \t Client received: " << reply << std::endl;
+  string reply = kvs.Put(k,v);
+  std::cout << "Client received: " << reply << std::endl;
 
   reply = kvs.Get(k);
-  std::cout << "Get(1): \t Client received: " << reply << std::endl;
+  std::cout << "Client received: " << reply << std::endl;
 
   return 0;
 }
