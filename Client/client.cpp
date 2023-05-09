@@ -19,6 +19,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <unistd.h>
 
 #include "../gRPC_module/grpc_common.h"
 #include "../gRPC_module/grpc_client.h"
@@ -32,22 +33,16 @@ ABSL_FLAG(std::string, target, "localhost:50001", "Server address");
 
 class KVSClient {
  public:
-  KVSClient(std::shared_ptr<Channel> channel)
-      : stub_(KVS::NewStub(channel)) {}
+  KVSClient(std::shared_ptr<Channel> channel): stub_(KVS::NewStub(channel)) {}
 
   string Get(const string k) {
-    // Data we are sending to the server.
     Key key;
     key.set_key(k);
 
-    // Container for the data we expect from the server.
     Value reply;
 
-    // Context for the client. It could be used to convey extra information to
-    // the server and/or tweak certain RPC behaviors.
     ClientContext context;
 
-    // The actual RPC.
     Status status = stub_->Get(&context, key, &reply);
 
     // Act upon its status.
@@ -60,7 +55,7 @@ class KVSClient {
     }
   }
 
-  std::string Put(const string k, const string v) {
+  string Put(const string k, const string v) {
     // Follows the same pattern as SayHello.
     KV_pair request;
     request.set_key(k);
@@ -73,14 +68,14 @@ class KVSClient {
     if (status.ok()) {
       return reply.value();
     } else {
-      std::cout << status.error_code() << ": " << status.error_message()
-                << std::endl;
+      cout << status.error_code() << ": " << status.error_message()
+                << endl;
       return "RPC failed";
     }
   }
 
  private:
-  std::unique_ptr<KVS::Stub> stub_;
+  unique_ptr<KVS::Stub> stub_;
 };
 
 int main(int argc, char** argv) { // ./client --target=localhost:60002
@@ -90,39 +85,82 @@ int main(int argc, char** argv) { // ./client --target=localhost:60002
   int n=5;
   int debug=0;
   int deg;
+  int available_nodes = 2;
+  int port = 50001;
+  string k;
+  string v;
+  char secret[MAXLINELEN];
+  //string secret;
+  string target_str;
+  string reply;
+  string ip_address = "localhost:";
+  KVSClient* kvs;
 
-  char input[MAXLINELEN];
+  int option;
+      while ((option = getopt(argc, argv, "t:n:")) != -1) {
+          switch (option) {
+              case 't':
+                  t = atoi(optarg);
+                  break;
+              case 'n':
+                  n = atoi(optarg);
+                  break;
+              default:
+                  cerr << "Usage: " << argv[0] << " -t <t> -n <n>" << endl;
+                  return 1;
+          }
+      }
 
-  printf("Generating shares using a (%d,%d) scheme with ", t, n);
-  printf("dynamic");
-  printf(" security level.\n");
-  
-  deg = MAXDEGREE;
-  fprintf(stderr, "Enter the secret, ");
-  fprintf(stderr, "at most %d ASCII characters: ", deg / 8);
+  cout << "Generating shares using a (" << t << "," << n << ") scheme with ";
+  cout << "dynamic ";
+  cout << "security level." << endl;
 
-  fgets(input, sizeof(input), stdin);
+  //read secrets from file
+  cin.sync_with_stdio(false);
+  if (cin.rdbuf()->in_avail() != 0) {
+      string line;
+      int secret_num = 1;
+       while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
+          shamir_split(t,n,debug, &shares, secret);
 
-  shamir_split(t,n,debug, &shares, input);
+          for(int i=0; i<n; i++) //display shares
+            cout << shares[i] << endl; 
 
-  for(int i=0; i<5; i++)
-    printf("%s\n", shares[i]); 
-  //********************************************************************************************************
-   absl::ParseCommandLine(argc, argv);
-  
-  std::string target_str = absl::GetFlag(FLAGS_target);
- 
-  KVSClient kvs(
-      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-  
-  string k("aghiles");
-  string v("this is randommmmmmmmm");
+          k = "Secret "+to_string(secret_num);
+          for(int i=0; i<available_nodes; i++){ //transmitting shares
+            target_str = ip_address+to_string(port+i); 
+            kvs = new KVSClient(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+            v = shares[i];
+            reply = kvs->Put(k,v);
+            cout << "Client received: " << reply << endl;
+            
+            delete kvs;
+          }
 
-  string reply = kvs.Put(k,v);
-  std::cout << "Client received: " << reply << std::endl;
+          secret_num++;
+      }
 
-  reply = kvs.Get(k);
-  std::cout << "Client received: " << reply << std::endl;
+      for(int i=0; i<available_nodes; i++){ //getting shares of secret 1
+        target_str = ip_address+to_string(port+i); 
+        kvs = new KVSClient(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+        reply = kvs->Get("Secret 1");
+        cout << "Client received from node " << i+1 << ": " << reply << endl;
+        
+        delete kvs;
+      }
+
+      for(int i=0; i<available_nodes; i++){ //getting shares of secret 2
+        target_str = ip_address+to_string(port+i); 
+        kvs = new KVSClient(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+        reply = kvs->Get("Secret 2");
+        cout << "Client received from node " << i+1 << ": " << reply << endl;
+        
+        delete kvs;
+      }
+  } else {
+      cerr << "No input provided through redirection." << endl;
+      return 1;
+    }
 
   return 0;
 }
