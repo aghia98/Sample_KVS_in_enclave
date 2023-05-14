@@ -78,11 +78,28 @@ class KVSClient {
   unique_ptr<KVS::Stub> stub_;
 };
 
+void transmit_shares(string k, char** shares, int available_nodes, string ip_address, int port){
+  string v;
+  string target_str;
+  string reply;
+  KVSClient* kvs;
+
+  for(int i=0; i<available_nodes; i++){ //transmitting shares
+    target_str = ip_address+to_string(port+i); 
+    kvs = new KVSClient(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+    v = shares[i];
+    reply = kvs->Put(k,v);
+    cout << "Client received: " << reply << endl;
+    
+    delete kvs;
+  }
+}
+
 int main(int argc, char** argv) { // ./client --target=localhost:60002
 
   char** shares;
-  int t=3;
-  int n=5;
+  int t;
+  int n;
   int debug=0;
   int deg;
   int available_nodes = 2;
@@ -121,22 +138,13 @@ int main(int argc, char** argv) { // ./client --target=localhost:60002
       string line;
       int secret_num = 1;
        while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
-          shamir_split(t,n,debug, &shares, secret);
+          shamir_split(t, n, debug, &shares, secret);
 
           for(int i=0; i<n; i++) //display shares
             cout << shares[i] << endl; 
 
           k = "Secret "+to_string(secret_num);
-          for(int i=0; i<available_nodes; i++){ //transmitting shares
-            target_str = ip_address+to_string(port+i); 
-            kvs = new KVSClient(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-            v = shares[i];
-            reply = kvs->Put(k,v);
-            cout << "Client received: " << reply << endl;
-            
-            delete kvs;
-          }
-
+          transmit_shares(k, shares, available_nodes, ip_address, port);
           secret_num++;
       }
 
