@@ -4,9 +4,9 @@ ssss-split:
 	rm d_string.o split.o ssss-split.o common.o
 
 ssss-combine:
-	g++ -c d_string.cpp combine.cpp strtok.cpp ssss-combine.cpp
-	g++ d_string.o combine.o strtok.o ssss-combine.o -o shamir-combine
-	rm d_string.o strtok.o combine.o ssss-combine.o 
+	g++ -c d_string.cpp combine.cpp strtok.cpp common.cpp ssss-combine.cpp
+	g++ *.o -o shamir-combine
+	rm *.o 
 
 clean:
 	rm shamir-split shamir-combine

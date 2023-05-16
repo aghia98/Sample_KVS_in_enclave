@@ -28,32 +28,23 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 
 #include "d_string.h"
 
 #include "combine.h"
 
+using namespace std;
 
-#define kBUFFERSIZE 4096	// How many bytes to read at a time
 
-DString * stdin_buffer() {
-	/* Read from stdin and return a GString *
-		`buffer` will need to be freed elsewhere */
+//#define kBUFFERSIZE 4096	// How many bytes to read at a time
 
-	char chunk[kBUFFERSIZE];
-	size_t bytes;
-
-	DString * buffer = d_string_new("");
-
-	while ((bytes = fread(chunk, 1, kBUFFERSIZE, stdin)) > 0) {
-		d_string_append_c_array(buffer, chunk, bytes);
-	}
-
-	fclose(stdin);
-
-	return buffer;
+void copyString(std::string source, char* destination) {
+    for (std::size_t i = 0; i < source.length(); ++i) {
+        destination[i] = source[i];
+    }
+    destination[source.length()] = '\0'; // Append null character to terminate the string
 }
-
 
 
 int main( int argc, char ** argv ) {
@@ -61,13 +52,22 @@ int main( int argc, char ** argv ) {
 	seed_random();
 	 //combine
     // Read shares from stdin -- < shares.txt
-    DString * shares = stdin_buffer();
+    //DString * shares = stdin_buffer();
+	string share1="0103AA0324EF82CF22252A4D157AA2A85A5AEC2E575DD11CB2D00C7EBBC19D55608BD2433B3D5C15BCA1B4581017F91652604DFE67107F434EFBD8F7B89D9B12C7A3630DB25E2DF82714A62B4915388E295F09017C10893D3E9AA6D6A0F0A88C9A9F58D560BDFFEE71FD0390D73B9381EBD1326DC3B8105F914D47C0F8E46FG016E3B3313187B7797D40E3";
+	string share2="0303AAEEE8ED05799A3DD0DE02AD8EC2026B08419A97911AF4239C4F5DE5877FDD9813BC6983EE2E135705BF9CA1CA2243407CAD7356B6B0267280182A48F29C901B2E67CCD130DC261ADF0817G078F90F601F8179975E1AFC13B17B76E5ACAFEA34DA636D36769CAB2F7DA03EA503DC9EEF451A86BB93D06B48C3670B3A0E40C464C00A898B470898FB7C";
+	string share3="0403AA15D74566C054A96B6D40B44B7FA2696E87FCE4C230DAEF960CADB422A84D60EB6694F9746A1FC2E8G08866EE685B2490CE79EDD7250A27879438C4195BD949E806AE1B3C0F4551BC220618CF4E125C7A754D5BE1ECD4586B9FE31D419506835A91736759BFB5A73F82161A37E6DFB06CACEA725B522D5A589E9E1C99D4936C8628E675787980EF76";
 
-    char * secret = extract_secret_from_share_strings(shares->str);
+	string shares_string = share1+'\n'+share2+'\n'+share3;	
+	const char* combined_shares = shares_string.c_str();
+	//copyString(shares_string, shares); 
+
+	printf("%s\n",combined_shares);
+
+    char * secret = extract_secret_from_share_strings(combined_shares);
 
     fprintf(stdout, "%s\n", secret);
 
     free(secret);
 
-    d_string_free(shares, true);
+    //d_string_free(shares, true);
 }

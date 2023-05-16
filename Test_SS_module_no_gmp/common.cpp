@@ -44,9 +44,9 @@ void seed_random(void) {
 
 #define kBUFFERSIZE 4096	// How many bytes to read at a time
 
-DString * stdin_buffer() {
-	/* Read from stdin and return a GString *
-		`buffer` will need to be freed elsewhere */
+/*DString * stdin_buffer() {
+	// Read from stdin and return a GString 
+		//`buffer` will need to be freed elsewhere 
 
 	char chunk[kBUFFERSIZE];
 	size_t bytes;
@@ -60,4 +60,4 @@ DString * stdin_buffer() {
 	fclose(stdin);
 
 	return buffer;
-}
+} */

@@ -146,7 +146,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --target=localhost:60002
 
           k = "Secret "+to_string(secret_num);
           transmit_shares(k, shares, available_nodes, ip_address, port);
-
+          free_string_shares(shares, n);
           secret_num++;
       }
 
