@@ -1,7 +1,7 @@
 ssss-split:
-	g++ -c d_string.cpp split.cpp strtok.cpp ssss-split.cpp
-	g++ d_string.o split.o strtok.o ssss-split.o -o shamir-split
-	rm d_string.o strtok.o split.o ssss-split.o 
+	g++ -c d_string.cpp split.cpp common.cpp ssss-split.cpp
+	g++ d_string.o split.o ssss-split.o common.o -o shamir-split
+	rm d_string.o split.o ssss-split.o common.o
 
 ssss-combine:
 	g++ -c d_string.cpp combine.cpp strtok.cpp ssss-combine.cpp

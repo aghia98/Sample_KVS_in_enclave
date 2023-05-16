@@ -1,27 +1,5 @@
-#include "d_string.h"
-#include "shamir.h"
-
+#include "split.h"
 #include <stdio.h>
-
-#define kBUFFERSIZE 4096	// How many bytes to read at a time
-
-DString * stdin_buffer() {
-	/* Read from stdin and return a GString *
-		`buffer` will need to be freed elsewhere */
-
-	char chunk[kBUFFERSIZE];
-	size_t bytes;
-
-	DString * buffer = d_string_new("");
-
-	while ((bytes = fread(chunk, 1, kBUFFERSIZE, stdin)) > 0) {
-		d_string_append_c_array(buffer, chunk, bytes);
-	}
-
-	fclose(stdin);
-
-	return buffer;
-}
 
 
 int main( int argc, char ** argv ) {

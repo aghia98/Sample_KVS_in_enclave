@@ -8,14 +8,6 @@
 
 #include "common.h"
 
-/**
-
-@file
-
-@brief Simple library for providing SSS functionality.
-
-
-*/
 
 
 /// Given a secret, `n`, and `t`, create a list of shares (`\n` separated).

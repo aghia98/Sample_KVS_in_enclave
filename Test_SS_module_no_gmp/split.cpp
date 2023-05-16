@@ -48,69 +48,15 @@
 	THE SOFTWARE.
 */
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
 #include <string.h>
 #include <math.h>
-#include <unistd.h>
 
 #include "split.h"
 
 
 static int prime = 257;
 
-
-/*
-	http://stackoverflow.com/questions/322938/recommended-way-to-initialize-srand
-
-	http://www.concentric.net/~Ttwang/tech/inthash.htm
-
-	Need a less predictable way to seed rand().
-*/
-
-unsigned long mix(unsigned long a, unsigned long b, unsigned long c) {
-	a = a - b;
-	a = a - c;
-	a = a ^ (c >> 13);
-	b = b - c;
-	b = b - a;
-	b = b ^ (a << 8);
-	c = c - a;
-	c = c - b;
-	c = c ^ (b >> 13);
-	a = a - b;
-	a = a - c;
-	a = a ^ (c >> 12);
-	b = b - c;
-	b = b - a;
-	b = b ^ (a << 16);
-	c = c - a;
-	c = c - b;
-	c = c ^ (b >> 5);
-	a = a - b;
-	a = a - c;
-	a = a ^ (c >> 3);
-	b = b - c;
-	b = b - a;
-	b = b ^ (a << 10);
-	c = c - a;
-	c = c - b;
-	c = c ^ (b >> 15);
-	return c;
-}
-
-void seed_random(void) {
-	unsigned long seed = mix(clock(), time(NULL), getpid());
-	srand(seed);
-}
-
-
-/*
-	from http://stackoverflow.com/questions/18730071/c-programming-to-calculate-using-modular-exponentiation
-
-	Allows working with larger numbers (e.g. 255 shares, with a threshold of 200)
-*/
 
 int modular_exponentiation(int base, int exp, int mod) {
 	if (exp == 0) {

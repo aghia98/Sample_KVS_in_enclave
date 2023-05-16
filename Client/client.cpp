@@ -23,7 +23,7 @@
 
 #include "../gRPC_module/grpc_common.h"
 #include "../gRPC_module/grpc_client.h"
-#include "../SS_module/ss-client.h"
+#include "../SS_no_gmp_module/ss-client.h"
 
 using namespace std;
 
@@ -95,7 +95,9 @@ void transmit_shares(string k, char** shares, int available_nodes, string ip_add
   }
 }
 
-int main(int argc, char** argv) { // ./client --target=localhost:60002
+int main(int argc, char** argv) { // ./client -t x -n y --target=localhost:60002
+
+	seed_random();
 
   char** shares;
   int t;
@@ -106,8 +108,7 @@ int main(int argc, char** argv) { // ./client --target=localhost:60002
   int port = 50001;
   string k;
   string v;
-  char secret[MAXLINELEN];
-  //string secret;
+  char secret[200];
   string target_str;
   string reply;
   string ip_address = "localhost:";
@@ -137,14 +138,15 @@ int main(int argc, char** argv) { // ./client --target=localhost:60002
   if (cin.rdbuf()->in_avail() != 0) {
       string line;
       int secret_num = 1;
-       while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
-          shamir_split(t, n, debug, &shares, secret);
-
+      while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
+          char ** shares = generate_share_strings(secret, n, t);
+          
           for(int i=0; i<n; i++) //display shares
             cout << shares[i] << endl; 
 
           k = "Secret "+to_string(secret_num);
           transmit_shares(k, shares, available_nodes, ip_address, port);
+
           secret_num++;
       }
 
