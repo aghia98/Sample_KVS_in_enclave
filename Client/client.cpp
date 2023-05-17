@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <unistd.h>
+#include <getopt.h>  // Include the getopt_long function
 
 #include "../gRPC_module/grpc_common.h"
 #include "../gRPC_module/grpc_client.h"
@@ -80,13 +81,12 @@ class KVSClient {
 
 void transmit_shares(string k, char** shares, int available_nodes, string ip_address, int port){
   string v;
-  string target_str;
+  string fixed = ip_address+":";
   string reply;
   KVSClient* kvs;
 
   for(int i=0; i<available_nodes; i++){ //transmitting shares
-    target_str = ip_address+to_string(port+i); 
-    kvs = new KVSClient(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+    kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+i) , grpc::InsecureChannelCredentials()));
     v = shares[i];
     reply = kvs->Put(k,v);
     cout << "Client received: " << reply << endl;
@@ -95,39 +95,68 @@ void transmit_shares(string k, char** shares, int available_nodes, string ip_add
   }
 }
 
-int main(int argc, char** argv) { // ./client -t x -n y --target=localhost:60002
+void get_shares(string k, int available_nodes, string ip_address, int port){
+  string fixed = ip_address+":";
+  string reply;
+  KVSClient* kvs;
+
+  for(int i=0; i<available_nodes; i++){ 
+        kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+i), grpc::InsecureChannelCredentials()));
+        reply = kvs->Get(k);
+        cout << "Client received from node " << i+1 << ": " << reply << endl;
+        
+        delete kvs;
+  }
+
+}
+
+int main(int argc, char** argv) { // ./client -t x -n y --address localhost --port_init 50001
 
 	seed_random();
 
   char** shares;
   int t;
   int n;
+  string ip_address;
+  int port;
+
+
+  struct option long_options[] = {
+      {"address", required_argument, nullptr, 'a'},
+      {"port_init", required_argument, nullptr, 'p'},
+      {nullptr, 0, nullptr, 0}
+  };
+
+    int option;
+    while ((option = getopt_long(argc, argv, "t:n:", long_options, nullptr)) != -1) {
+        switch (option) {
+            case 't':
+                t = atoi(optarg);
+                break;
+            case 'n':
+                n = atoi(optarg);
+                break;
+            case 'a':
+                ip_address = optarg;
+                break;
+            case 'p':
+                port = atoi(optarg);
+                break;
+            default:
+                cerr << "Usage: " << argv[0] << " -t <t> -n <n> --address <address> --port_init <port>" << endl;
+                return 1;
+        }
+    }
+
   int debug=0;
   int deg;
   int available_nodes = 2;
-  int port = 50001;
   string k;
   string v;
   char secret[200];
-  string target_str;
+  string fixed = ip_address+":";
   string reply;
-  string ip_address = "localhost:";
-  KVSClient* kvs;
-
-  int option;
-      while ((option = getopt(argc, argv, "t:n:")) != -1) {
-          switch (option) {
-              case 't':
-                  t = atoi(optarg);
-                  break;
-              case 'n':
-                  n = atoi(optarg);
-                  break;
-              default:
-                  cerr << "Usage: " << argv[0] << " -t <t> -n <n>" << endl;
-                  return 1;
-          }
-      }
+  
 
   cout << "Generating shares using a (" << t << "," << n << ") scheme with ";
   cout << "dynamic ";
@@ -150,23 +179,11 @@ int main(int argc, char** argv) { // ./client -t x -n y --target=localhost:60002
           secret_num++;
       }
 
-      for(int i=0; i<available_nodes; i++){ //getting shares of secret 1
-        target_str = ip_address+to_string(port+i); 
-        kvs = new KVSClient(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-        reply = kvs->Get("Secret 1");
-        cout << "Client received from node " << i+1 << ": " << reply << endl;
-        
-        delete kvs;
-      }
+      //***********************************************************************************************
+      
+      get_shares("Secret 1", available_nodes, ip_address, port);
+      get_shares("Secret 2", available_nodes, ip_address, port);
 
-      for(int i=0; i<available_nodes; i++){ //getting shares of secret 2
-        target_str = ip_address+to_string(port+i); 
-        kvs = new KVSClient(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-        reply = kvs->Get("Secret 2");
-        cout << "Client received from node " << i+1 << ": " << reply << endl;
-        
-        delete kvs;
-      }
   } else {
       cerr << "No input provided through redirection." << endl;
       return 1;
