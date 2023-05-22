@@ -5,4 +5,4 @@ void seed_random(void);
 
 void free_string_shares(char ** shares, int n);
 
-DString * stdin_buffer();
+//DString * stdin_buffer();

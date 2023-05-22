@@ -58,8 +58,9 @@ int main( int argc, char ** argv ) {
 	string share3="0403AA15D74566C054A96B6D40B44B7FA2696E87FCE4C230DAEF960CADB422A84D60EB6694F9746A1FC2E8G08866EE685B2490CE79EDD7250A27879438C4195BD949E806AE1B3C0F4551BC220618CF4E125C7A754D5BE1ECD4586B9FE31D419506835A91736759BFB5A73F82161A37E6DFB06CACEA725B522D5A589E9E1C99D4936C8628E675787980EF76";
 
 	string shares_string = share1+'\n'+share2+'\n'+share3;	
-	const char* combined_shares = shares_string.c_str();
-	//copyString(shares_string, shares); 
+	//const char* combined_shares = shares_string.c_str();
+	char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
+	copyString(shares_string, combined_shares); 
 
 	printf("%s\n",combined_shares);
 
@@ -69,5 +70,5 @@ int main( int argc, char ** argv ) {
 
     free(secret);
 
-    //d_string_free(shares, true);
+    free(combined_shares);
 }

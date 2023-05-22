@@ -34,6 +34,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <getopt.h>  
 
 # include <unistd.h>
 # include <pwd.h>
@@ -42,8 +43,7 @@
 #include "sgx_urts.h"
 #include "App.h"
 
-#include "../../gRPC_module/grpc_server.h"
-//#include "../../gRPC_module/grpc_common.h"
+#include "../../gRPC_module/grpc_client.h"
 
 #include "Enclave_u.h"
 
@@ -141,26 +141,56 @@ static sgx_errlist_t sgx_errlist[] = {
 };
 
 
-// Logic and data behind the server's behavior.
-class KVSServiceImpl final : public KVS::Service {
-  //Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response)
-  Status Get(ServerContext* context, const Key* key, Value* value) override {
-    value->set_value(get(key->key()));
-    //value->set_value("get is successful");
-    return Status::OK;
+class KVSClient {
+ public:
+  KVSClient(std::shared_ptr<Channel> channel): stub_(KVS::NewStub(channel)) {}
+
+  string Get(const string k) {
+    Key key;
+    key.set_key(k);
+
+    Value reply;
+
+    ClientContext context;
+
+    Status status = stub_->Get(&context, key, &reply);
+
+    // Act upon its status.
+    if (status.ok()) {
+      return reply.value();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return "RPC failed";
+    }
   }
 
-  Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
-    
-    put(request->key(), request->value());
-    response->set_value("SUCCESS");
-    return Status::OK;
-  }
+  /*string Put(const string k, const string v) {
+    // Follows the same pattern as SayHello.
+    KV_pair request;
+    request.set_key(k);
+    request.set_value(v);
+    Value reply;
+    ClientContext context;
+
+    // Here we can use the stub's newly available method we just added.
+    Status status = stub_->Put(&context, request, &reply);
+    if (status.ok()) {
+      return reply.value();
+    } else {
+      cout << status.error_code() << ": " << status.error_message()
+                << endl;
+      return "RPC failed";
+    }
+  } */
+
+ private:
+  unique_ptr<KVS::Stub> stub_;
 };
 
 
 
-void RunServer(uint16_t port) {
+void RunWorker(uint16_t port) {
   std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
   KVSServiceImpl service;
 
@@ -240,13 +270,46 @@ int SGX_CDECL main(int argc, char *argv[])
         return -1; 
     }
 
-    absl::ParseCommandLine(argc, argv);
-    RunServer(absl::GetFlag(FLAGS_port));
+    char** shares;
+    int t;
+    int n;
+    int port;
+    string ip_address;
+    string secret_id;
+    struct option long_options[] = {
+        {"address", required_argument, nullptr, 'a'},
+        {"port_init", required_argument, nullptr, 'p'},
+        {"secret_id", required_argument, nullptr, 's'},
+        {nullptr, 0, nullptr, 0}
+    };
+
+    int option;
+    while ((option = getopt_long(argc, argv, "", long_options, nullptr)) != -1) {
+        switch (option) {
+            case 'a':
+                ip_address = optarg;
+                break;
+            case 'p':
+                port = atoi(optarg);
+                break;
+            case 's':
+                secret_id = optarg;
+                break;
+            default:
+                cerr << "Usage: " << argv[0] << " --address <address> --port_init <port> --secret_id <secret_id>" << endl; //TBD: --port_init should be dynamically found
+                return 1;
+        }
+    }
+
+    string fixed = ip_address+":";
+    string reply;
+    KVSClient* kvs;
+    KVSClient kvs(grpc::CreateChannel(fixed+to_string(port+i), grpc::InsecureChannelCredentials()));
 
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);
 
-    printf("Server closed \n");
+    printf("Worker closed \n");
     
 
     return 0;

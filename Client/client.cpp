@@ -20,9 +20,9 @@
 #include <memory>
 #include <string>
 #include <unistd.h>
-#include <getopt.h>  // Include the getopt_long function
+#include <getopt.h>  
 
-#include "../gRPC_module/grpc_common.h"
+//include "../gRPC_module/grpc_common.h"
 #include "../gRPC_module/grpc_client.h"
 #include "../SS_no_gmp_module/ss-client.h"
 
@@ -127,26 +127,26 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
       {nullptr, 0, nullptr, 0}
   };
 
-    int option;
-    while ((option = getopt_long(argc, argv, "t:n:", long_options, nullptr)) != -1) {
-        switch (option) {
-            case 't':
-                t = atoi(optarg);
-                break;
-            case 'n':
-                n = atoi(optarg);
-                break;
-            case 'a':
-                ip_address = optarg;
-                break;
-            case 'p':
-                port = atoi(optarg);
-                break;
-            default:
-                cerr << "Usage: " << argv[0] << " -t <t> -n <n> --address <address> --port_init <port>" << endl;
-                return 1;
-        }
-    }
+  int option;
+  while ((option = getopt_long(argc, argv, "t:n:", long_options, nullptr)) != -1) {
+      switch (option) {
+          case 't':
+              t = atoi(optarg);
+              break;
+          case 'n':
+              n = atoi(optarg);
+              break;
+          case 'a':
+              ip_address = optarg;
+              break;
+          case 'p':
+              port = atoi(optarg);
+              break;
+          default:
+              cerr << "Usage: " << argv[0] << " -t <t> -n <n> --address <address> --port_init <port>" << endl;
+              return 1;
+      }
+  }
 
   int debug=0;
   int deg;
@@ -173,7 +173,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
           for(int i=0; i<n; i++) //display shares
             cout << shares[i] << endl; 
 
-          k = "Secret "+to_string(secret_num);
+          k = "Secret_"+to_string(secret_num);
           transmit_shares(k, shares, available_nodes, ip_address, port);
           free_string_shares(shares, n);
           secret_num++;
@@ -181,8 +181,8 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
 
       //***********************************************************************************************
       
-      get_shares("Secret 1", available_nodes, ip_address, port);
-      get_shares("Secret 2", available_nodes, ip_address, port);
+      get_shares("Secret_1", available_nodes, ip_address, port);
+      get_shares("Secret_2", available_nodes, ip_address, port);
 
   } else {
       cerr << "No input provided through redirection." << endl;
