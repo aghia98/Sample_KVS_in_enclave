@@ -4,7 +4,7 @@ ssss-split:
 	rm d_string.o split.o ssss-split.o common.o
 
 ssss-combine:
-	g++ -c d_string.cpp combine.cpp strtok.cpp common.cpp ssss-combine.cpp
+	g++ -c combine.cpp strtok.cpp common.cpp ssss-combine.cpp
 	g++ *.o -o shamir-combine
 	rm *.o 
 

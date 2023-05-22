@@ -43,7 +43,6 @@
 #include "App.h"
 
 #include "../../gRPC_module/grpc_server.h"
-//#include "../../gRPC_module/grpc_common.h"
 
 #include "Enclave_u.h"
 

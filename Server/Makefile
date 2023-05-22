@@ -84,7 +84,7 @@ else
 endif
 
 INCLUDE_grpc = $(HOME)/usr/local/include 
-LIBRARY_grpckvs_server = ../gRPC_module/
+LIBRARY_grpckvs = ../gRPC_module/
 
 FLAGS_grpckvs = `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`\
            -pthread\
@@ -109,7 +109,7 @@ else
 endif
 
 App_Cpp_Flags := $(App_C_Flags)
-App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs_server) -lgrpckvs_server $(FLAGS_grpckvs) -lpthread
+App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs) -lgrpckvs $(FLAGS_grpckvs) -lpthread
 
 App_Cpp_Objects := $(App_Cpp_Files:.cpp=.o)
 

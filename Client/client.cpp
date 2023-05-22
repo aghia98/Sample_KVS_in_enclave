@@ -22,7 +22,6 @@
 #include <unistd.h>
 #include <getopt.h>  
 
-//include "../gRPC_module/grpc_common.h"
 #include "../gRPC_module/grpc_client.h"
 #include "../SS_no_gmp_module/ss-client.h"
 

@@ -84,12 +84,12 @@ else
 endif
 
 INCLUDE_grpc = $(HOME)/usr/local/include 
-LIBRARY_grpckvs_server = ../gRPC_module/
-
-FLAGS_grpckvs = `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`\
+LIBRARY_grpckvs = ../gRPC_module/
+LIBRARY_shamir_combine = ../SS_no_gmp_module/
+LDFLAGS_GRPC += `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`\
            -pthread\
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
-           -ldl 
+           -ldl
 
 App_Cpp_Files := App/App.cpp $(wildcard App/Edger8rSyntax/*.cpp) $(wildcard App/TrustedLibrary/*.cpp)
 App_Include_Paths := -IInclude -IApp -I$(SGX_SDK)/include -I$(INCLUDE_grpc)  
@@ -109,7 +109,7 @@ else
 endif
 
 App_Cpp_Flags := $(App_C_Flags)
-App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs_server) -lgrpckvs_server $(FLAGS_grpckvs) -lpthread
+App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs) -lgrpckvs -L$(LIBRARY_shamir_combine) -lshamir_combine $(LDFLAGS_GRPC) -lpthread
 
 App_Cpp_Objects := $(App_Cpp_Files:.cpp=.o)
 

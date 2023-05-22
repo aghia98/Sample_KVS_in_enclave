@@ -44,8 +44,11 @@
 #include "App.h"
 
 #include "../../gRPC_module/grpc_client.h"
+#include "../../SS_no_gmp_module/src/combine.h"
 
 #include "Enclave_u.h"
+
+using namespace std;
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -188,29 +191,6 @@ class KVSClient {
   unique_ptr<KVS::Stub> stub_;
 };
 
-
-
-void RunWorker(uint16_t port) {
-  std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
-  KVSServiceImpl service;
-
-  grpc::EnableDefaultHealthCheckService(true);
-  grpc::reflection::InitProtoReflectionServerBuilderPlugin();
-  ServerBuilder builder;
-  // Listen on the given address without any authentication mechanism.
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  // Register "service" as the instance through which we'll communicate with
-  // clients. In this case it corresponds to an *synchronous* service.
-  builder.RegisterService(&service);
-  // Finally assemble the server.
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "SMS node listening on " << server_address << std::endl;
-
-  // Wait for the server to shutdown. Note that some other thread must be
-  // responsible for shutting down the server for this call to ever return.
-  server->Wait();
-}
-
 /* Check error conditions for loading enclave */
 void print_error_message(sgx_status_t ret)
 {
@@ -257,6 +237,13 @@ void ocall_print_string(const char *str)
     printf("%s", str);
 }
 
+void copyString(string source, char* destination) {
+    for (size_t i = 0; i < source.length(); ++i) {
+        destination[i] = source[i];
+    }
+    destination[source.length()] = '\0'; // Append null character to terminate the string
+}
+
 
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
@@ -270,8 +257,6 @@ int SGX_CDECL main(int argc, char *argv[])
         return -1; 
     }
 
-    char** shares;
-    int t;
     int n;
     int port;
     string ip_address;
@@ -284,7 +269,7 @@ int SGX_CDECL main(int argc, char *argv[])
     };
 
     int option;
-    while ((option = getopt_long(argc, argv, "", long_options, nullptr)) != -1) {
+    while ((option = getopt_long(argc, argv, "n:", long_options, nullptr)) != -1) {
         switch (option) {
             case 'a':
                 ip_address = optarg;
@@ -295,23 +280,41 @@ int SGX_CDECL main(int argc, char *argv[])
             case 's':
                 secret_id = optarg;
                 break;
+            case 'n':
+                n = atoi(optarg);
+                break;
             default:
-                cerr << "Usage: " << argv[0] << " --address <address> --port_init <port> --secret_id <secret_id>" << endl; //TBD: --port_init should be dynamically found
+                cerr << "Usage: " << argv[0] << " --address <address> --port_init <port> --secret_id <secret_id> -n <n>" << endl; //TBD: --port_init should be dynamically found
                 return 1;
         }
     }
 
     string fixed = ip_address+":";
-    string reply;
+    //string reply;
     KVSClient* kvs;
-    KVSClient kvs(grpc::CreateChannel(fixed+to_string(port+i), grpc::InsecureChannelCredentials()));
+    string shares_string = "";
+
+
+    for(int i=0; i<n; i++){ 
+        kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+i), grpc::InsecureChannelCredentials()));
+        shares_string += kvs->Get(secret_id)+'\n';
+        delete kvs;
+    }
+    
+    char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
+    copyString(shares_string, combined_shares); 
+    char * secret = extract_secret_from_share_strings(combined_shares);
+
+    cout << secret << endl;
+
+    free(secret);
+    free(combined_shares);
 
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);
 
     printf("Worker closed \n");
     
-
     return 0;
 }
 

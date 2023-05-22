@@ -44,7 +44,7 @@ using namespace std;
  
  */
 
-char* convertCString(std::string str) {
+char* convertCString(string str) {
     char* cstr = new char[str.length() + 1];  // +1 for null-terminator
     strcpy(cstr, str.c_str());
     return cstr;

@@ -4,5 +4,8 @@ ssss-split:
 	mv libshamir_split.a ..
 	rm *.o
 
-clean:
-	rm shamir-split
+ssss-combine:
+	g++ -c combine.cpp strtok.cpp common.cpp
+	ar rcs libshamir_combine.a *.o
+	mv libshamir_combine.a ..
+	rm *.o
