@@ -61,12 +61,24 @@ void put(string k, string v)
 
 string get(string k){
     char* value;
+
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_get(global_eid, convertCString(k), &value);
     if (ret != SGX_SUCCESS)
         abort();
-
     string value_string(value); 
 
     return value_string;
+}
+
+string rebuild_secret(char* combined_shares){
+    char* value;
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    ret = ecall_rebuild_secret(global_eid, combined_shares, &value);
+    printf(combined_shares);
+    if (ret != SGX_SUCCESS)
+        abort();
+    string value_string(value);
+
+    return value;
 }

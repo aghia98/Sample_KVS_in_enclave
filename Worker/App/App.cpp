@@ -44,7 +44,7 @@
 #include "App.h"
 
 #include "../../gRPC_module/grpc_client.h"
-#include "../../SS_no_gmp_module/src/combine.h"
+#include "../../SS_no_gmp_module/ss-worker.h"
 
 #include "Enclave_u.h"
 
@@ -248,8 +248,7 @@ void copyString(string source, char* destination) {
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
-int SGX_CDECL main(int argc, char *argv[])
-{
+int SGX_CDECL main(int argc, char *argv[]){
 
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
@@ -299,15 +298,16 @@ int SGX_CDECL main(int argc, char *argv[])
         kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+i), grpc::InsecureChannelCredentials()));
         shares_string += kvs->Get(secret_id)+'\n';
         delete kvs;
-    }
+    } 
     
     char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
+    //char combined_shares[1000];
     copyString(shares_string, combined_shares); 
-    char * secret = extract_secret_from_share_strings(combined_shares);
-
+    //char * secret = extract_secret_from_share_strings(combined_shares);
+    string secret = rebuild_secret(combined_shares);
     cout << secret << endl;
 
-    free(secret);
+    //free(secret);
     free(combined_shares);
 
     /* Destroy the enclave */

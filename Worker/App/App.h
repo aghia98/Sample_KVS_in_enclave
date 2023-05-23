@@ -62,7 +62,7 @@ extern "C" {
 
 void put(string k, string v);
 string get(string k);
-
+string rebuild_secret(char* combined_shares);
 
 #if defined(__cplusplus)
 }

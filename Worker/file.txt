@@ -1,0 +1,4 @@
+error: TrustedLibrary/Types.edl:16:53: unexpected token: ;
+
+make[1]: *** [Makefile:233: App/Enclave_u.h] Error 255
+make: *** [Makefile:189: all] Error 2

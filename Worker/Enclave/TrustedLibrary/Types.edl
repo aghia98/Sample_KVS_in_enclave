@@ -69,9 +69,12 @@ enclave {
 
     trusted {
 
+        include "../../SS_no_gmp_module/ss-worker.h"
         
         public void ecall_put([in] char key[200], [in] char value[200]);
         public void ecall_get([in] char key[200], [out] char** value);
+
+        public void ecall_rebuild_secret([in] char combined_shares[1000], [out] char** val);
 
         
         /* for using user defined types, please refer to Pointers.edl, Arrays.edl. */

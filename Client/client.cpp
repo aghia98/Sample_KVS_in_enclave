@@ -109,7 +109,7 @@ void get_shares(string k, int available_nodes, string ip_address, int port){
 
 }
 
-int main(int argc, char** argv) { // ./client -t x -n y --address localhost --port_init 50001
+int main(int argc, char** argv) { // ./client -t x -n y --address localhost --port_init 50001 < secrets.txt
 
 	seed_random();
 

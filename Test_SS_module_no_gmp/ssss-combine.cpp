@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string>
 
-#include "combine.h"
+#include "../SS_no_gmp_module/ss-worker.h"
 
 using namespace std;
 
