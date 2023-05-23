@@ -75,10 +75,10 @@ string rebuild_secret(char* combined_shares){
     char* value;
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_rebuild_secret(global_eid, combined_shares, &value);
-    printf(combined_shares);
+    //printf(combined_shares);
     if (ret != SGX_SUCCESS)
         abort();
     string value_string(value);
 
-    return value;
+    return value_string;
 }

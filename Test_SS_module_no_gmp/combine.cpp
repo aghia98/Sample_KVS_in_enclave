@@ -248,7 +248,8 @@ char * join_strings(char ** shares, int n) {
 
 		free(chunks);
 
-		sprintf(result + i, "%c", letter);
+		//sprintf(result + i, "%c", letter);
+		result[i] = letter;
 	}
 
 	return result;

@@ -93,6 +93,7 @@ void ecall_get(char key[], char** val){
 }
 
 void ecall_rebuild_secret(char combined_shares[], char** val){
-  *val="yeaaaaaaaaah";
+  //*val="yeaaaaaaaaah";
+  *val = extract_secret_from_share_strings(combined_shares);
 
 }

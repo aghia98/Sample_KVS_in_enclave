@@ -248,8 +248,8 @@ void copyString(string source, char* destination) {
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
-int SGX_CDECL main(int argc, char *argv[]){
-
+int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <port> --secret_id <secret_id> -n <n>
+ 
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
         getchar();
