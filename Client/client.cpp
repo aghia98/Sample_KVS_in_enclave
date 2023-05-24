@@ -106,22 +106,6 @@ bool isPortOpen(const std::string& ipAddress, int port) {
     return true;
 }
 
-void transmit_shares(string k, char** shares, int n, string ip_address, int port){
-  string v;
-  string fixed = ip_address+":";
-  string reply;
-  KVSClient* kvs;
-  int unavailable_nodes=0;
-
-  for(int i=0; i<n; i++){ //transmitting shares
-      kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+i) , grpc::InsecureChannelCredentials()));
-      v = shares[i];
-      reply = kvs->Put(k,v);
-      cout << "Client received: " << reply << endl;
-    
-      delete kvs;
-  }
-}
 
 int number_of_open_ports_among_n(int starting_port, int n){
   int cpt=0;
@@ -131,25 +115,48 @@ int number_of_open_ports_among_n(int starting_port, int n){
   return cpt;
 }
 
+void transmit_shares(string k, char** shares, int n, string ip_address, int port){
+  string v;
+  string fixed = ip_address+":";
+  string reply;
+  KVSClient* kvs;
+  //int unavailable_nodes=0;
 
-void get_shares(string k, int n, int t, string ip_address, int port){
+  for(int i=0; i<n; i++){ //transmitting shares
+    if(isPortOpen("127.0.0.1", port+i)){
+      kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+i) , grpc::InsecureChannelCredentials()));
+      v = shares[i];
+      reply = kvs->Put(k,v);
+      cout << "Client received: " << reply << endl;
+    
+      delete kvs;
+    } 
+  }
+}
+
+string* get_shares(string k, int n, int t, string ip_address, int port){
   string fixed = ip_address+":";
   string reply;
   KVSClient* kvs;
   int got_shares=0;
   int node_id=0;
 
+  string* shares = new string[t];
+
+
   while(got_shares<t){
     if(isPortOpen("127.0.0.1", port+node_id)){
       kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+node_id), grpc::InsecureChannelCredentials()));
-      reply = kvs->Get(k);
-      cout << "Client received from node at port " << port+node_id << ": " << reply << endl;
+      shares[got_shares] = kvs->Get(k);
+      //cout << "Client received from node at port " << port+node_id << ": " << reply << endl;
 
       delete kvs;
       got_shares++;
     }
     node_id++;
   }
+
+  return shares;
 
   /*for(int i=0; i<available_nodes; i++){ 
         kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+i), grpc::InsecureChannelCredentials()));
@@ -228,7 +235,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
           if (number_of_open_ports_among_n(port, n) >= t){
             transmit_shares(k, shares, n, ip_address, port);
           } else{
-            cout << "less than t=" << t << "SMS nodes are available. Please retry later." << endl;
+            cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
           }
           
           free_string_shares(shares, n);
@@ -236,9 +243,13 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
       }
 
       //***********************************************************************************************
+      string* got_shares;
       if (number_of_open_ports_among_n(port, n) >= t){
-        get_shares("Secret_1", n, t, ip_address, port);
-        get_shares("Secret_2", n, t, ip_address, port);
+        got_shares = get_shares("Secret_1", n, t, ip_address, port);
+        for(int i=0; i<t; i++){
+          cout << got_shares[i] << endl;
+        }
+        delete[] got_shares;
       } else{
         cout << "less than t=" << t << "SMS nodes are available. Please retry later." << endl;
       }

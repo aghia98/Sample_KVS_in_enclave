@@ -48,30 +48,30 @@ enclave {
      */
 
      /* structure definition */
-    struct struct_foo_t {
+    //struct struct_foo_t {
         /* Basic types can be used in structure. */
-        uint32_t struct_foo_0;
-        uint64_t struct_foo_1;
-    };
+        //uint32_t struct_foo_0;
+        //uint64_t struct_foo_1;
+    //};
 
     /* enum definition */
-    enum enum_foo_t {
-        ENUM_FOO_0 = 0,
-        ENUM_FOO_1 = 1
-    };
+    //enum enum_foo_t {
+        // ENUM_FOO_0 = 0,
+        // ENUM_FOO_1 = 1
+    //}; 
 
     /* union definition */
-    union union_foo_t {
-        uint32_t union_foo_0;
-        uint32_t union_foo_1;
-        uint64_t union_foo_3;
-    };
+    //union union_foo_t {
+        //uint32_t union_foo_0;
+        //uint32_t union_foo_1;
+        //uint64_t union_foo_3;
+    //}; 
 
     trusted {
 
         
-        public void ecall_put([in] char key[200], [in] char value[200]);
-        public void ecall_get([in] char key[200], [out] char** value);
+        public void ecall_put([in] char key[100], [in] char share[410]);
+        public void ecall_get([in] char key[100], [out] char** share);
 
         
         /* for using user defined types, please refer to Pointers.edl, Arrays.edl. */

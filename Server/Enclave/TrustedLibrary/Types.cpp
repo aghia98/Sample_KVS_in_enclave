@@ -82,7 +82,7 @@ void ecall_get(char key[], char** val){
   auto iterator = myMap.find(key_string);
   if(iterator != myMap.end()){
     string source = iterator->second;
-    char destination[200];
+    char destination[410];
 
     copyString(source, destination); 
     *val = destination;
