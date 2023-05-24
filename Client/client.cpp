@@ -140,9 +140,7 @@ string* get_shares(string k, int n, int t, string ip_address, int port){
   KVSClient* kvs;
   int got_shares=0;
   int node_id=0;
-
   string* shares = new string[t];
-
 
   while(got_shares<t){
     if(isPortOpen("127.0.0.1", port+node_id)){
@@ -157,15 +155,6 @@ string* get_shares(string k, int n, int t, string ip_address, int port){
   }
 
   return shares;
-
-  /*for(int i=0; i<available_nodes; i++){ 
-        kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+i), grpc::InsecureChannelCredentials()));
-        reply = kvs->Get(k);
-        cout << "Client received from node " << i+1 << ": " << reply << endl;
-        
-        delete kvs;
-  }*/
-
 }
 
 int main(int argc, char** argv) { // ./client -t x -n y --address localhost --port_init 50001 < secrets.txt
@@ -251,10 +240,9 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
         }
         delete[] got_shares;
       } else{
-        cout << "less than t=" << t << "SMS nodes are available. Please retry later." << endl;
+        cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
       }
       
-
   } else {
       cerr << "No input provided through redirection." << endl;
       return 1;

@@ -35,8 +35,8 @@
 #include <string.h>
 #include <assert.h>
 #include <getopt.h>  
+#include <arpa/inet.h> //check if the grpc server port is open
 
-# include <unistd.h>
 # include <pwd.h>
 # define MAX_PATH FILENAME_MAX
 
@@ -168,25 +168,6 @@ class KVSClient {
     }
   }
 
-  /*string Put(const string k, const string v) {
-    // Follows the same pattern as SayHello.
-    KV_pair request;
-    request.set_key(k);
-    request.set_value(v);
-    Value reply;
-    ClientContext context;
-
-    // Here we can use the stub's newly available method we just added.
-    Status status = stub_->Put(&context, request, &reply);
-    if (status.ok()) {
-      return reply.value();
-    } else {
-      cout << status.error_code() << ": " << status.error_message()
-                << endl;
-      return "RPC failed";
-    }
-  } */
-
  private:
   unique_ptr<KVS::Stub> stub_;
 };
@@ -244,6 +225,63 @@ void copyString(string source, char* destination) {
     destination[source.length()] = '\0'; // Append null character to terminate the string
 }
 
+bool isPortOpen(const std::string& ipAddress, int port) {
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == -1) {
+        // Failed to create socket
+        return false;
+    }
+
+    struct sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(port);
+    if (inet_pton(AF_INET, ipAddress.c_str(), &(serverAddress.sin_addr)) <= 0) {
+        // Invalid address format
+        close(sock);
+        return false;
+    }
+
+    if (connect(sock, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
+        // Connection failed, port is closed
+        close(sock);
+        return false;
+    }
+
+    // Connection successful, port is open
+    close(sock);
+    return true;
+}
+
+int number_of_open_ports_among_n(int starting_port, int n){
+  int cpt=0;
+  for(int i=0; i<n; i++){
+    if(isPortOpen("127.0.0.1", starting_port+i)) cpt++;
+  }
+  return cpt;
+}
+
+string get_shares(string k, int n, int t, string ip_address, int port){
+  string fixed = ip_address+":";
+  string reply;
+  KVSClient* kvs;
+  int got_shares=0;
+  int node_id=0;
+  string shares = "";
+  //string* shares = new string[t];
+
+  while(got_shares<t){
+    if(isPortOpen("127.0.0.1", port+node_id)){
+      kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+node_id), grpc::InsecureChannelCredentials()));
+      shares += kvs->Get(k)+'\n';
+      delete kvs;
+      got_shares++;
+    }
+    node_id++;
+  }
+
+  return shares;
+}
+
 
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
@@ -257,6 +295,7 @@ int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <p
     }
 
     int n;
+    int t;
     int port;
     string ip_address;
     string secret_id;
@@ -268,7 +307,7 @@ int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <p
     };
 
     int option;
-    while ((option = getopt_long(argc, argv, "n:", long_options, nullptr)) != -1) {
+    while ((option = getopt_long(argc, argv, "t:n:", long_options, nullptr)) != -1) {
         switch (option) {
             case 'a':
                 ip_address = optarg;
@@ -279,37 +318,29 @@ int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <p
             case 's':
                 secret_id = optarg;
                 break;
+            case 't':
+                t = atoi(optarg);
+                break;
             case 'n':
                 n = atoi(optarg);
                 break;
             default:
-                cerr << "Usage: " << argv[0] << " --address <address> --port_init <port> --secret_id <secret_id> -n <n>" << endl; //TBD: --port_init should be dynamically found
+                cerr << "Usage: " << argv[0] << " --address <address> --port_init <port> --secret_id <secret_id> -t <t> -n <n>" << endl; //TBD: --port_init should be dynamically found
                 return 1;
         }
     }
+    if (number_of_open_ports_among_n(port, n) >= t){
+        string shares_string = get_shares(secret_id, n, t, ip_address, port);
+        char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
 
-    string fixed = ip_address+":";
-    //string reply;
-    KVSClient* kvs;
-    string shares_string = "";
-
-
-    for(int i=0; i<n; i++){ 
-        kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+i), grpc::InsecureChannelCredentials()));
-        shares_string += kvs->Get(secret_id)+'\n';
-        delete kvs;
-    } 
-    
-    char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
-    //char combined_shares[1000];
-    copyString(shares_string, combined_shares); 
-    //char * secret = extract_secret_from_share_strings(combined_shares);
-    string secret = rebuild_secret(combined_shares);
-    cout << secret << endl;
-
-    //free(secret);
-    free(combined_shares);
-
+        copyString(shares_string, combined_shares); 
+        string secret = rebuild_secret(combined_shares);
+        cout << secret << endl;
+        free(combined_shares);
+    }else{
+        cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
+    }
+  
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);
 
