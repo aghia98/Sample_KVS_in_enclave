@@ -7,7 +7,7 @@ LDFLAGS_SS += -L../SS_no_gmp_module -lshamir_split
 LIBRARY_CLIENT_GRPC = ../gRPC_module/
 
 SOURCES_GRPC += ../gRPC_module/src/
-INCLUDES += -I/home/aghia/usr/local/include 
+INCLUDES += -I$(HOME)/usr/local/include 
 
 all:
 	g++ -c client.cpp $(INCLUDES)
