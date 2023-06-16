@@ -74,7 +74,7 @@ class KVSClient {
     }
   }
 
-  std::string Put(const string k, const string v) {
+  string Put(const string k, const string v) {
     // Follows the same pattern as SayHello.
     KV_pair request;
     request.set_key(k);
@@ -93,12 +93,30 @@ class KVSClient {
     }
   }
 
+    string Delete(const string k) {
+    // Follows the same pattern as SayHello.
+    Key key;
+    key.set_key(k);
+    Value reply;
+    ClientContext context;
+
+    // Here we can use the stub's newly available method we just added.
+    Status status = stub_->Delete(&context, key, &reply);
+    if (status.ok()) {
+      return reply.value();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return "RPC failed";
+    }
+  }
+
  private:
   std::unique_ptr<KVS::Stub> stub_;
 };
 
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) { // ./client --target localhost:50001
   absl::ParseCommandLine(argc, argv);
   
   std::string target_str = absl::GetFlag(FLAGS_target);
@@ -110,10 +128,18 @@ int main(int argc, char** argv) {
   string v("0758908571");
 
   string reply = kvs.Put(k,v);
-  std::cout << "Client received: " << reply << std::endl;
+  std::cout << "Put....Client received: " << reply << std::endl;
 
   reply = kvs.Get(k);
-  std::cout << "Client received: " << reply << std::endl;
+  std::cout << "Get....Client received: " << reply << std::endl;
+
+  reply = kvs.Delete(k);
+  std::cout << "Delete ....Client received: " << reply << std::endl;
+
+  reply = kvs.Get(k);
+  std::cout << "Get ....Client received: " << reply << std::endl;
+
+  
 
   return 0;
 }

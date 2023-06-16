@@ -62,6 +62,7 @@ extern "C" {
 
 void put(string k, string v);
 string get(string k);
+void delete_(string key);
 
 
 #if defined(__cplusplus)

@@ -59,19 +59,25 @@ class KVSServiceImpl final : public KVS::Service {
     if(iterator != myMap.end()){
       value->set_value(iterator->second);
     }else{
-      value->set_value("Not found");
+      value->set_value("NOT_FOUND");
     }
     return Status::OK;
   }
 
   Status Put(ServerContext* context, const KV_pair* request, Value* response) override{
     myMap[request->key()]=request->value();
-    response->set_value("SUCCESS");
+    response->set_value("PUT_SUCCESS");
+    return Status::OK;
+  }
+
+  Status Delete(ServerContext* context, const Key* key, Value* response) override{
+    myMap.erase(key->key());
+    response->set_value("DELETE_SUCCESS");
     return Status::OK;
   }
 };
 
-void RunServer(uint16_t port) {
+void RunServer(uint16_t port) { // ./server --port 50001
   std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
   KVSServiceImpl service;
 

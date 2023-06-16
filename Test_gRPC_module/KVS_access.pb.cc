@@ -105,14 +105,16 @@ static const ::_pb::Message* const file_default_instances[] = {
 const char descriptor_table_protodef_KVS_5faccess_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\020KVS_access.proto\022\rkeyvaluestore\"\022\n\003Key"
   "\022\013\n\003key\030\001 \001(\t\"\026\n\005Value\022\r\n\005value\030\001 \001(\t\"%\n"
-  "\007KV_pair\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t2o\n\003"
-  "KVS\0221\n\003Get\022\022.keyvaluestore.Key\032\024.keyvalu"
-  "estore.Value\"\000\0225\n\003Put\022\026.keyvaluestore.KV"
-  "_pair\032\024.keyvaluestore.Value\"\000b\006proto3"
+  "\007KV_pair\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t2\245\001\n"
+  "\003KVS\0221\n\003Get\022\022.keyvaluestore.Key\032\024.keyval"
+  "uestore.Value\"\000\0225\n\003Put\022\026.keyvaluestore.K"
+  "V_pair\032\024.keyvaluestore.Value\"\000\0224\n\006Delete"
+  "\022\022.keyvaluestore.Key\032\024.keyvaluestore.Val"
+  "ue\"\000b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_KVS_5faccess_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_KVS_5faccess_2eproto = {
-    false, false, 237, descriptor_table_protodef_KVS_5faccess_2eproto,
+    false, false, 292, descriptor_table_protodef_KVS_5faccess_2eproto,
     "KVS_access.proto",
     &descriptor_table_KVS_5faccess_2eproto_once, nullptr, 0, 3,
     schemas, file_default_instances, TableStruct_KVS_5faccess_2eproto::offsets,

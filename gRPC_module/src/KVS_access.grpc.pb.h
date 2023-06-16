@@ -66,6 +66,13 @@ class KVS final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>> PrepareAsyncPut(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>>(PrepareAsyncPutRaw(context, request, cq));
     }
+    virtual ::grpc::Status Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>> AsyncDelete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>>(AsyncDeleteRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>> PrepareAsyncDelete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>>(PrepareAsyncDeleteRaw(context, request, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
@@ -74,6 +81,8 @@ class KVS final {
       virtual void Get(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void Put(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)>) = 0;
       virtual void Put(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -83,6 +92,8 @@ class KVS final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* PrepareAsyncGetRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* AsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* PrepareAsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* AsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* PrepareAsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -101,6 +112,13 @@ class KVS final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>> PrepareAsyncPut(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>>(PrepareAsyncPutRaw(context, request, cq));
     }
+    ::grpc::Status Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>> AsyncDelete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>>(AsyncDeleteRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>> PrepareAsyncDelete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>>(PrepareAsyncDeleteRaw(context, request, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
@@ -108,6 +126,8 @@ class KVS final {
       void Get(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) override;
       void Put(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)>) override;
       void Put(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)>) override;
+      void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -123,8 +143,11 @@ class KVS final {
     ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* PrepareAsyncGetRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* AsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* PrepareAsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* AsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* PrepareAsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_Get_;
     const ::grpc::internal::RpcMethod rpcmethod_Put_;
+    const ::grpc::internal::RpcMethod rpcmethod_Delete_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -135,6 +158,7 @@ class KVS final {
     // Provides a value for each key request
     virtual ::grpc::Status Get(::grpc::ServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response);
     virtual ::grpc::Status Put(::grpc::ServerContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response);
+    virtual ::grpc::Status Delete(::grpc::ServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_Get : public BaseClass {
@@ -176,7 +200,27 @@ class KVS final {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Get<WithAsyncMethod_Put<Service > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_Delete : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_Delete() {
+      ::grpc::Service::MarkMethodAsync(2);
+    }
+    ~WithAsyncMethod_Delete() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Delete(::grpc::ServerContext* /*context*/, const ::keyvaluestore::Key* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestDelete(::grpc::ServerContext* context, ::keyvaluestore::Key* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::Value>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_Get<WithAsyncMethod_Put<WithAsyncMethod_Delete<Service > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_Get : public BaseClass {
    private:
@@ -231,7 +275,34 @@ class KVS final {
     virtual ::grpc::ServerUnaryReactor* Put(
       ::grpc::CallbackServerContext* /*context*/, const ::keyvaluestore::KV_pair* /*request*/, ::keyvaluestore::Value* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_Get<WithCallbackMethod_Put<Service > > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_Delete : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_Delete() {
+      ::grpc::Service::MarkMethodCallback(2,
+          new ::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::Key, ::keyvaluestore::Value>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response) { return this->Delete(context, request, response); }));}
+    void SetMessageAllocatorFor_Delete(
+        ::grpc::MessageAllocator< ::keyvaluestore::Key, ::keyvaluestore::Value>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(2);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::Key, ::keyvaluestore::Value>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_Delete() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Delete(::grpc::ServerContext* /*context*/, const ::keyvaluestore::Key* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* Delete(
+      ::grpc::CallbackServerContext* /*context*/, const ::keyvaluestore::Key* /*request*/, ::keyvaluestore::Value* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_Get<WithCallbackMethod_Put<WithCallbackMethod_Delete<Service > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_Get : public BaseClass {
@@ -263,6 +334,23 @@ class KVS final {
     }
     // disable synchronous version of this method
     ::grpc::Status Put(::grpc::ServerContext* /*context*/, const ::keyvaluestore::KV_pair* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_Delete : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_Delete() {
+      ::grpc::Service::MarkMethodGeneric(2);
+    }
+    ~WithGenericMethod_Delete() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Delete(::grpc::ServerContext* /*context*/, const ::keyvaluestore::Key* /*request*/, ::keyvaluestore::Value* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -308,6 +396,26 @@ class KVS final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_Delete : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_Delete() {
+      ::grpc::Service::MarkMethodRaw(2);
+    }
+    ~WithRawMethod_Delete() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Delete(::grpc::ServerContext* /*context*/, const ::keyvaluestore::Key* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestDelete(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawCallbackMethod_Get : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -349,6 +457,28 @@ class KVS final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* Put(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_Delete : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_Delete() {
+      ::grpc::Service::MarkMethodRawCallback(2,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Delete(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_Delete() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Delete(::grpc::ServerContext* /*context*/, const ::keyvaluestore::Key* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* Delete(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -405,9 +535,36 @@ class KVS final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedPut(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::KV_pair,::keyvaluestore::Value>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<Service > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_Delete : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_Delete() {
+      ::grpc::Service::MarkMethodStreamed(2,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::keyvaluestore::Key, ::keyvaluestore::Value>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::keyvaluestore::Key, ::keyvaluestore::Value>* streamer) {
+                       return this->StreamedDelete(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_Delete() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status Delete(::grpc::ServerContext* /*context*/, const ::keyvaluestore::Key* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedDelete(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::Key,::keyvaluestore::Value>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<WithStreamedUnaryMethod_Delete<Service > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<Service > > StreamedService;
+  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<WithStreamedUnaryMethod_Delete<Service > > > StreamedService;
 };
 
 }  // namespace keyvaluestore

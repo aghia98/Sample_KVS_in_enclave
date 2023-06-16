@@ -87,7 +87,12 @@ void ecall_get(char key[], char** val){
     copyString(source, destination); 
     *val = destination;
   }else{
-    *val="buggg";
+    *val="NOT_FOUND";
   }
 
+}
+
+void ecall_delete(char key[]){
+  string key_string(key);
+  myMap.erase(key_string);
 }

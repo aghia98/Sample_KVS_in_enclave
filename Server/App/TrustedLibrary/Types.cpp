@@ -70,3 +70,10 @@ string get(string k){
 
     return value_string;
 }
+
+void delete_(string key){
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    ret = ecall_delete(global_eid, convertCString(k));
+    if (ret != SGX_SUCCESS)
+        abort();
+}

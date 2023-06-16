@@ -21,6 +21,7 @@ service KVS {
   // Provides a value for each key request
   rpc Get (Key) returns (Value) {}
   rpc Put (KV_pair) returns (Value) {}
+  rpc Delete (Key) returns (Value) {}
 }
 
 // The request message containing the key

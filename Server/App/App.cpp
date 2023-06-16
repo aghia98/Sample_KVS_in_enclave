@@ -143,17 +143,22 @@ static sgx_errlist_t sgx_errlist[] = {
 // Logic and data behind the server's behavior.
 class KVSServiceImpl final : public KVS::Service {
   //Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response)
-  Status Get(ServerContext* context, const Key* key, Value* value) override {
-    value->set_value(get(key->key()));
-    //value->set_value("get is successful");
-    return Status::OK;
+    Status Get(ServerContext* context, const Key* key, Value* value) override {
+        value->set_value(get(key->key()));
+        //value->set_value("get is successful");
+        return Status::OK;
   }
 
-  Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
-    
-    put(request->key(), request->value());
-    response->set_value("SUCCESS");
-    return Status::OK;
+    Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
+        put(request->key(), request->value());
+        response->set_value("PUT_SUCCESS");
+        return Status::OK;
+  }
+
+    Status Delete(ServerContext* context, const Key* key, Value* response) override{
+        delete_(key->key());
+        response->set_value("DELETE_SUCCESS");
+        return Status::OK;
   }
 };
 

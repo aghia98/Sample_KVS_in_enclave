@@ -134,7 +134,7 @@ int join_shares(int * xy_pairs, int n) {
 			if (i != j) {
 				startposition = xy_pairs[i * 2];		// x for share i
 				nextposition = xy_pairs[j * 2];		// x for share j
-				numerator = (numerator * -nextposition) % prime;
+				numerator = (numerator * (0-nextposition)) % prime;
 				denominator = (denominator * (startposition - nextposition)) % prime;
 			}
 		}
@@ -144,8 +144,10 @@ int join_shares(int * xy_pairs, int n) {
 		secret = (secret + (value * numerator * modInverse(denominator))) % prime;
 	}
 
+
 	/* Sometimes we're getting negative numbers, and need to fix that */
 	secret = (secret + prime) % prime;
+	printf("%02X\n",secret);
 
 	return secret;
 }

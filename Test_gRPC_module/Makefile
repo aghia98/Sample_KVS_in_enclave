@@ -15,12 +15,14 @@ protoc:
 
 client:
 	g++ -c KVS_access.pb.cc KVS_access.grpc.pb.cc client.cpp $(INCLUDES)
-	g++ KVS_access.pb.o KVS_access.grpc.pb.o client.o $(LDFLAGS) -o client
+	g++ *.o $(LDFLAGS) -o client
+	rm *.o
 
 server:
 	g++ -c KVS_access.pb.cc KVS_access.grpc.pb.cc server.cpp $(INCLUDES)
-	g++ KVS_access.pb.o KVS_access.grpc.pb.o server.o $(LDFLAGS) -o server
+	g++ *.o $(LDFLAGS) -o server
+	rm *.o
 
 
 clean:
-	rm KVS_access.pb.o KVS_access.grpc.pb.o server.o server client.o client
+	rm client server

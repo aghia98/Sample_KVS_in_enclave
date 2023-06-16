@@ -24,6 +24,7 @@ namespace keyvaluestore {
 static const char* KVS_method_names[] = {
   "/keyvaluestore.KVS/Get",
   "/keyvaluestore.KVS/Put",
+  "/keyvaluestore.KVS/Delete",
 };
 
 std::unique_ptr< KVS::Stub> KVS::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -35,6 +36,7 @@ std::unique_ptr< KVS::Stub> KVS::NewStub(const std::shared_ptr< ::grpc::ChannelI
 KVS::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
   : channel_(channel), rpcmethod_Get_(KVS_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Put_(KVS_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Delete_(KVS_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status KVS::Stub::Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response) {
@@ -83,6 +85,29 @@ void KVS::Stub::async::Put(::grpc::ClientContext* context, const ::keyvaluestore
   return result;
 }
 
+::grpc::Status KVS::Stub::Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::Key, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Delete_, context, request, response);
+}
+
+void KVS::Stub::async::Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::Key, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Delete_, context, request, response, std::move(f));
+}
+
+void KVS::Stub::async::Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Delete_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::PrepareAsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::Value, ::keyvaluestore::Key, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Delete_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::AsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncDeleteRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 KVS::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KVS_method_names[0],
@@ -104,6 +129,16 @@ KVS::Service::Service() {
              ::keyvaluestore::Value* resp) {
                return service->Put(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      KVS_method_names[2],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< KVS::Service, ::keyvaluestore::Key, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](KVS::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::keyvaluestore::Key* req,
+             ::keyvaluestore::Value* resp) {
+               return service->Delete(ctx, req, resp);
+             }, this)));
 }
 
 KVS::Service::~Service() {
@@ -117,6 +152,13 @@ KVS::Service::~Service() {
 }
 
 ::grpc::Status KVS::Service::Put(::grpc::ServerContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status KVS::Service::Delete(::grpc::ServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response) {
   (void) context;
   (void) request;
   (void) response;
