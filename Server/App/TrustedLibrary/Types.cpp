@@ -73,7 +73,7 @@ string get(string k){
 
 void delete_(string key){
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_delete(global_eid, convertCString(k));
+    ret = ecall_delete(global_eid, convertCString(key));
     if (ret != SGX_SUCCESS)
         abort();
 }
