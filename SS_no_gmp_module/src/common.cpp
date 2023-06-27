@@ -44,6 +44,16 @@ void seed_random(void) {
 
 #define kBUFFERSIZE 4096	// How many bytes to read at a time
 
+void free_string_shares(char ** shares, int n) {
+	int i;
+
+	for (i = 0; i < n; ++i) {
+		free(shares[i]);
+	}
+
+	free(shares);
+}
+
 /*DString * stdin_buffer() {
 	// Read from stdin and return a GString 
 		//`buffer` will need to be freed elsewhere 

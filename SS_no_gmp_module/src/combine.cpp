@@ -181,16 +181,6 @@ void Test_join_shares(CuTest * tc) {
 #endif
 
 
-void free_string_shares(char ** shares, int n) {
-	int i;
-
-	for (i = 0; i < n; ++i) {
-		free(shares[i]);
-	}
-
-	free(shares);
-}
-
 
 char * join_strings(char ** shares, int n) {
 	/* TODO: Check if we have a quorum */

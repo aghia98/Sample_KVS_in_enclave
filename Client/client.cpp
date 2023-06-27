@@ -117,7 +117,25 @@ int number_of_open_ports_among_n(int starting_port, int n){
   return cpt;
 }
 
-void transmit_shares(string k, char** shares, int n, string ip_address, int port){
+void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_address, int offset){ //the share (x_share, y_share) is sent to node port offset+x_share
+  string v;
+  string fixed = ip_address+":";
+  string reply;
+  KVSClient* kvs;
+  int i=0;
+
+  for(int x_share : x_shares){
+    kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(x_share+offset) , grpc::InsecureChannelCredentials()));
+    v = shares[i];
+    reply = kvs->Put(k,v);
+    cout << "Client received: " << reply << endl;
+    i++;
+
+    delete kvs;
+  }
+}
+
+/*void transmit_shares(string k, char** shares, int n, string ip_address, int port){
   string v;
   string fixed = ip_address+":";
   string reply;
@@ -134,7 +152,7 @@ void transmit_shares(string k, char** shares, int n, string ip_address, int port
       delete kvs;
     } 
   }
-}
+}*/
 
 string* get_shares(string k, int n, int t, string ip_address, int port){
   string fixed = ip_address+":";
@@ -244,13 +262,13 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
           if(ids_of_N_active.size() >= n){ // enough active SMS nodes
             k = "Secret_"+to_string(secret_num);
             strings_with_id_of_N_active = convert_ids_to_strings_with_id(ids_of_N_active, "server");
-            display_vector(strings_with_id_of_N_active);
+            //display_vector(strings_with_id_of_N_active);
             
             ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,k); //Order according to HRW
 
             vector<int> shares_x;
 
-            for(int i=0; i<n;i++){
+            for(int i=0; i<n;i++){ //extract top-n nodes'id
               auto pair = ordered_strings_with_id_to_hash[i];
               string server_with_id = pair.first;
               cout << "ID: " << server_with_id << ", Hash: " << pair.second << endl;
@@ -258,12 +276,15 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
 
             }
             
-            display_vector(shares_x);
+            //display_vector(shares_x);
 
-            char ** shares = generate_share_strings(secret, n, t);
+            char ** shares = generate_share_strings(secret, n, t, shares_x);
           
-            for(int i=0; i<n; i++) //display shares
-              cout << shares[i] << endl; 
+            for(int i=0; i<n; i++) cout << shares[i] << endl; 
+
+            //transmit_shares(k, shares, n, ip_address, port);
+
+            transmit_shares(k, shares, shares_x, ip_address, offset);
             
             free_string_shares(shares, n);
             secret_num++; 
@@ -271,18 +292,6 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
           }else{
             cout << "less than n=" << n << " SMS nodes are available. Please retry later." << endl;
           }
-
-          
-
-          
-          //*****************************************************************************************
-          /*if (number_of_open_ports_among_n(port, n) >= t){
-            transmit_shares(k, shares, n, ip_address, port);
-          } else{
-            cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
-          }
-           */
-          
       }
 
       //***********************************************************************************************
