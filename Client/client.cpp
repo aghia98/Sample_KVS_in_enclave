@@ -17,6 +17,7 @@
  */
 
 #include <iostream>
+#include <vector>
 #include <memory>
 #include <string>
 #include <unistd.h>
@@ -25,6 +26,7 @@
 
 #include "../gRPC_module/grpc_client.h"
 #include "../SS_no_gmp_module/ss-client.h"
+#include "../HRW_hashing_module/hrw.h"
 
 using namespace std;
 
@@ -157,7 +159,153 @@ string* get_shares(string k, int n, int t, string ip_address, int port){
   return shares;
 }
 
+vector<int> get_ids_of_N_active(vector<int>& list_of_N_ports, int offset){
+  vector<int> result;
+  for(int port: list_of_N_ports){
+    if (isPortOpen("127.0.0.1", port)) result.push_back(port-offset);
+  }
+
+  return result;
+}
+
+template <typename T>
+void display_vector(const vector<T>& vec) {
+    for (auto& element : vec) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;
+}
+
 int main(int argc, char** argv) { // ./client -t x -n y --address localhost --port_init 50001 < secrets.txt
+
+	seed_random();
+
+  char** shares;
+  int t;
+  int n;
+  string ip_address;
+  int port;
+
+
+  struct option long_options[] = {
+      {"address", required_argument, nullptr, 'a'},
+      {"port_init", required_argument, nullptr, 'p'},
+      {nullptr, 0, nullptr, 0}
+  };
+
+  int option;
+  while ((option = getopt_long(argc, argv, "t:n:", long_options, nullptr)) != -1) {
+      switch (option) {
+          case 't':
+              t = atoi(optarg);
+              break;
+          case 'n':
+              n = atoi(optarg);
+              break;
+          case 'a':
+              ip_address = optarg;
+              break;
+          case 'p':
+              port = atoi(optarg);
+              break;
+          default:
+              cerr << "Usage: " << argv[0] << " -t <t> -n <n> --address <address> --port_init <port>" << endl;
+              return 1;
+      }
+  }
+
+  vector<int> list_of_N_ports = {50001,50002,50003,50004,50005}; int offset=50000;
+  vector<int> ids_of_N_active;
+  vector<string> strings_with_id_of_N_active;
+  vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
+
+  int debug=0;
+  int deg;
+  string k;
+  string v;
+  char secret[200];
+  string fixed = ip_address+":";
+  string reply;
+  
+
+  cout << "Generating shares using a (" << t << "," << n << ") scheme with ";
+  cout << "dynamic ";
+  cout << "security level." << endl;
+
+  //read secrets from file
+  cin.sync_with_stdio(false);
+  if (cin.rdbuf()->in_avail() != 0) {
+      string line;
+      int secret_num = 1;
+      while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
+          
+          ids_of_N_active = get_ids_of_N_active(list_of_N_ports, offset);
+
+          if(ids_of_N_active.size() >= n){ // enough active SMS nodes
+            k = "Secret_"+to_string(secret_num);
+            strings_with_id_of_N_active = convert_ids_to_strings_with_id(ids_of_N_active, "server");
+            display_vector(strings_with_id_of_N_active);
+            
+            ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,k); //Order according to HRW
+
+            vector<int> shares_x;
+
+            for(int i=0; i<n;i++){
+              auto pair = ordered_strings_with_id_to_hash[i];
+              string server_with_id = pair.first;
+              cout << "ID: " << server_with_id << ", Hash: " << pair.second << endl;
+              shares_x.push_back(extractNumber(server_with_id));
+
+            }
+            
+            display_vector(shares_x);
+
+            char ** shares = generate_share_strings(secret, n, t);
+          
+            for(int i=0; i<n; i++) //display shares
+              cout << shares[i] << endl; 
+            
+            free_string_shares(shares, n);
+            secret_num++; 
+
+          }else{
+            cout << "less than n=" << n << " SMS nodes are available. Please retry later." << endl;
+          }
+
+          
+
+          
+          //*****************************************************************************************
+          /*if (number_of_open_ports_among_n(port, n) >= t){
+            transmit_shares(k, shares, n, ip_address, port);
+          } else{
+            cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
+          }
+           */
+          
+      }
+
+      //***********************************************************************************************
+      /*string* got_shares;
+      if (number_of_open_ports_among_n(port, n) >= t){
+        got_shares = get_shares("Secret_1", n, t, ip_address, port);
+        for(int i=0; i<t; i++){
+          cout << got_shares[i] << endl;
+        }
+        delete[] got_shares;
+      } else{
+        cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
+      } */
+      
+  } else {
+      cerr << "No input provided through redirection." << endl;
+      return 1;
+    }
+
+  return 0;
+}
+
+/*int main(int argc, char** argv) { // ./client -t x -n y --address localhost --port_init 50001 < secrets.txt
 
 	seed_random();
 
@@ -249,4 +397,4 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
     }
 
   return 0;
-}
+} */

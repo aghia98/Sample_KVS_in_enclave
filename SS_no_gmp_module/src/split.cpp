@@ -77,7 +77,7 @@ int modular_exponentiation(int base, int exp, int mod) {
 	t = threshold shares to recreate the number
 */
 
-int * split_number(int number, int n, int t) {
+int * split_number(int number, int n, int t, vector<int> x_shares) {
 	int * shares = static_cast<int*>(malloc(sizeof(int) * n));
 
 	int * coef = static_cast<int*>(malloc(sizeof(int) * t));
@@ -100,7 +100,7 @@ int * split_number(int number, int n, int t) {
 
 		/* Calculate the shares */
 		for (i = 1; i < t; ++i) {
-			int temp = modular_exponentiation(x + 1, i, prime);
+			int temp = modular_exponentiation(x_shares[x], i, prime);
 
 			y = (y + (coef[i] * temp % prime)) % prime;
 		}
@@ -215,7 +215,7 @@ void Test_join_shares(CuTest * tc) {
 	return an array of pointers to strings;
 */
 
-char ** split_string(char * secret, int n, int t) {
+char ** split_string(char * secret, int n, int t, vector<int> x_shares) {
 	int len = strlen(secret);
 
 	char ** shares = static_cast<char**>(malloc (sizeof(char *) * n));
@@ -230,7 +230,7 @@ char ** split_string(char * secret, int n, int t) {
 		*/
 		shares[i] = (char *) malloc(2 * len + 6 + 1);
 
-		sprintf(shares[i], "%02X%02XAA", (i + 1), t);
+		sprintf(shares[i], "%02X%02XAA", x_shares[i], t);
 	}
 
 	/* Now, handle the secret */
@@ -242,7 +242,7 @@ char ** split_string(char * secret, int n, int t) {
 			letter = 256 + letter;
 		}
 
-		int * chunks = split_number(letter, n, t);
+		int * chunks = split_number(letter, n, t, x_shares);
 		int j;
 
 		for (j = 0; j < n; ++j) {
@@ -258,18 +258,6 @@ char ** split_string(char * secret, int n, int t) {
 
 	return shares;
 }
-
-
-void free_string_shares(char ** shares, int n) {
-	int i;
-
-	for (i = 0; i < n; ++i) {
-		free(shares[i]);
-	}
-
-	free(shares);
-}
-
 
 #ifdef TEST
 void Test_split_string(CuTest * tc) {
@@ -300,8 +288,8 @@ void Test_split_string(CuTest * tc) {
 #endif
 
 
-char ** generate_share_strings(char * secret, int n, int t) {
-	char ** result = split_string(secret, n, t);
+char ** generate_share_strings(char * secret, int n, int t, vector<int> x_shares) {
+	char ** result = split_string(secret, n, t, x_shares);
 	return result;
 }
 

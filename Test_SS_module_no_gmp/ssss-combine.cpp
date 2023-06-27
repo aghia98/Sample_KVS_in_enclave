@@ -47,12 +47,12 @@ void copyString(string source, char* destination) {
 
 
 int main( int argc, char ** argv ) {
-    // Read shares from stdin -- < shares.txt
+    
 
     //DString * shares = stdin_buffer();
-	string share1="0603AABDC6E36F810E36";
-	string share2="0303AA741E0CC008BEC4";
-	string share3="0503AA30E8270FCF2D9A";
+	string share1="0303AA18E4F00FD039AB";
+	string share2="0503AAA6A665B61F2AAC";
+	string share3="0903AA227760ABAAFC2D";
 
 	string shares_string = share1+'\n'+share2+'\n'+share3+'\n';	
 	//const char* combined_shares = shares_string.c_str();

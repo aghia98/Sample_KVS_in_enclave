@@ -51,6 +51,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <vector>
 
 #include "split.h"
 
@@ -101,6 +102,47 @@ int * split_number(int number, int n, int t) {
 		/* Calculate the shares */
 		for (i = 1; i < t; ++i) {
 			int temp = modular_exponentiation(x + 1, i, prime);
+
+			y = (y + (coef[i] * temp % prime)) % prime;
+		}
+
+		/* Sometimes we're getting negative numbers, and need to fix that */
+		y = (y + prime) % prime;
+
+		shares[x] = y;
+	}
+
+	free(coef);
+
+	return shares;
+}
+
+//**********************************************************************************************************
+
+int * split_number(int number, int n, int t, vector<int> x_shares) {
+	int * shares = static_cast<int*>(malloc(sizeof(int) * n));
+
+	int * coef = static_cast<int*>(malloc(sizeof(int) * t));
+	int x;
+	int i;
+
+	coef[0] = number;
+
+	for (i = 1; i < t; ++i) {
+		/* Generate random coefficients -- use arc4random if available */
+#ifdef HAVE_ARC4RANDOM
+		coef[i] = arc4random_uniform(prime);
+#else
+		coef[i] = rand() % (prime);
+#endif
+	}
+
+	for (x = 0; x < n; ++x) {
+		int y = coef[0];
+
+		/* Calculate the shares */
+		for (i = 1; i < t; ++i) {
+			int temp = modular_exponentiation(x_shares[x], i, prime);
 
 			y = (y + (coef[i] * temp % prime)) % prime;
 		}
@@ -259,6 +301,51 @@ char ** split_string(char * secret, int n, int t) {
 	return shares;
 }
 
+//**************************************************************************************
+char ** split_string(char * secret, int n, int t, vector<int> x_shares) {
+	int len = strlen(secret);
+
+	char ** shares = static_cast<char**>(malloc (sizeof(char *) * n));
+	int i;
+
+	for (i = 0; i < n; ++i) {
+		/* need two characters to encode each character */
+		/* Need 4 character overhead for share # and quorum # */
+		/* Additional 2 characters are for compatibility with:
+
+			http://www.christophedavid.org/w/c/w.php/Calculators/ShamirSecretSharing
+		*/
+		shares[i] = (char *) malloc(2 * len + 6 + 1);
+
+		sprintf(shares[i], "%02X%02XAA", x_shares[i], t);
+	}
+
+	/* Now, handle the secret */
+
+	for (i = 0; i < len; ++i) {
+		int letter = secret[i]; // - '0';
+
+		if (letter < 0) {
+			letter = 256 + letter;
+		}
+
+		int * chunks = split_number(letter, n, t, x_shares);
+		int j;
+
+		for (j = 0; j < n; ++j) {
+			if (chunks[j] == 256) {
+				sprintf(shares[j] + 6 + i * 2, "G0");	/* Fake code */
+			} else {
+				sprintf(shares[j] + 6 + i * 2, "%02X", chunks[j]);
+			}
+		}
+
+		free(chunks);
+	}
+
+	return shares;
+}
+
 
 void free_string_shares(char ** shares, int n) {
 	int i;
@@ -300,8 +387,8 @@ void Test_split_string(CuTest * tc) {
 #endif
 
 
-char ** generate_share_strings(char * secret, int n, int t) {
-	char ** result = split_string(secret, n, t);
+char ** generate_share_strings(char * secret, int n, int t, vector<int> x_shares) {
+	char ** result = split_string(secret, n, t, x_shares);
 	return result;
 }
 

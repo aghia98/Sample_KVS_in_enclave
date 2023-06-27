@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 
+
 using namespace std;
 
 
@@ -22,8 +23,10 @@ int main( int argc, char ** argv ) {
   		if (cin.rdbuf()->in_avail() != 0) {
 			string line;
 			int secret_num = 1;
+			vector<int>  x_shares = {3,5,9,1};
 			while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
-				shares = generate_share_strings(secret, n, t);
+				
+				shares = generate_share_strings(secret, n, t, x_shares);
 				
 				for(int i=0; i<n; i++) //display shares
 					cout << shares[i] << endl; 

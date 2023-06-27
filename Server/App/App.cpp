@@ -235,7 +235,7 @@ void ocall_print_string(const char *str)
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
-int SGX_CDECL main(int argc, char *argv[])
+int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
 {
 
     if(initialize_enclave() < 0){
