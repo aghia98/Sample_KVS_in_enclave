@@ -5,4 +5,3 @@
 
 void free_string_shares(char ** shares, int n);
 
-//DString * stdin_buffer();

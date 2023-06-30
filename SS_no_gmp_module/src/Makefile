@@ -5,7 +5,7 @@ ssss-split:
 	rm *.o
 
 ssss-combine:
-	g++ -c combine.cpp strtok.cpp
+	g++ -c combine.cpp common.cpp strtok.cpp
 	ar rcs libshamir_combine.a *.o
 	mv libshamir_combine.a ..
 	rm *.o

@@ -45,6 +45,7 @@
 
 #include "../../gRPC_module/grpc_client.h"
 #include "../../SS_no_gmp_module/ss-worker.h"
+#include "../../HRW_hashing_module/hrw.h"
 
 #include "Enclave_u.h"
 
@@ -260,33 +261,45 @@ int number_of_open_ports_among_n(int starting_port, int n){
   return cpt;
 }
 
-string get_shares(string k, int n, int t, string ip_address, int port){
-  string fixed = ip_address+":";
-  string reply;
-  KVSClient* kvs;
-  int got_shares=0;
-  int node_id=0;
-  string shares = "";
-  //string* shares = new string[t];
-
-  while(got_shares<t){
-    if(isPortOpen("127.0.0.1", port+node_id)){
-      kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+node_id), grpc::InsecureChannelCredentials()));
-      shares += kvs->Get(k)+'\n';
-      delete kvs;
-      got_shares++;
-    }
-    node_id++;
+vector<int> get_ids_of_N_active(vector<int>& list_of_N_ports, int offset){
+  vector<int> result;
+  for(int port: list_of_N_ports){
+    if (isPortOpen("127.0.0.1", port)) result.push_back(port-offset);
   }
+
+  return result;
+}
+
+string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_address, int t){
+    int port;
+    int offset=50000;
+    //int got_shares=0;
+    KVSClient* kvs;
+    string shares = "";
+    string reply;
+    string fixed = ip_address+":";
+    vector<string> strings_with_id_of_N_active = convert_ids_to_strings_with_id(ids_of_N_active, "server");
+    vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,secret_id); //Order according to HRW
+    pair<string, uint32_t> pair; 
+
+    for(int i=0; i<t; i++){
+        pair = ordered_strings_with_id_to_hash[i];
+        port = extractNumber(pair.first) + offset;
+        kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port), grpc::InsecureChannelCredentials()));
+        shares += kvs->Get(secret_id)+'\n'; 
+        delete kvs;
+    }
 
   return shares;
 }
 
 
+
+
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
-int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <port> --secret_id <secret_id> -n <n>
+int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <port> --secret_id <secret_id> -t <n>
  
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
@@ -294,11 +307,16 @@ int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <p
         return -1; 
     }
 
+    vector<int> list_of_N_ports = {50001,50002,50003,50004,50005}; int offset=50000;
+    vector<int> ids_of_N_active;
+    vector<string> strings_with_id_of_N_active;
+    vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
     int n;
     int t;
     int port;
     string ip_address;
     string secret_id;
+
     struct option long_options[] = {
         {"address", required_argument, nullptr, 'a'},
         {"port_init", required_argument, nullptr, 'p'},
@@ -307,7 +325,7 @@ int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <p
     };
 
     int option;
-    while ((option = getopt_long(argc, argv, "t:n:", long_options, nullptr)) != -1) {
+    while ((option = getopt_long(argc, argv, "t:", long_options, nullptr)) != -1) {
         switch (option) {
             case 'a':
                 ip_address = optarg;
@@ -321,25 +339,25 @@ int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <p
             case 't':
                 t = atoi(optarg);
                 break;
-            case 'n':
-                n = atoi(optarg);
-                break;
             default:
                 cerr << "Usage: " << argv[0] << " --address <address> --port_init <port> --secret_id <secret_id> -t <t> -n <n>" << endl; //TBD: --port_init should be dynamically found
                 return 1;
         }
     }
-    if (number_of_open_ports_among_n(port, n) >= t){
-        string shares_string = get_shares(secret_id, n, t, ip_address, port);
+    ids_of_N_active = get_ids_of_N_active(list_of_N_ports, offset);
+    if(ids_of_N_active.size() >= t){
+        string shares_string = get_shares(ids_of_N_active, secret_id, ip_address, t);
         char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
+        cout << shares_string << endl;
 
         copyString(shares_string, combined_shares); 
         string secret = rebuild_secret(combined_shares);
         cout << secret << endl;
         free(combined_shares);
+
     }else{
         cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
-    }
+    } 
   
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);

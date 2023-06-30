@@ -85,7 +85,10 @@ endif
 
 INCLUDE_grpc = $(HOME)/usr/local/include 
 LIBRARY_grpckvs = ../gRPC_module/
+LIBRARY_HRW_PATH = -L../HRW_hashing_module
 LIBRARY_shamir_combine = ../SS_no_gmp_module/
+
+LDFLAGS_HRW = $(LIBRARY_HRW_PATH) -lhrw
 LDFLAGS_GRPC += `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`\
            -pthread\
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
@@ -109,7 +112,7 @@ else
 endif
 
 App_Cpp_Flags := $(App_C_Flags)
-App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs) -lgrpckvs $(LDFLAGS_GRPC) -lpthread
+App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs) -lgrpckvs $(LDFLAGS_GRPC) -lpthread $(LDFLAGS_HRW)
 
 App_Cpp_Objects := $(App_Cpp_Files:.cpp=.o)
 
