@@ -60,11 +60,16 @@ void put(string k, string v)
 }
 
 string get(string k){
-    char* value;
+    //char* value;
+    char value[410];
+    memset(value, 'A', 409);
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_get(global_eid, convertCString(k), &value);
+    ret = ecall_get(global_eid, convertCString(k), value);
     if (ret != SGX_SUCCESS)
+
         abort();
+    
+    //cout <<  << endl;
 
     string value_string(value); 
 

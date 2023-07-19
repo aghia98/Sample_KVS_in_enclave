@@ -145,9 +145,15 @@ class KVSServiceImpl final : public KVS::Service {
   //Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response)
     Status Get(ServerContext* context, const Key* key, Value* value) override {
         value->set_value(get(key->key()));
-        //value->set_value("get is successful");
+        
         return Status::OK;
-  }
+    }
+
+    /*Status Get(ServerContext* context, const Key* key, Value* value) override {
+        //value->set_value(get(key->key()));
+        
+        return Status::OK;
+    }*/
 
     Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
         put(request->key(), request->value());

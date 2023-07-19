@@ -35,8 +35,6 @@
 #include "sgx_trts.h"
 #include "../Enclave.h"
 #include "Enclave_t.h"
-//#include <limits>
-//#include <cmath>
 #include <string>
 
 
@@ -57,12 +55,12 @@ map<string, string> myMap;
     return cstr;
 }*/
 
-void copyString(std::string source, char* destination) {
+/*void copyString(std::string source, char* destination) {
     for (std::size_t i = 0; i < source.length(); ++i) {
         destination[i] = source[i];
     }
     destination[source.length()] = '\0'; // Append null character to terminate the string
-}
+}*/
 
 
 
@@ -76,19 +74,23 @@ void ecall_put(char key[], char val[]){
 
 }
 
-void ecall_get(char key[], char** val){
+void ecall_get(char key[], char* val){
   string key_string(key);
   
   auto iterator = myMap.find(key_string);
+  string source;
   if(iterator != myMap.end()){
-    string source = iterator->second;
-    char destination[410];
-
-    copyString(source, destination); 
-    *val = destination;
+    source = iterator->second;
+    //char destination[410];
+    //copyString(source, destination); 
+    
+    strncpy(val, source.c_str(), strlen(val));
+    //val = destination;
+    
   }else{
-    *val="NOT_FOUND";
-  }
+    //val="NOT_FOUND";
+    strncpy(val, "NOT_FOUND", strlen(val));
+  } 
 
 }
 

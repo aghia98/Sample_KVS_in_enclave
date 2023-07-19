@@ -50,16 +50,16 @@ char* convertCString(string str) {
     return cstr;
 }
 
-void put(string k, string v)
+/*void put(string k, string v)
 {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_put(global_eid, convertCString(k), convertCString(v));
     if (ret != SGX_SUCCESS)
         abort();
 
-}
+}*/
 
-string get(string k){
+/*string get(string k){
     char* value;
 
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
@@ -69,12 +69,13 @@ string get(string k){
     string value_string(value); 
 
     return value_string;
-}
+}*/
 
 string rebuild_secret(char* combined_shares){
-    char* value;
+    char value[101];
+    memset(value, 'A', 100);
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_rebuild_secret(global_eid, combined_shares, &value);
+    ret = ecall_rebuild_secret(global_eid, combined_shares, value);
     //printf(combined_shares);
     if (ret != SGX_SUCCESS)
         abort();

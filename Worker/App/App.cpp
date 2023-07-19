@@ -253,14 +253,6 @@ bool isPortOpen(const std::string& ipAddress, int port) {
     return true;
 }
 
-int number_of_open_ports_among_n(int starting_port, int n){
-  int cpt=0;
-  for(int i=0; i<n; i++){
-    if(isPortOpen("127.0.0.1", starting_port+i)) cpt++;
-  }
-  return cpt;
-}
-
 vector<int> get_ids_of_N_active(vector<int>& list_of_N_ports, int offset){
   vector<int> result;
   for(int port: list_of_N_ports){
@@ -299,7 +291,7 @@ string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_addre
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
-int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <port> --secret_id <secret_id> -t <n>
+int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --secret_id <secret_id> -t <n>
  
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
@@ -313,13 +305,12 @@ int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <p
     vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
     int n;
     int t;
-    int port;
+    //int port;
     string ip_address;
     string secret_id;
 
     struct option long_options[] = {
         {"address", required_argument, nullptr, 'a'},
-        {"port_init", required_argument, nullptr, 'p'},
         {"secret_id", required_argument, nullptr, 's'},
         {nullptr, 0, nullptr, 0}
     };
@@ -330,9 +321,6 @@ int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <p
             case 'a':
                 ip_address = optarg;
                 break;
-            case 'p':
-                port = atoi(optarg);
-                break;
             case 's':
                 secret_id = optarg;
                 break;
@@ -340,7 +328,7 @@ int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --port_init <p
                 t = atoi(optarg);
                 break;
             default:
-                cerr << "Usage: " << argv[0] << " --address <address> --port_init <port> --secret_id <secret_id> -t <t> -n <n>" << endl; //TBD: --port_init should be dynamically found
+                cerr << "Usage: " << argv[0] << " --address <address> --secret_id <secret_id> -t <t> -n <n>" << endl; //TBD: --port_init should be dynamically found
                 return 1;
         }
     }

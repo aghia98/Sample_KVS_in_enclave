@@ -68,13 +68,11 @@ enclave {
     //}; 
 
     trusted {
-
-        
+  
         public void ecall_put([in] char key[100], [in] char share[410]);
-        public void ecall_get([in] char key[100], [out] char** share);
+        public void ecall_get([in] char key[100], [in, out, string] char* share);
         public void ecall_delete([in] char key[100]);
 
-        
         /* for using user defined types, please refer to Pointers.edl, Arrays.edl. */
     };
 

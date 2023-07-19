@@ -35,8 +35,6 @@
 #include "sgx_trts.h"
 #include "../Enclave.h"
 #include "Enclave_t.h"
-//#include <limits>
-//#include <cmath>
 #include <string>
 
 
@@ -92,8 +90,9 @@ void ecall_get(char key[], char** val){
 
 }
 
-void ecall_rebuild_secret(char combined_shares[], char** val){
+void ecall_rebuild_secret(char combined_shares[], char* val){
   //*val="yeaaaaaaaaah";
-  *val = extract_secret_from_share_strings(combined_shares);
+  strncpy(val, extract_secret_from_share_strings(combined_shares), strlen(val));
+  //*val = extract_secret_from_share_strings(combined_shares);
 
 }
