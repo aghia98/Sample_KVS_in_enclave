@@ -48,6 +48,8 @@ using keyvaluestore::KVS;
 using keyvaluestore::Key;
 using keyvaluestore::Value;
 using keyvaluestore::KV_pair;
+using keyvaluestore::Id;
+using keyvaluestore::Lost_keys;
 
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
@@ -75,6 +77,16 @@ class KVSServiceImpl final : public KVS::Service {
     response->set_value("DELETE_SUCCESS");
     return Status::OK;
   }
+
+  Status Share_lost_keys(ServerContext* context, const Id* request, Lost_keys* response) override {
+        for (int i = 1; i <= request->id(); ++i) {
+            Key* key = response->add_keys();
+            key->set_key("example");
+        }
+        return Status::OK;
+    }
+
+    // Implement other service methods...
 };
 
 void RunServer(uint16_t port) { // ./server --port 50001

@@ -142,18 +142,13 @@ static sgx_errlist_t sgx_errlist[] = {
 
 // Logic and data behind the server's behavior.
 class KVSServiceImpl final : public KVS::Service {
-  //Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response)
+
     Status Get(ServerContext* context, const Key* key, Value* value) override {
         value->set_value(get(key->key()));
         
         return Status::OK;
     }
 
-    /*Status Get(ServerContext* context, const Key* key, Value* value) override {
-        //value->set_value(get(key->key()));
-        
-        return Status::OK;
-    }*/
 
     Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
         put(request->key(), request->value());
@@ -166,6 +161,17 @@ class KVSServiceImpl final : public KVS::Service {
         response->set_value("DELETE_SUCCESS");
         return Status::OK;
   }
+
+  Status Share_lost_keys(ServerContext* context, const Id* request, Lost_keys* response) override {
+        set<string> lost_keys = share_lost_keys(request->id());
+
+        for (set<string>::iterator it = lost_keys.begin(); it != lost_keys.end(); ++it) {
+            Key* key = response->add_keys();
+            key->set_key(*it);
+        }
+
+        return Status::OK;
+    }
 };
 
 

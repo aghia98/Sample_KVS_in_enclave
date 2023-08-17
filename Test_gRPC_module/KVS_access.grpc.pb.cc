@@ -25,6 +25,7 @@ static const char* KVS_method_names[] = {
   "/keyvaluestore.KVS/Get",
   "/keyvaluestore.KVS/Put",
   "/keyvaluestore.KVS/Delete",
+  "/keyvaluestore.KVS/Share_lost_keys",
 };
 
 std::unique_ptr< KVS::Stub> KVS::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -37,6 +38,7 @@ KVS::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const
   : channel_(channel), rpcmethod_Get_(KVS_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Put_(KVS_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Delete_(KVS_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Share_lost_keys_(KVS_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status KVS::Stub::Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response) {
@@ -108,6 +110,29 @@ void KVS::Stub::async::Delete(::grpc::ClientContext* context, const ::keyvaluest
   return result;
 }
 
+::grpc::Status KVS::Stub::Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::Id& request, ::keyvaluestore::Lost_keys* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::Id, ::keyvaluestore::Lost_keys, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Share_lost_keys_, context, request, response);
+}
+
+void KVS::Stub::async::Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::Id* request, ::keyvaluestore::Lost_keys* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::Id, ::keyvaluestore::Lost_keys, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Share_lost_keys_, context, request, response, std::move(f));
+}
+
+void KVS::Stub::async::Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::Id* request, ::keyvaluestore::Lost_keys* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Share_lost_keys_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>* KVS::Stub::PrepareAsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::Id& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::Lost_keys, ::keyvaluestore::Id, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Share_lost_keys_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>* KVS::Stub::AsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::Id& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncShare_lost_keysRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 KVS::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KVS_method_names[0],
@@ -139,6 +164,16 @@ KVS::Service::Service() {
              ::keyvaluestore::Value* resp) {
                return service->Delete(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      KVS_method_names[3],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< KVS::Service, ::keyvaluestore::Id, ::keyvaluestore::Lost_keys, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](KVS::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::keyvaluestore::Id* req,
+             ::keyvaluestore::Lost_keys* resp) {
+               return service->Share_lost_keys(ctx, req, resp);
+             }, this)));
 }
 
 KVS::Service::~Service() {
@@ -159,6 +194,13 @@ KVS::Service::~Service() {
 }
 
 ::grpc::Status KVS::Service::Delete(::grpc::ServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status KVS::Service::Share_lost_keys(::grpc::ServerContext* context, const ::keyvaluestore::Id* request, ::keyvaluestore::Lost_keys* response) {
   (void) context;
   (void) request;
   (void) response;

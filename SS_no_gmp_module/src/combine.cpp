@@ -52,7 +52,8 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "combine.h"
+#include "combine.h" //it implements it
+#include "common.h" //it uses it
 
 
 static int prime = 257;

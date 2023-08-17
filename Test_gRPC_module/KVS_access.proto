@@ -22,6 +22,7 @@ service KVS {
   rpc Get (Key) returns (Value) {}
   rpc Put (KV_pair) returns (Value) {}
   rpc Delete (Key) returns (Value) {}
+  rpc Share_lost_keys (Id) returns (Lost_keys) {}
 }
 
 // The request message containing the key
@@ -39,3 +40,10 @@ message KV_pair{
   string value = 2;
 }
 
+message Id{
+  int32 id = 1;
+}
+
+message Lost_keys {
+  repeated Key keys = 1;
+}

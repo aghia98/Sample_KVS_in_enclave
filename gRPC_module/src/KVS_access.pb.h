@@ -45,19 +45,27 @@ struct TableStruct_KVS_5faccess_2eproto {
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_KVS_5faccess_2eproto;
 namespace keyvaluestore {
+class Id;
+struct IdDefaultTypeInternal;
+extern IdDefaultTypeInternal _Id_default_instance_;
 class KV_pair;
 struct KV_pairDefaultTypeInternal;
 extern KV_pairDefaultTypeInternal _KV_pair_default_instance_;
 class Key;
 struct KeyDefaultTypeInternal;
 extern KeyDefaultTypeInternal _Key_default_instance_;
+class Lost_keys;
+struct Lost_keysDefaultTypeInternal;
+extern Lost_keysDefaultTypeInternal _Lost_keys_default_instance_;
 class Value;
 struct ValueDefaultTypeInternal;
 extern ValueDefaultTypeInternal _Value_default_instance_;
 }  // namespace keyvaluestore
 PROTOBUF_NAMESPACE_OPEN
+template<> ::keyvaluestore::Id* Arena::CreateMaybeMessage<::keyvaluestore::Id>(Arena*);
 template<> ::keyvaluestore::KV_pair* Arena::CreateMaybeMessage<::keyvaluestore::KV_pair>(Arena*);
 template<> ::keyvaluestore::Key* Arena::CreateMaybeMessage<::keyvaluestore::Key>(Arena*);
+template<> ::keyvaluestore::Lost_keys* Arena::CreateMaybeMessage<::keyvaluestore::Lost_keys>(Arena*);
 template<> ::keyvaluestore::Value* Arena::CreateMaybeMessage<::keyvaluestore::Value>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace keyvaluestore {
@@ -537,6 +545,311 @@ class KV_pair final :
   union { Impl_ _impl_; };
   friend struct ::TableStruct_KVS_5faccess_2eproto;
 };
+// -------------------------------------------------------------------
+
+class Id final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:keyvaluestore.Id) */ {
+ public:
+  inline Id() : Id(nullptr) {}
+  ~Id() override;
+  explicit PROTOBUF_CONSTEXPR Id(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Id(const Id& from);
+  Id(Id&& from) noexcept
+    : Id() {
+    *this = ::std::move(from);
+  }
+
+  inline Id& operator=(const Id& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Id& operator=(Id&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Id& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Id* internal_default_instance() {
+    return reinterpret_cast<const Id*>(
+               &_Id_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    3;
+
+  friend void swap(Id& a, Id& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Id* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Id* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Id* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Id>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Id& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const Id& from) {
+    Id::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Id* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "keyvaluestore.Id";
+  }
+  protected:
+  explicit Id(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kIdFieldNumber = 1,
+  };
+  // int32 id = 1;
+  void clear_id();
+  int32_t id() const;
+  void set_id(int32_t value);
+  private:
+  int32_t _internal_id() const;
+  void _internal_set_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:keyvaluestore.Id)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_KVS_5faccess_2eproto;
+};
+// -------------------------------------------------------------------
+
+class Lost_keys final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:keyvaluestore.Lost_keys) */ {
+ public:
+  inline Lost_keys() : Lost_keys(nullptr) {}
+  ~Lost_keys() override;
+  explicit PROTOBUF_CONSTEXPR Lost_keys(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Lost_keys(const Lost_keys& from);
+  Lost_keys(Lost_keys&& from) noexcept
+    : Lost_keys() {
+    *this = ::std::move(from);
+  }
+
+  inline Lost_keys& operator=(const Lost_keys& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Lost_keys& operator=(Lost_keys&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Lost_keys& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Lost_keys* internal_default_instance() {
+    return reinterpret_cast<const Lost_keys*>(
+               &_Lost_keys_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    4;
+
+  friend void swap(Lost_keys& a, Lost_keys& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Lost_keys* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Lost_keys* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Lost_keys* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Lost_keys>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Lost_keys& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const Lost_keys& from) {
+    Lost_keys::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Lost_keys* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "keyvaluestore.Lost_keys";
+  }
+  protected:
+  explicit Lost_keys(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kKeysFieldNumber = 1,
+  };
+  // repeated .keyvaluestore.Key keys = 1;
+  int keys_size() const;
+  private:
+  int _internal_keys_size() const;
+  public:
+  void clear_keys();
+  ::keyvaluestore::Key* mutable_keys(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::keyvaluestore::Key >*
+      mutable_keys();
+  private:
+  const ::keyvaluestore::Key& _internal_keys(int index) const;
+  ::keyvaluestore::Key* _internal_add_keys();
+  public:
+  const ::keyvaluestore::Key& keys(int index) const;
+  ::keyvaluestore::Key* add_keys();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::keyvaluestore::Key >&
+      keys() const;
+
+  // @@protoc_insertion_point(class_scope:keyvaluestore.Lost_keys)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::keyvaluestore::Key > keys_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_KVS_5faccess_2eproto;
+};
 // ===================================================================
 
 
@@ -756,9 +1069,81 @@ inline void KV_pair::set_allocated_value(std::string* value) {
   // @@protoc_insertion_point(field_set_allocated:keyvaluestore.KV_pair.value)
 }
 
+// -------------------------------------------------------------------
+
+// Id
+
+// int32 id = 1;
+inline void Id::clear_id() {
+  _impl_.id_ = 0;
+}
+inline int32_t Id::_internal_id() const {
+  return _impl_.id_;
+}
+inline int32_t Id::id() const {
+  // @@protoc_insertion_point(field_get:keyvaluestore.Id.id)
+  return _internal_id();
+}
+inline void Id::_internal_set_id(int32_t value) {
+  
+  _impl_.id_ = value;
+}
+inline void Id::set_id(int32_t value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:keyvaluestore.Id.id)
+}
+
+// -------------------------------------------------------------------
+
+// Lost_keys
+
+// repeated .keyvaluestore.Key keys = 1;
+inline int Lost_keys::_internal_keys_size() const {
+  return _impl_.keys_.size();
+}
+inline int Lost_keys::keys_size() const {
+  return _internal_keys_size();
+}
+inline void Lost_keys::clear_keys() {
+  _impl_.keys_.Clear();
+}
+inline ::keyvaluestore::Key* Lost_keys::mutable_keys(int index) {
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.Lost_keys.keys)
+  return _impl_.keys_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::keyvaluestore::Key >*
+Lost_keys::mutable_keys() {
+  // @@protoc_insertion_point(field_mutable_list:keyvaluestore.Lost_keys.keys)
+  return &_impl_.keys_;
+}
+inline const ::keyvaluestore::Key& Lost_keys::_internal_keys(int index) const {
+  return _impl_.keys_.Get(index);
+}
+inline const ::keyvaluestore::Key& Lost_keys::keys(int index) const {
+  // @@protoc_insertion_point(field_get:keyvaluestore.Lost_keys.keys)
+  return _internal_keys(index);
+}
+inline ::keyvaluestore::Key* Lost_keys::_internal_add_keys() {
+  return _impl_.keys_.Add();
+}
+inline ::keyvaluestore::Key* Lost_keys::add_keys() {
+  ::keyvaluestore::Key* _add = _internal_add_keys();
+  // @@protoc_insertion_point(field_add:keyvaluestore.Lost_keys.keys)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::keyvaluestore::Key >&
+Lost_keys::keys() const {
+  // @@protoc_insertion_point(field_list:keyvaluestore.Lost_keys.keys)
+  return _impl_.keys_;
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

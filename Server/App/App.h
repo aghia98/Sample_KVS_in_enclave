@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string>
+#include <set>
 
 #include "sgx_error.h"       /* sgx_status_t */
 #include "sgx_eid.h"     /* sgx_enclave_id_t */
@@ -63,6 +64,7 @@ extern "C" {
 void put(string k, string v);
 string get(string k);
 void delete_(string key);
+set<string> share_lost_keys(int node_id);
 
 
 #if defined(__cplusplus)

@@ -82,3 +82,16 @@ void delete_(string key){
     if (ret != SGX_SUCCESS)
         abort();
 }
+
+set<string> share_lost_keys(int node_id){
+    char lost_keys[10000]; //*******************************************assuming there is max 100 lost keys per node*********************
+    memset(lost_keys, 'A', 999);
+    
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    ret = ecall_share_lost_keys(global_eid, &node_id, lost_keys); // add S_up as input parameter
+    if (ret != SGX_SUCCESS)
+        abort();
+    
+    set<string> test = {"yess", "noo"};
+    return test;
+} 

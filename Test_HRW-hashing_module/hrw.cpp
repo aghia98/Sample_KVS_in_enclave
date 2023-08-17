@@ -1,7 +1,8 @@
 #include <map>
 #include <algorithm>
-#include <stdint.h>
 #include <iostream>
+#include <string>
+#include <vector>
 #include "hrw.h"
 
 

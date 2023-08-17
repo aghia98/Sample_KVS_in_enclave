@@ -77,6 +77,30 @@ class KVSClient {
     }
   }
 
+   int Share_lost_keys(int id){
+    Id request;
+    request.set_id(id); // Replace with the desired ID value
+
+    // Create a Lost_keys response
+    Lost_keys response;
+
+    ClientContext context;
+    Status status = stub_->Share_lost_keys(&context, request, &response);
+
+    if (status.ok()) {
+        std::cout << "Lost Keys: ";
+        for (const auto& key : response.keys()) {
+            std::cout << key.key() << " ";
+        }
+        std::cout << std::endl;
+    } else {
+        std::cerr << "RPC failed";
+    }
+
+    return 0;
+
+  }
+
  private:
   unique_ptr<KVS::Stub> stub_;
 };
@@ -194,7 +218,18 @@ void display_vector(const vector<T>& vec) {
     std::cout << std::endl;
 }
 
-int main(int argc, char** argv) { // ./client -t x -n y --address localhost --port_init 50001 < secrets.txt
+void test_share_lost_keys(){
+  KVSClient* kvs;
+  kvs = new KVSClient(grpc::CreateChannel("localhost:50001" , grpc::InsecureChannelCredentials()));
+  kvs->Share_lost_keys(5);
+  delete kvs;
+}
+
+/*int main(){
+  test_share_lost_keys();
+}*/
+
+int main(int argc, char** argv) { // ./client -t x -n y --address localhost < secrets.txt
 
 	seed_random();
 
@@ -202,12 +237,11 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
   int t;
   int n;
   string ip_address;
-  int port;
+  
 
 
   struct option long_options[] = {
       {"address", required_argument, nullptr, 'a'},
-      {"port_init", required_argument, nullptr, 'p'},
       {nullptr, 0, nullptr, 0}
   };
 
@@ -223,11 +257,8 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
           case 'a':
               ip_address = optarg;
               break;
-          case 'p':
-              port = atoi(optarg);
-              break;
           default:
-              cerr << "Usage: " << argv[0] << " -t <t> -n <n> --address <address> --port_init <port>" << endl;
+              cerr << "Usage: " << argv[0] << " -t <t> -n <n> --address <address>" << endl;
               return 1;
       }
   }
@@ -295,16 +326,16 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
       }
 
       //***********************************************************************************************
-      /*string* got_shares;
-      if (number_of_open_ports_among_n(port, n) >= t){
-        got_shares = get_shares("Secret_1", n, t, ip_address, port);
-        for(int i=0; i<t; i++){
-          cout << got_shares[i] << endl;
-        }
-        delete[] got_shares;
-      } else{
-        cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
-      } */
+      //string* got_shares;
+      //if (number_of_open_ports_among_n(port, n) >= t){
+        //got_shares = get_shares("Secret_1", n, t, ip_address, port);
+        //for(int i=0; i<t; i++){
+          //cout << got_shares[i] << endl;
+        //}
+        //delete[] got_shares;
+      //} else{
+        //cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
+      //}
       
   } else {
       cerr << "No input provided through redirection." << endl;
@@ -312,98 +343,5 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost --po
     }
 
   return 0;
-}
+} 
 
-/*int main(int argc, char** argv) { // ./client -t x -n y --address localhost --port_init 50001 < secrets.txt
-
-	seed_random();
-
-  char** shares;
-  int t;
-  int n;
-  string ip_address;
-  int port;
-
-
-  struct option long_options[] = {
-      {"address", required_argument, nullptr, 'a'},
-      {"port_init", required_argument, nullptr, 'p'},
-      {nullptr, 0, nullptr, 0}
-  };
-
-  int option;
-  while ((option = getopt_long(argc, argv, "t:n:", long_options, nullptr)) != -1) {
-      switch (option) {
-          case 't':
-              t = atoi(optarg);
-              break;
-          case 'n':
-              n = atoi(optarg);
-              break;
-          case 'a':
-              ip_address = optarg;
-              break;
-          case 'p':
-              port = atoi(optarg);
-              break;
-          default:
-              cerr << "Usage: " << argv[0] << " -t <t> -n <n> --address <address> --port_init <port>" << endl;
-              return 1;
-      }
-  }
-
-  int debug=0;
-  int deg;
-  //int available_nodes = 2;
-  string k;
-  string v;
-  char secret[200];
-  string fixed = ip_address+":";
-  string reply;
-  
-
-  cout << "Generating shares using a (" << t << "," << n << ") scheme with ";
-  cout << "dynamic ";
-  cout << "security level." << endl;
-
-  //read secrets from file
-  cin.sync_with_stdio(false);
-  if (cin.rdbuf()->in_avail() != 0) {
-      string line;
-      int secret_num = 1;
-      while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
-          char ** shares = generate_share_strings(secret, n, t);
-          
-          for(int i=0; i<n; i++) //display shares
-            cout << shares[i] << endl; 
-
-          k = "Secret_"+to_string(secret_num);
-          if (number_of_open_ports_among_n(port, n) >= t){
-            transmit_shares(k, shares, n, ip_address, port);
-          } else{
-            cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
-          }
-          
-          free_string_shares(shares, n);
-          secret_num++;
-      }
-
-      //***********************************************************************************************
-      string* got_shares;
-      if (number_of_open_ports_among_n(port, n) >= t){
-        got_shares = get_shares("Secret_1", n, t, ip_address, port);
-        for(int i=0; i<t; i++){
-          cout << got_shares[i] << endl;
-        }
-        delete[] got_shares;
-      } else{
-        cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
-      }
-      
-  } else {
-      cerr << "No input provided through redirection." << endl;
-      return 1;
-    }
-
-  return 0;
-} */

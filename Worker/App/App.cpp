@@ -291,7 +291,7 @@ string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_addre
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
-int SGX_CDECL main(int argc, char *argv[]){ //--address <address> --secret_id <secret_id> -t <n>
+int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secret_id <secret_id> -t <t>
  
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");

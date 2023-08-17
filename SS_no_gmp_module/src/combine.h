@@ -2,7 +2,7 @@
 #define SHAMIRS_SECRET_SHARING_H
 
 #include "strtok.h"
-#include "common.h"
+
 
 #ifdef TEST
 	#include "CuTest.h"

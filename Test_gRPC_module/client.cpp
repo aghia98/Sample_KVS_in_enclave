@@ -41,6 +41,8 @@ using keyvaluestore::KVS;
 using keyvaluestore::Key;
 using keyvaluestore::Value;
 using keyvaluestore::KV_pair;
+using keyvaluestore::Id;
+using keyvaluestore::Lost_keys;
 
 using namespace std;
 
@@ -93,7 +95,7 @@ class KVSClient {
     }
   }
 
-    string Delete(const string k) {
+  string Delete(const string k) {
     // Follows the same pattern as SayHello.
     Key key;
     key.set_key(k);
@@ -109,6 +111,30 @@ class KVSClient {
                 << std::endl;
       return "RPC failed";
     }
+  }
+
+  int Share_lost_keys(int id){
+    Id request;
+    request.set_id(id); // Replace with the desired ID value
+
+    // Create a Lost_keys response
+    Lost_keys response;
+
+    ClientContext context;
+    Status status = stub_->Share_lost_keys(&context, request, &response);
+
+    if (status.ok()) {
+        std::cout << "Lost Keys: ";
+        for (const auto& key : response.keys()) {
+            std::cout << key.key() << " ";
+        }
+        std::cout << std::endl;
+    } else {
+        std::cerr << "RPC failed";
+    }
+
+    return 0;
+
   }
 
  private:
@@ -139,7 +165,7 @@ int main(int argc, char** argv) { // ./client --target localhost:50001
   reply = kvs.Get(k);
   std::cout << "Get ....Client received: " << reply << std::endl;
 
-  
+  reply = kvs.Share_lost_keys(10);
 
   return 0;
 }

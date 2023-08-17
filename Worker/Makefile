@@ -86,7 +86,6 @@ endif
 INCLUDE_grpc = $(HOME)/usr/local/include 
 LIBRARY_grpckvs = ../gRPC_module/
 LIBRARY_HRW_PATH = -L../HRW_hashing_module
-LIBRARY_shamir_combine = ../SS_no_gmp_module/
 
 LDFLAGS_HRW = $(LIBRARY_HRW_PATH) -lhrw
 LDFLAGS_GRPC += `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`\
@@ -152,6 +151,8 @@ Enclave_Security_Link_Flags := -Wl,-z,relro,-z,now,-z,noexecstack
 #       Use `--start-group' and `--end-group' to link these libraries.
 # Do NOT move the libraries linked with `--start-group' and `--end-group' within `--whole-archive' and `--no-whole-archive' options.
 # Otherwise, you may get some undesirable errors.
+LIBRARY_shamir_combine = ../SS_no_gmp_module/
+
 Enclave_Link_Flags := $(MITIGATION_LDFLAGS) $(Enclave_Security_Link_Flags) \
     -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_TRUSTED_LIBRARY_PATH) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
