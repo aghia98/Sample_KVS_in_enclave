@@ -78,8 +78,11 @@ class KVSClient {
   }
 
    int Share_lost_keys(int id){
-    Id request;
-    request.set_id(id); // Replace with the desired ID value
+    New_id_with_S_up_ids request;
+    request.set_new_id(id); // Replace with the desired ID value
+    request.add_s_up_ids(33);
+    request.add_s_up_ids(34);
+
 
     // Create a Lost_keys response
     Lost_keys response;
@@ -238,8 +241,6 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
   int n;
   string ip_address;
   
-
-
   struct option long_options[] = {
       {"address", required_argument, nullptr, 'a'},
       {nullptr, 0, nullptr, 0}

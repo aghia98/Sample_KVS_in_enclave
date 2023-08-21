@@ -37,12 +37,14 @@
 
 # include <unistd.h>
 # include <pwd.h>
+#include <arpa/inet.h> //check if the grpc server port is open
 # define MAX_PATH FILENAME_MAX
 
 #include "sgx_urts.h"
 #include "App.h"
 
 #include "../../gRPC_module/grpc_server.h"
+#include "../../gRPC_module/grpc_client.h"
 
 #include "Enclave_u.h"
 
@@ -142,18 +144,13 @@ static sgx_errlist_t sgx_errlist[] = {
 
 // Logic and data behind the server's behavior.
 class KVSServiceImpl final : public KVS::Service {
-  //Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response)
+
     Status Get(ServerContext* context, const Key* key, Value* value) override {
         value->set_value(get(key->key()));
         
         return Status::OK;
     }
 
-    /*Status Get(ServerContext* context, const Key* key, Value* value) override {
-        //value->set_value(get(key->key()));
-        
-        return Status::OK;
-    }*/
 
     Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
         put(request->key(), request->value());
@@ -166,9 +163,128 @@ class KVSServiceImpl final : public KVS::Service {
         response->set_value("DELETE_SUCCESS");
         return Status::OK;
   }
+
+    Status Share_lost_keys(ServerContext* context, const New_id_with_S_up_ids* request, Lost_keys* response) override {
+        
+        vector<int> s_up_ids;
+
+        for (const auto& s_up_id : request->s_up_ids()) {
+            s_up_ids.push_back(s_up_id);
+        }
+        //int* s_up_ids_array = &s_up_ids[0];
+
+        set<string> lost_keys = share_lost_keys(request->new_id(), s_up_ids);
+        
+        //checking result
+        for (set<string>::iterator it = lost_keys.begin(); it != lost_keys.end(); ++it) {
+            Key* key = response->add_keys();
+            key->set_key(*it);
+        }
+
+        return Status::OK;
+    }
+};
+
+class KVSClient {
+ public:
+  KVSClient(std::shared_ptr<Channel> channel): stub_(KVS::NewStub(channel)) {}
+
+  string Get(const string k) {
+    Key key;
+    key.set_key(k);
+
+    Value reply;
+
+    ClientContext context;
+
+    Status status = stub_->Get(&context, key, &reply);
+
+    // Act upon its status.
+    if (status.ok()) {
+      return reply.value();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return "RPC failed";
+    }
+  }
+
+  string Put(const string k, const string v) {
+    // Follows the same pattern as SayHello.
+    KV_pair request;
+    request.set_key(k);
+    request.set_value(v);
+    Value reply;
+    ClientContext context;
+
+    // Here we can use the stub's newly available method we just added.
+    Status status = stub_->Put(&context, request, &reply);
+    if (status.ok()) {
+      return reply.value();
+    } else {
+      cout << status.error_code() << ": " << status.error_message()
+                << endl;
+      return "RPC failed";
+    }
+  }
+
+   int Share_lost_keys(int id, vector<int> s_up_ids){
+    New_id_with_S_up_ids request;
+    request.set_new_id(id); // Replace with the desired ID value
+    for(auto& s_up_id : s_up_ids) request.add_s_up_ids(s_up_id);
+    
+
+    // Create a Lost_keys response
+    Lost_keys response;
+
+    ClientContext context;
+    Status status = stub_->Share_lost_keys(&context, request, &response); //***************3
+
+    if (status.ok()) {
+        std::cout << "Lost Keys: ";
+        for (const auto& key : response.keys()) {
+            std::cout << key.key() << " ";
+        }
+        std::cout << std::endl;
+    } else {
+        std::cerr << "RPC failed";
+    }
+
+    return 0;
+
+  }
+
+ private:
+  unique_ptr<KVS::Stub> stub_;
 };
 
 
+bool isPortOpen(const std::string& ipAddress, int port) {
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == -1) {
+        // Failed to create socket
+        return false;
+    }
+
+    struct sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(port);
+    if (inet_pton(AF_INET, ipAddress.c_str(), &(serverAddress.sin_addr)) <= 0) {
+        // Invalid address format
+        close(sock);
+        return false;
+    }
+
+    if (connect(sock, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
+        // Connection failed, port is closed
+        close(sock);
+        return false;
+    }
+
+    // Connection successful, port is open
+    close(sock);
+    return true;
+}
 
 void RunServer(uint16_t port) {
   std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
@@ -238,13 +354,45 @@ void ocall_print_string(const char *str)
 }
 
 
+//***********************************************************************************************
+
+void test_share_lost_keys(int current_port, int offset, int n_servers, int starting_port){
+  KVSClient* kvs;
+  int current_id = current_port - offset;
+  
+  vector<int> S_up_ids;
+  for(int i=0; i<n_servers; i++){
+
+    int port = starting_port+i;
+    
+    if(port!=current_port){
+        if(isPortOpen("127.0.0.1", port)) {
+            
+            S_up_ids.push_back(port-offset);
+        }
+    }
+        
+  }
+    for(int s_up_id : S_up_ids){
+        kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+s_up_id) , grpc::InsecureChannelCredentials()));
+        kvs->Share_lost_keys(current_id, S_up_ids); //******************************2
+        delete kvs;
+    }
+  
+}
+
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
 {
 
-    if(initialize_enclave() < 0){
+    int offset = 50000;
+
+    absl::ParseCommandLine(argc, argv);
+    test_share_lost_keys(absl::GetFlag(FLAGS_port), offset, 5, 50001);//****************1
+
+    /*if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
         getchar();
         return -1; 
@@ -253,12 +401,11 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
     absl::ParseCommandLine(argc, argv);
     RunServer(absl::GetFlag(FLAGS_port));
 
-    /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);
 
     printf("Server closed \n");
     
 
-    return 0;
+    return 0;*/
 }
 

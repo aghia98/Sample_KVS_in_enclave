@@ -72,7 +72,7 @@ enclave {
         public void ecall_put([in] char key[100], [in] char share[410]);
         public void ecall_get([in] char key[100], [in, out, string] char* share);
         public void ecall_delete([in] char key[100]);
-        public void ecall_share_lost_keys([in] int* node_id, [in, out, string] char* lost_keys);  
+        public void ecall_share_lost_keys([in] int* node_id, [in, count=cnt] int* s_up_ids_array, unsigned cnt, [in, out, string] char* lost_keys);  
 
         /* for using user defined types, please refer to Pointers.edl, Arrays.edl. */
     };

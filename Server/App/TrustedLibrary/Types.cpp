@@ -35,6 +35,7 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -83,15 +84,20 @@ void delete_(string key){
         abort();
 }
 
-set<string> share_lost_keys(int node_id){
+set<string> share_lost_keys(int node_id, vector<int> s_up_ids){
     char lost_keys[10000]; //*******************************************assuming there is max 100 lost keys per node*********************
     memset(lost_keys, 'A', 999);
-    
+
+    int* s_up_ids_array = &s_up_ids[0];
+
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_share_lost_keys(global_eid, &node_id, lost_keys); // add S_up as input parameter
+    //**************************************6
+    ret = ecall_share_lost_keys(global_eid, &node_id, s_up_ids_array, s_up_ids.size(), lost_keys); // add S_up as input parameter
     if (ret != SGX_SUCCESS)
         abort();
-    
+
+    cout << lost_keys << endl;
+    //post-process
     set<string> test = {"yess", "noo"};
     return test;
 } 

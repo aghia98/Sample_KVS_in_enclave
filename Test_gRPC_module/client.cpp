@@ -41,7 +41,7 @@ using keyvaluestore::KVS;
 using keyvaluestore::Key;
 using keyvaluestore::Value;
 using keyvaluestore::KV_pair;
-using keyvaluestore::Id;
+using keyvaluestore::New_id_with_S_up_ids;
 using keyvaluestore::Lost_keys;
 
 using namespace std;
@@ -114,8 +114,10 @@ class KVSClient {
   }
 
   int Share_lost_keys(int id){
-    Id request;
-    request.set_id(id); // Replace with the desired ID value
+    New_id_with_S_up_ids request;
+    request.set_new_id(id); 
+    request.add_s_up_ids(33);
+    request.add_s_up_ids(34);
 
     // Create a Lost_keys response
     Lost_keys response;

@@ -48,7 +48,7 @@ using keyvaluestore::KVS;
 using keyvaluestore::Key;
 using keyvaluestore::Value;
 using keyvaluestore::KV_pair;
-using keyvaluestore::Id;
+using keyvaluestore::New_id_with_S_up_ids;
 using keyvaluestore::Lost_keys;
 
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
@@ -78,15 +78,28 @@ class KVSServiceImpl final : public KVS::Service {
     return Status::OK;
   }
 
-  Status Share_lost_keys(ServerContext* context, const Id* request, Lost_keys* response) override {
-        for (int i = 1; i <= request->id(); ++i) {
+  Status Share_lost_keys(ServerContext* context, const New_id_with_S_up_ids* request, Lost_keys* response) override {
+        int id = request->new_id();
+        //std::vector<int32_t> s_up_ids;
+        
+        cout << id << endl;
+        for (const auto& s_up_id : request->s_up_ids()) {
+            //s_up_ids.push_back(id);
+            cout << s_up_id << endl;
+        }
+        
+        Key* key = response->add_keys();
+        key->set_key("example");
+
+        return Status::OK;
+        /*for (int i = 1; i <= request->id(); ++i) {
             Key* key = response->add_keys();
             key->set_key("example");
         }
         return Status::OK;
-    }
+      } */
+  }
 
-    // Implement other service methods...
 };
 
 void RunServer(uint16_t port) { // ./server --port 50001

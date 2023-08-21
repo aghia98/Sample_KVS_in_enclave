@@ -61,19 +61,6 @@ struct KV_pairDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 KV_pairDefaultTypeInternal _KV_pair_default_instance_;
-PROTOBUF_CONSTEXPR Id::Id(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.id_)*/0
-  , /*decltype(_impl_._cached_size_)*/{}} {}
-struct IdDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR IdDefaultTypeInternal()
-      : _instance(::_pbi::ConstantInitialized{}) {}
-  ~IdDefaultTypeInternal() {}
-  union {
-    Id _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 IdDefaultTypeInternal _Id_default_instance_;
 PROTOBUF_CONSTEXPR Lost_keys::Lost_keys(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.keys_)*/{}
@@ -87,6 +74,21 @@ struct Lost_keysDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Lost_keysDefaultTypeInternal _Lost_keys_default_instance_;
+PROTOBUF_CONSTEXPR New_id_with_S_up_ids::New_id_with_S_up_ids(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.s_up_ids_)*/{}
+  , /*decltype(_impl_._s_up_ids_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.new_id_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct New_id_with_S_up_idsDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR New_id_with_S_up_idsDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~New_id_with_S_up_idsDefaultTypeInternal() {}
+  union {
+    New_id_with_S_up_ids _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 New_id_with_S_up_idsDefaultTypeInternal _New_id_with_S_up_ids_default_instance_;
 }  // namespace keyvaluestore
 static ::_pb::Metadata file_level_metadata_KVS_5faccess_2eproto[5];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_KVS_5faccess_2eproto = nullptr;
@@ -116,52 +118,55 @@ const uint32_t TableStruct_KVS_5faccess_2eproto::offsets[] PROTOBUF_SECTION_VARI
   PROTOBUF_FIELD_OFFSET(::keyvaluestore::KV_pair, _impl_.key_),
   PROTOBUF_FIELD_OFFSET(::keyvaluestore::KV_pair, _impl_.value_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::keyvaluestore::Id, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::keyvaluestore::Id, _impl_.id_),
-  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::keyvaluestore::Lost_keys, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::keyvaluestore::Lost_keys, _impl_.keys_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::keyvaluestore::New_id_with_S_up_ids, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::keyvaluestore::New_id_with_S_up_ids, _impl_.new_id_),
+  PROTOBUF_FIELD_OFFSET(::keyvaluestore::New_id_with_S_up_ids, _impl_.s_up_ids_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::keyvaluestore::Key)},
   { 7, -1, -1, sizeof(::keyvaluestore::Value)},
   { 14, -1, -1, sizeof(::keyvaluestore::KV_pair)},
-  { 22, -1, -1, sizeof(::keyvaluestore::Id)},
-  { 29, -1, -1, sizeof(::keyvaluestore::Lost_keys)},
+  { 22, -1, -1, sizeof(::keyvaluestore::Lost_keys)},
+  { 29, -1, -1, sizeof(::keyvaluestore::New_id_with_S_up_ids)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
   &::keyvaluestore::_Key_default_instance_._instance,
   &::keyvaluestore::_Value_default_instance_._instance,
   &::keyvaluestore::_KV_pair_default_instance_._instance,
-  &::keyvaluestore::_Id_default_instance_._instance,
   &::keyvaluestore::_Lost_keys_default_instance_._instance,
+  &::keyvaluestore::_New_id_with_S_up_ids_default_instance_._instance,
 };
 
 const char descriptor_table_protodef_KVS_5faccess_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\020KVS_access.proto\022\rkeyvaluestore\"\022\n\003Key"
   "\022\013\n\003key\030\001 \001(\t\"\026\n\005Value\022\r\n\005value\030\001 \001(\t\"%\n"
-  "\007KV_pair\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"\020\n\002"
-  "Id\022\n\n\002id\030\001 \001(\005\"-\n\tLost_keys\022 \n\004keys\030\001 \003("
-  "\0132\022.keyvaluestore.Key2\347\001\n\003KVS\0221\n\003Get\022\022.k"
+  "\007KV_pair\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"-\n\t"
+  "Lost_keys\022 \n\004keys\030\001 \003(\0132\022.keyvaluestore."
+  "Key\"8\n\024New_id_with_S_up_ids\022\016\n\006new_id\030\001 "
+  "\001(\005\022\020\n\010S_up_ids\030\002 \003(\0052\371\001\n\003KVS\0221\n\003Get\022\022.k"
   "eyvaluestore.Key\032\024.keyvaluestore.Value\"\000"
   "\0225\n\003Put\022\026.keyvaluestore.KV_pair\032\024.keyval"
   "uestore.Value\"\000\0224\n\006Delete\022\022.keyvaluestor"
-  "e.Key\032\024.keyvaluestore.Value\"\000\022@\n\017Share_l"
-  "ost_keys\022\021.keyvaluestore.Id\032\030.keyvaluest"
-  "ore.Lost_keys\"\000b\006proto3"
+  "e.Key\032\024.keyvaluestore.Value\"\000\022R\n\017Share_l"
+  "ost_keys\022#.keyvaluestore.New_id_with_S_u"
+  "p_ids\032\030.keyvaluestore.Lost_keys\"\000b\006proto"
+  "3"
   ;
 static ::_pbi::once_flag descriptor_table_KVS_5faccess_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_KVS_5faccess_2eproto = {
-    false, false, 423, descriptor_table_protodef_KVS_5faccess_2eproto,
+    false, false, 481, descriptor_table_protodef_KVS_5faccess_2eproto,
     "KVS_access.proto",
     &descriptor_table_KVS_5faccess_2eproto_once, nullptr, 0, 5,
     schemas, file_default_instances, TableStruct_KVS_5faccess_2eproto::offsets,
@@ -837,184 +842,6 @@ void KV_pair::InternalSwap(KV_pair* other) {
 
 // ===================================================================
 
-class Id::_Internal {
- public:
-};
-
-Id::Id(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                         bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:keyvaluestore.Id)
-}
-Id::Id(const Id& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  Id* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.id_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
-
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _this->_impl_.id_ = from._impl_.id_;
-  // @@protoc_insertion_point(copy_constructor:keyvaluestore.Id)
-}
-
-inline void Id::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_.id_){0}
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
-}
-
-Id::~Id() {
-  // @@protoc_insertion_point(destructor:keyvaluestore.Id)
-  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
-  (void)arena;
-    return;
-  }
-  SharedDtor();
-}
-
-inline void Id::SharedDtor() {
-  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-}
-
-void Id::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
-}
-
-void Id::Clear() {
-// @@protoc_insertion_point(message_clear_start:keyvaluestore.Id)
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _impl_.id_ = 0;
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
-}
-
-const char* Id::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    uint32_t tag;
-    ptr = ::_pbi::ReadTag(ptr, &tag);
-    switch (tag >> 3) {
-      // int32 id = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          _impl_.id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      default:
-        goto handle_unusual;
-    }  // switch
-  handle_unusual:
-    if ((tag == 0) || ((tag & 7) == 4)) {
-      CHK_(ptr);
-      ctx->SetLastTag(tag);
-      goto message_done;
-    }
-    ptr = UnknownFieldParse(
-        tag,
-        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-        ptr, ctx);
-    CHK_(ptr != nullptr);
-  }  // while
-message_done:
-  return ptr;
-failure:
-  ptr = nullptr;
-  goto message_done;
-#undef CHK_
-}
-
-uint8_t* Id::_InternalSerialize(
-    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:keyvaluestore.Id)
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // int32 id = 1;
-  if (this->_internal_id() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_id(), target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:keyvaluestore.Id)
-  return target;
-}
-
-size_t Id::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:keyvaluestore.Id)
-  size_t total_size = 0;
-
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  // int32 id = 1;
-  if (this->_internal_id() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_id());
-  }
-
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
-}
-
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData Id::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    Id::MergeImpl
-};
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*Id::GetClassData() const { return &_class_data_; }
-
-
-void Id::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<Id*>(&to_msg);
-  auto& from = static_cast<const Id&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:keyvaluestore.Id)
-  GOOGLE_DCHECK_NE(&from, _this);
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (from._internal_id() != 0) {
-    _this->_internal_set_id(from._internal_id());
-  }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-}
-
-void Id::CopyFrom(const Id& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:keyvaluestore.Id)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool Id::IsInitialized() const {
-  return true;
-}
-
-void Id::InternalSwap(Id* other) {
-  using std::swap;
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_.id_, other->_impl_.id_);
-}
-
-::PROTOBUF_NAMESPACE_ID::Metadata Id::GetMetadata() const {
-  return ::_pbi::AssignDescriptors(
-      &descriptor_table_KVS_5faccess_2eproto_getter, &descriptor_table_KVS_5faccess_2eproto_once,
-      file_level_metadata_KVS_5faccess_2eproto[3]);
-}
-
-// ===================================================================
-
 class Lost_keys::_Internal {
  public:
 };
@@ -1195,6 +1022,226 @@ void Lost_keys::InternalSwap(Lost_keys* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata Lost_keys::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_KVS_5faccess_2eproto_getter, &descriptor_table_KVS_5faccess_2eproto_once,
+      file_level_metadata_KVS_5faccess_2eproto[3]);
+}
+
+// ===================================================================
+
+class New_id_with_S_up_ids::_Internal {
+ public:
+};
+
+New_id_with_S_up_ids::New_id_with_S_up_ids(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:keyvaluestore.New_id_with_S_up_ids)
+}
+New_id_with_S_up_ids::New_id_with_S_up_ids(const New_id_with_S_up_ids& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  New_id_with_S_up_ids* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.s_up_ids_){from._impl_.s_up_ids_}
+    , /*decltype(_impl_._s_up_ids_cached_byte_size_)*/{0}
+    , decltype(_impl_.new_id_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.new_id_ = from._impl_.new_id_;
+  // @@protoc_insertion_point(copy_constructor:keyvaluestore.New_id_with_S_up_ids)
+}
+
+inline void New_id_with_S_up_ids::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.s_up_ids_){arena}
+    , /*decltype(_impl_._s_up_ids_cached_byte_size_)*/{0}
+    , decltype(_impl_.new_id_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+New_id_with_S_up_ids::~New_id_with_S_up_ids() {
+  // @@protoc_insertion_point(destructor:keyvaluestore.New_id_with_S_up_ids)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void New_id_with_S_up_ids::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.s_up_ids_.~RepeatedField();
+}
+
+void New_id_with_S_up_ids::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void New_id_with_S_up_ids::Clear() {
+// @@protoc_insertion_point(message_clear_start:keyvaluestore.New_id_with_S_up_ids)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.s_up_ids_.Clear();
+  _impl_.new_id_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* New_id_with_S_up_ids::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 new_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.new_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated int32 S_up_ids = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_s_up_ids(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 16) {
+          _internal_add_s_up_ids(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* New_id_with_S_up_ids::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:keyvaluestore.New_id_with_S_up_ids)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 new_id = 1;
+  if (this->_internal_new_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_new_id(), target);
+  }
+
+  // repeated int32 S_up_ids = 2;
+  {
+    int byte_size = _impl_._s_up_ids_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          2, _internal_s_up_ids(), byte_size, target);
+    }
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:keyvaluestore.New_id_with_S_up_ids)
+  return target;
+}
+
+size_t New_id_with_S_up_ids::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:keyvaluestore.New_id_with_S_up_ids)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated int32 S_up_ids = 2;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.s_up_ids_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._s_up_ids_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  // int32 new_id = 1;
+  if (this->_internal_new_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_new_id());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData New_id_with_S_up_ids::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    New_id_with_S_up_ids::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*New_id_with_S_up_ids::GetClassData() const { return &_class_data_; }
+
+
+void New_id_with_S_up_ids::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<New_id_with_S_up_ids*>(&to_msg);
+  auto& from = static_cast<const New_id_with_S_up_ids&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:keyvaluestore.New_id_with_S_up_ids)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.s_up_ids_.MergeFrom(from._impl_.s_up_ids_);
+  if (from._internal_new_id() != 0) {
+    _this->_internal_set_new_id(from._internal_new_id());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void New_id_with_S_up_ids::CopyFrom(const New_id_with_S_up_ids& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:keyvaluestore.New_id_with_S_up_ids)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool New_id_with_S_up_ids::IsInitialized() const {
+  return true;
+}
+
+void New_id_with_S_up_ids::InternalSwap(New_id_with_S_up_ids* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.s_up_ids_.InternalSwap(&other->_impl_.s_up_ids_);
+  swap(_impl_.new_id_, other->_impl_.new_id_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata New_id_with_S_up_ids::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_KVS_5faccess_2eproto_getter, &descriptor_table_KVS_5faccess_2eproto_once,
       file_level_metadata_KVS_5faccess_2eproto[4]);
 }
 
@@ -1213,13 +1260,13 @@ template<> PROTOBUF_NOINLINE ::keyvaluestore::KV_pair*
 Arena::CreateMaybeMessage< ::keyvaluestore::KV_pair >(Arena* arena) {
   return Arena::CreateMessageInternal< ::keyvaluestore::KV_pair >(arena);
 }
-template<> PROTOBUF_NOINLINE ::keyvaluestore::Id*
-Arena::CreateMaybeMessage< ::keyvaluestore::Id >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::keyvaluestore::Id >(arena);
-}
 template<> PROTOBUF_NOINLINE ::keyvaluestore::Lost_keys*
 Arena::CreateMaybeMessage< ::keyvaluestore::Lost_keys >(Arena* arena) {
   return Arena::CreateMessageInternal< ::keyvaluestore::Lost_keys >(arena);
+}
+template<> PROTOBUF_NOINLINE ::keyvaluestore::New_id_with_S_up_ids*
+Arena::CreateMaybeMessage< ::keyvaluestore::New_id_with_S_up_ids >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::keyvaluestore::New_id_with_S_up_ids >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

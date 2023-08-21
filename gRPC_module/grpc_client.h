@@ -8,6 +8,6 @@ using keyvaluestore::KVS;
 using keyvaluestore::Key;
 using keyvaluestore::Value;
 using keyvaluestore::KV_pair;
-using keyvaluestore::Id;
+using keyvaluestore::New_id_with_S_up_ids;
 using keyvaluestore::Lost_keys;
 

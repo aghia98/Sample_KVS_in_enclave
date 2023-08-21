@@ -43,6 +43,8 @@
 using namespace std;
 // Declare myMap as a global variable
 map<string, string> myMap;
+int t=3;
+int n=5;
 
 /* used to eliminate `unused variable' warning */
 #define UNUSED(val) (void)(val)
@@ -75,7 +77,6 @@ void ecall_put(char key[], char val[]){
 
 void ecall_get(char key[], char* val){
   string key_string(key);
-  string ex="server650";
   
   auto iterator = myMap.find(key_string);
   string source;
@@ -155,6 +156,23 @@ vector<pair<string, uint32_t>> sortMapByValue(const map<string, uint32_t>& input
     return pairs;
 }
 
+vector<pair<string, uint32_t>> order_HRW(const std::vector<string>& ids, string& key) {
+    //vector<int> sortedArr = ids;  // Create a copy of the input array
+    
+    map<string, uint32_t> ordered_ids_to_hash;
+    
+    // Sort the array in ascending order
+    for(string id:ids){
+        string to_hash = id+key;
+        ordered_ids_to_hash[id]=jenkinsHash(to_hash);
+
+    }
+    vector<pair<string, uint32_t>> sortedPairs = sortMapByValue(ordered_ids_to_hash);
+    
+    return sortedPairs;
+}
+
+
 vector<string> convert_ids_to_strings_with_id(vector<int> ids, string word){
     vector<string> result;
     for(int id: ids){
@@ -171,9 +189,48 @@ vector<int> convert_strings_with_id_to_ids(vector<string> strings_with_id){
     }  
 
     return result;
- }
+ } 
 
-void ecall_share_lost_keys(int* node_id, char* lost_keys) {
-  strncpy(lost_keys, "TBDDDDDDDDDDDDDDDD", strlen(lost_keys));
+void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char* lost_keys) {
+  //******************************7
+    vector<string> strings_with_id_of_N_active;
+    vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
+    vector<int> s_up_ids_vector;
+    string word = "server";
+    string keys="";
+    int j=0;
+  //convert int* to vector for s_up_ids_array
+    for (int i = 0; i < cnt; ++i) {
+        j++;
+        s_up_ids_vector.push_back(s_up_ids_array[i]);
+    }
+    strings_with_id_of_N_active = convert_ids_to_strings_with_id(s_up_ids_vector, word);
+  
+    for (auto it = myMap.begin(); it != myMap.end(); it++) {
+        string  k = it->first; //Secret_n
+        ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,k); //Order according to HRW
+        
+        string spawned_node_id = word+to_string(*node_id); //serverX
+        string spawned_node_to_hash = spawned_node_id+k; //ServerX+k
+        //strncpy(lost_keys, spawned_node_to_hash.c_str(), strlen(lost_keys));
+        uint32_t spawned_node_hash_wrt_k = jenkinsHash(spawned_node_to_hash);
+        uint32_t n_th_node_hash;
+        if(cnt<n){
+            n_th_node_hash = 0;
+        }else{
+            n_th_node_hash = ordered_strings_with_id_to_hash[n-1].second;
+        }
+        if(spawned_node_hash_wrt_k > n_th_node_hash){ //swaned_node is a neighbour for k
+            keys += k+"|";
+        }
+    }
+    strncpy(lost_keys, keys.c_str(), strlen(lost_keys)); 
+    
 
+  
+  //strncpy(lost_keys, "TBDDDDDDDDDDDDDDDD", strlen(lost_keys));
+  /*if(s_up_ids_array[0]==1){
+    strncpy(lost_keys, "1111111111111111", strlen(lost_keys));
+  }
+  */
 }

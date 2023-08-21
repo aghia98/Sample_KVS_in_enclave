@@ -162,8 +162,18 @@ class KVSServiceImpl final : public KVS::Service {
         return Status::OK;
   }
 
-  Status Share_lost_keys(ServerContext* context, const Id* request, Lost_keys* response) override {
-        set<string> lost_keys = share_lost_keys(request->id());
+    Status Share_lost_keys(ServerContext* context, const New_id_with_S_up_ids* request, Lost_keys* response) override {
+        //*************************4
+        vector<int> s_up_ids;
+
+        for (const auto& s_up_id : request->s_up_ids()) {
+            s_up_ids.push_back(s_up_id);
+        }
+        //int* s_up_ids_array = &s_up_ids[0];
+        
+        //**************************5
+        set<string> lost_keys = share_lost_keys(request->new_id(), s_up_ids);
+        
 
         for (set<string>::iterator it = lost_keys.begin(); it != lost_keys.end(); ++it) {
             Key* key = response->add_keys();

@@ -110,23 +110,23 @@ void KVS::Stub::async::Delete(::grpc::ClientContext* context, const ::keyvaluest
   return result;
 }
 
-::grpc::Status KVS::Stub::Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::Id& request, ::keyvaluestore::Lost_keys* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::Id, ::keyvaluestore::Lost_keys, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Share_lost_keys_, context, request, response);
+::grpc::Status KVS::Stub::Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::keyvaluestore::Lost_keys* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Share_lost_keys_, context, request, response);
 }
 
-void KVS::Stub::async::Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::Id* request, ::keyvaluestore::Lost_keys* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::Id, ::keyvaluestore::Lost_keys, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Share_lost_keys_, context, request, response, std::move(f));
+void KVS::Stub::async::Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Lost_keys* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Share_lost_keys_, context, request, response, std::move(f));
 }
 
-void KVS::Stub::async::Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::Id* request, ::keyvaluestore::Lost_keys* response, ::grpc::ClientUnaryReactor* reactor) {
+void KVS::Stub::async::Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Lost_keys* response, ::grpc::ClientUnaryReactor* reactor) {
   ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Share_lost_keys_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>* KVS::Stub::PrepareAsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::Id& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::Lost_keys, ::keyvaluestore::Id, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Share_lost_keys_, context, request);
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>* KVS::Stub::PrepareAsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::Lost_keys, ::keyvaluestore::New_id_with_S_up_ids, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Share_lost_keys_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>* KVS::Stub::AsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::Id& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>* KVS::Stub::AsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
   auto* result =
     this->PrepareAsyncShare_lost_keysRaw(context, request, cq);
   result->StartCall();
@@ -167,10 +167,10 @@ KVS::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KVS_method_names[3],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< KVS::Service, ::keyvaluestore::Id, ::keyvaluestore::Lost_keys, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< KVS::Service, ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](KVS::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::keyvaluestore::Id* req,
+             const ::keyvaluestore::New_id_with_S_up_ids* req,
              ::keyvaluestore::Lost_keys* resp) {
                return service->Share_lost_keys(ctx, req, resp);
              }, this)));
@@ -200,7 +200,7 @@ KVS::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status KVS::Service::Share_lost_keys(::grpc::ServerContext* context, const ::keyvaluestore::Id* request, ::keyvaluestore::Lost_keys* response) {
+::grpc::Status KVS::Service::Share_lost_keys(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Lost_keys* response) {
   (void) context;
   (void) request;
   (void) response;

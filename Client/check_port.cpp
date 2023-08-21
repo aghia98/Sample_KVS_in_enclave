@@ -32,6 +32,6 @@ bool isPortOpen(const std::string& ipAddress, int port) {
 }
 
 int main(){
-    if(isPortOpen("127.0.0.1", 50002)) std::cout << "open\n" << std::endl;
+    if(isPortOpen("127.0.0.1", 50001)) std::cout << "open\n" << std::endl;
     return 0;
 }
