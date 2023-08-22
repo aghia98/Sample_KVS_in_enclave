@@ -171,8 +171,8 @@ class KVSServiceImpl final : public KVS::Service {
         for (const auto& s_up_id : request->s_up_ids()) {
             s_up_ids.push_back(s_up_id);
         }
-        //int* s_up_ids_array = &s_up_ids[0];
 
+        //**************************5
         set<string> lost_keys = share_lost_keys(request->new_id(), s_up_ids);
         
         //checking result
@@ -185,6 +185,7 @@ class KVSServiceImpl final : public KVS::Service {
     }
 };
 
+set<string> response_global; //global variable
 class KVSClient {
  public:
   KVSClient(std::shared_ptr<Channel> channel): stub_(KVS::NewStub(channel)) {}
@@ -209,55 +210,58 @@ class KVSClient {
     }
   }
 
-  string Put(const string k, const string v) {
-    // Follows the same pattern as SayHello.
-    KV_pair request;
-    request.set_key(k);
-    request.set_value(v);
-    Value reply;
-    ClientContext context;
+    string Put(const string k, const string v) {
+        // Follows the same pattern as SayHello.
+        KV_pair request;
+        request.set_key(k);
+        request.set_value(v);
+        Value reply;
+        ClientContext context;
 
-    // Here we can use the stub's newly available method we just added.
-    Status status = stub_->Put(&context, request, &reply);
-    if (status.ok()) {
-      return reply.value();
-    } else {
-      cout << status.error_code() << ": " << status.error_message()
-                << endl;
-      return "RPC failed";
-    }
-  }
-
-   int Share_lost_keys(int id, vector<int> s_up_ids){
-    New_id_with_S_up_ids request;
-    request.set_new_id(id); // Replace with the desired ID value
-    for(auto& s_up_id : s_up_ids) request.add_s_up_ids(s_up_id);
-    
-
-    // Create a Lost_keys response
-    Lost_keys response;
-
-    ClientContext context;
-    Status status = stub_->Share_lost_keys(&context, request, &response); //***************3
-
-    if (status.ok()) {
-        std::cout << "Lost Keys: ";
-        for (const auto& key : response.keys()) {
-            std::cout << key.key() << " ";
+        // Here we can use the stub's newly available method we just added.
+        Status status = stub_->Put(&context, request, &reply);
+        if (status.ok()) {
+            return reply.value();
+        } else {
+            cout << status.error_code() << ": " << status.error_message()
+                    << endl;
+            return "RPC failed";
         }
-        std::cout << std::endl;
-    } else {
-        std::cerr << "RPC failed";
     }
+    
+    
+    int Share_lost_keys(int id, vector<int> s_up_ids){
+        New_id_with_S_up_ids request;
+        request.set_new_id(id); // Replace with the desired ID value
+        for(auto& s_up_id : s_up_ids) request.add_s_up_ids(s_up_id);
+        
 
-    return 0;
+        // Create a Lost_keys response
+        Lost_keys response_local;
 
+        ClientContext context;
+        Status status = stub_->Share_lost_keys(&context, request, &response_local); //***************3
+        string lost_key;
+
+        if (status.ok()) {
+            for (const auto& key : response_local.keys()) {
+                lost_key=key.key();
+                response_global.insert(lost_key);
+            }
+        } else {
+            std::cerr << "RPC failed";
+        }
+
+        for (const auto& key : response_global) {
+                cout << key << endl;
+        }
+        cout << "******************************************" << endl;
+        return 0;
   }
 
  private:
   unique_ptr<KVS::Stub> stub_;
 };
-
 
 bool isPortOpen(const std::string& ipAddress, int port) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);

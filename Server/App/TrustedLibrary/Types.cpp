@@ -37,6 +37,8 @@
 #include <iostream>
 #include <vector>
 
+#include <sstream>
+
 using namespace std;
 
 /* edger8r_type_attributes:
@@ -65,12 +67,11 @@ string get(string k){
     char value[410];
     memset(value, 'A', 409);
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_get(global_eid, convertCString(k), value);
+    char* cstring_k = convertCString(k);
+    ret = ecall_get(global_eid, cstring_k, value);
     if (ret != SGX_SUCCESS)
-
         abort();
-    
-    //cout <<  << endl;
+    delete cstring_k;
 
     string value_string(value); 
 
@@ -96,8 +97,24 @@ set<string> share_lost_keys(int node_id, vector<int> s_up_ids){
     if (ret != SGX_SUCCESS)
         abort();
 
-    cout << lost_keys << endl;
-    //post-process
-    set<string> test = {"yess", "noo"};
-    return test;
+    //cout << lost_keys << endl;
+    //*************************post-process************************
+    
+    set<string> keys;
+
+    istringstream iss(lost_keys);
+    string token;
+    
+
+    while (std::getline(iss, token, '\n')) {
+        if (!token.empty()) {
+            keys.insert(token);
+        }
+    } 
+
+    /*for (const std::string& str : keys) {
+        std::cout << str << std::endl;
+    }*/
+
+    return keys;
 } 

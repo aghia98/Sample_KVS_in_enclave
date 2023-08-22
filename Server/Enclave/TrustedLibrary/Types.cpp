@@ -86,12 +86,10 @@ void ecall_get(char key[], char* val){
     //copyString(source, destination); 
     
     strncpy(val, source.c_str(), strlen(val));
-    //val = destination;
-    
   }else{
-    //val="NOT_FOUND";
     strncpy(val, "NOT_FOUND", strlen(val));
   } 
+  //delete key;
 
 }
 
@@ -215,22 +213,19 @@ void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char
         //strncpy(lost_keys, spawned_node_to_hash.c_str(), strlen(lost_keys));
         uint32_t spawned_node_hash_wrt_k = jenkinsHash(spawned_node_to_hash);
         uint32_t n_th_node_hash;
+        string potential_last_share_owner_id;
+
         if(cnt<n){
             n_th_node_hash = 0;
+            potential_last_share_owner_id = "null"; // number of active nodes is smaller than n
         }else{
             n_th_node_hash = ordered_strings_with_id_to_hash[n-1].second;
+            potential_last_share_owner_id = to_string(extractNumber(ordered_strings_with_id_to_hash[n-1].first));
         }
-        if(spawned_node_hash_wrt_k > n_th_node_hash){ //swaned_node is a neighbour for k
-            keys += k+"|";
+
+        if(spawned_node_hash_wrt_k > n_th_node_hash){ //spawned_node is a neighbour for k
+            keys += k+"|"+potential_last_share_owner_id+"\n";
         }
     }
     strncpy(lost_keys, keys.c_str(), strlen(lost_keys)); 
-    
-
-  
-  //strncpy(lost_keys, "TBDDDDDDDDDDDDDDDD", strlen(lost_keys));
-  /*if(s_up_ids_array[0]==1){
-    strncpy(lost_keys, "1111111111111111", strlen(lost_keys));
-  }
-  */
 }
