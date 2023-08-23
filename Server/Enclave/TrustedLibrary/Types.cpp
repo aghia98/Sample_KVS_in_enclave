@@ -40,6 +40,9 @@
 #include <algorithm>
 #include <map> // Secure Key-Value Store
 
+//***********************************************
+//***********************************************
+
 using namespace std;
 // Declare myMap as a global variable
 map<string, string> myMap;
@@ -72,7 +75,7 @@ void ecall_put(char key[], char val[]){
     string key_string(key);
     string val_string(val);
     myMap[key_string]=val;
-
+    printf("[Lambdas] Initial array using lambdas: {");
 }
 
 void ecall_get(char key[], char* val){
@@ -191,6 +194,7 @@ vector<int> convert_strings_with_id_to_ids(vector<string> strings_with_id){
 
 void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char* lost_keys) {
   //******************************7
+
     vector<string> strings_with_id_of_N_active;
     vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
     vector<int> s_up_ids_vector;
@@ -227,5 +231,7 @@ void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char
             keys += k+"|"+potential_last_share_owner_id+"\n";
         }
     }
+    
+    //printf("yessss");
     strncpy(lost_keys, keys.c_str(), strlen(lost_keys)); 
 }

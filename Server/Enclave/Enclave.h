@@ -32,14 +32,14 @@
 #ifndef _ENCLAVE_H_
 #define _ENCLAVE_H_
 
-#include <assert.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-int printf(const char* fmt, ...);
+int printf(const char *fmt, ...);
 
 #if defined(__cplusplus)
 }
