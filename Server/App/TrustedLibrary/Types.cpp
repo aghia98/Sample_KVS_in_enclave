@@ -102,19 +102,21 @@ set<string> share_lost_keys(int node_id, vector<int> s_up_ids){
     
     set<string> keys;
 
-    istringstream iss(lost_keys);
-    string token;
+    if(strlen(lost_keys) != 0){
+        istringstream iss(lost_keys);
+        string token;
+        
+
+        while (std::getline(iss, token, '\n')) {
+            if (!token.empty()) {
+                keys.insert(token);
+            }
+        } 
+
+        /*for (const std::string& str : keys) {
+            std::cout << str << std::endl;
+        }*/
+    }
     
-
-    while (std::getline(iss, token, '\n')) {
-        if (!token.empty()) {
-            keys.insert(token);
-        }
-    } 
-
-    /*for (const std::string& str : keys) {
-        std::cout << str << std::endl;
-    }*/
-
     return keys;
 } 

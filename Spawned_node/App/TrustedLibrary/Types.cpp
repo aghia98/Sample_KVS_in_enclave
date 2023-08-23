@@ -37,6 +37,9 @@
 #include <iostream>
 #include <vector>
 
+#include <sstream>
+
+
 using namespace std;
 
 /* edger8r_type_attributes:
@@ -88,19 +91,46 @@ set<string> share_lost_keys(int node_id, vector<int> s_up_ids){
     char lost_keys[10000]; //*******************************************assuming there is max 100 lost keys per node*********************
     memset(lost_keys, 'A', 999);
 
-    for (const auto& s_up_id: s_up_ids) {
-            cout << s_up_id << endl;
-    }
-
     int* s_up_ids_array = &s_up_ids[0];
 
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    //**************************************6
     ret = ecall_share_lost_keys(global_eid, &node_id, s_up_ids_array, s_up_ids.size(), lost_keys); // add S_up as input parameter
     if (ret != SGX_SUCCESS)
         abort();
 
-    cout << lost_keys << endl;
+    //cout << lost_keys << endl;
+    //*************************post-process************************
     
-    set<string> test = {"yess", "noo"};
-    return test;
+    set<string> keys;
+
+    istringstream iss(lost_keys);
+    string token;
+    
+
+    while (std::getline(iss, token, '\n')) {
+        if (!token.empty()) {
+            keys.insert(token);
+        }
+    } 
+
+    /*for (const std::string& str : keys) {
+        std::cout << str << std::endl;
+    }*/
+
+    return keys;
 } 
+
+void add_lost_keys_in_enclave(const set<string>& local_lost_keys_set){
+    string lost_keys_string="";
+    for (const auto& key_with_last_share_owner : local_lost_keys_set) {
+        lost_keys_string += key_with_last_share_owner+"\n";
+    } 
+
+    cout << lost_keys_string << endl;
+
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    ret = ecall_add_lost_keys(global_eid, convertCString(lost_keys_string)); 
+    if (ret != SGX_SUCCESS)
+        abort();
+}

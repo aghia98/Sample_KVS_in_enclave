@@ -185,7 +185,7 @@ class KVSServiceImpl final : public KVS::Service {
     }
 };
 
-set<string> response_global; //global variable
+//set<string> global_lost_keys_set; //global variable
 class KVSClient {
  public:
   KVSClient(std::shared_ptr<Channel> channel): stub_(KVS::NewStub(channel)) {}
@@ -238,6 +238,7 @@ class KVSClient {
 
         // Create a Lost_keys response
         Lost_keys response_local;
+        set<string> local_lost_keys_set;
 
         ClientContext context;
         Status status = stub_->Share_lost_keys(&context, request, &response_local); //***************3
@@ -246,16 +247,19 @@ class KVSClient {
         if (status.ok()) {
             for (const auto& key : response_local.keys()) {
                 lost_key=key.key();
-                response_global.insert(lost_key);
+                local_lost_keys_set.insert(lost_key);
+                //global_lost_keys_set.insert(lost_key);
             }
+            //send lost keys to enclave
+            add_lost_keys_in_enclave(local_lost_keys_set);
+
         } else {
             std::cerr << "RPC failed";
         }
 
-        for (const auto& key : response_global) {
+        /*for (const auto& key : global_lost_keys_set) {
                 cout << key << endl;
-        }
-        cout << "******************************************" << endl;
+        }*/
         return 0;
   }
 
@@ -288,27 +292,6 @@ bool isPortOpen(const std::string& ipAddress, int port) {
     // Connection successful, port is open
     close(sock);
     return true;
-}
-
-void RunServer(uint16_t port) {
-  std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
-  KVSServiceImpl service;
-
-  grpc::EnableDefaultHealthCheckService(true);
-  grpc::reflection::InitProtoReflectionServerBuilderPlugin();
-  ServerBuilder builder;
-  // Listen on the given address without any authentication mechanism.
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  // Register "service" as the instance through which we'll communicate with
-  // clients. In this case it corresponds to an *synchronous* service.
-  builder.RegisterService(&service);
-  // Finally assemble the server.
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "SMS node listening on " << server_address << std::endl;
-
-  // Wait for the server to shutdown. Note that some other thread must be
-  // responsible for shutting down the server for this call to ever return.
-  server->Wait();
 }
 
 /* Check error conditions for loading enclave */
@@ -351,9 +334,6 @@ int initialize_enclave(void)
 /* OCall functions */
 void ocall_print_string(const char *str)
 {
-    /* Proxy/Bridge will check the length and null-terminate 
-     * the input string to prevent buffer overflow. 
-     */
     printf("%s", str);
 }
 
@@ -361,55 +341,77 @@ void ocall_print_string(const char *str)
 //***********************************************************************************************
 
 void test_share_lost_keys(int current_port, int offset, int n_servers, int starting_port){
-  KVSClient* kvs;
-  int current_id = current_port - offset;
-  
-  vector<int> S_up_ids;
-  for(int i=0; i<n_servers; i++){
+    KVSClient* kvs;
+    int current_id = current_port - offset;
 
-    int port = starting_port+i;
-    
-    if(port!=current_port){
-        if(isPortOpen("127.0.0.1", port)) {
-            
-            S_up_ids.push_back(port-offset);
+    vector<int> S_up_ids;
+    for(int i=0; i<n_servers; i++){
+
+        int port = starting_port+i;
+
+        if(port!=current_port){
+            if(isPortOpen("127.0.0.1", port)) {
+                
+                S_up_ids.push_back(port-offset);
+            }
         }
-    }
         
-  }
+    }
     for(int s_up_id : S_up_ids){
         kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+s_up_id) , grpc::InsecureChannelCredentials()));
         kvs->Share_lost_keys(current_id, S_up_ids); //******************************2
         delete kvs;
     }
+
+    /*for (const auto& key : global_lost_keys_set) {
+        cout << key << endl;
+    }*/
   
+}
+
+void RunServer(uint16_t port) {
+ 
+    std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
+    KVSServiceImpl service;
+
+    grpc::EnableDefaultHealthCheckService(true);
+    grpc::reflection::InitProtoReflectionServerBuilderPlugin();
+    ServerBuilder builder;
+    // Listen on the given address without any authentication mechanism.
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    // Register "service" as the instance through which we'll communicate with
+    // clients. In this case it corresponds to an *synchronous* service.
+    builder.RegisterService(&service);
+    // Finally assemble the server.
+    std::unique_ptr<Server> server(builder.BuildAndStart());
+
+    int offset = 50000;
+    test_share_lost_keys(port, offset, 5, 50001);//****************1
+
+    std::cout << "SMS node listening on " << server_address << std::endl;
+    // Wait for the server to shutdown. Note that some other thread must be
+    // responsible for shutting down the server for this call to ever return.
+    server->Wait();
 }
 
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
-{
-
-    int offset = 50000;
-
-    absl::ParseCommandLine(argc, argv);
-    test_share_lost_keys(absl::GetFlag(FLAGS_port), offset, 5, 50001);//****************1
-
-    /*if(initialize_enclave() < 0){
+{   
+    if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
         getchar();
         return -1; 
     }
-
     absl::ParseCommandLine(argc, argv);
+
     RunServer(absl::GetFlag(FLAGS_port));
 
     sgx_destroy_enclave(global_eid);
-
     printf("Server closed \n");
     
 
-    return 0;*/
+    return 0;
 }
 

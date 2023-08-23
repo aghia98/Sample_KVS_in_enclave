@@ -1,0 +1,335 @@
+In file included from /home/aghia/usr/local/include/google/protobuf/parse_context.h:47,
+                 from /home/aghia/usr/local/include/google/protobuf/unknown_field_set.h:53,
+                 from /home/aghia/usr/local/include/google/protobuf/generated_message_reflection.h:47,
+                 from App/../../gRPC_module/src/KVS_access.pb.h:28,
+                 from App/../../gRPC_module/src/KVS_access.grpc.pb.h:22,
+                 from App/../../gRPC_module/grpc_common.h:9,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/google/protobuf/inlined_string_field.h:430:5: warning: "GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE" is not defined, evaluates to 0 [-Wundef]
+  430 | #if GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/absl/flags/internal/flag.h:36,
+                 from /home/aghia/usr/local/include/absl/flags/flag.h:39,
+                 from App/../../gRPC_module/grpc_common.h:1,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/absl/flags/commandlineflag.h:62:7: warning: ‘class absl::lts_20230125::CommandLineFlag’ has virtual functions and accessible non-virtual destructor [-Wnon-virtual-dtor]
+   62 | class CommandLineFlag {
+      |       ^~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/absl/flags/flag.h:39,
+                 from App/../../gRPC_module/grpc_common.h:1,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/absl/flags/internal/flag.h:432:7: warning: base class ‘class absl::lts_20230125::CommandLineFlag’ has accessible non-virtual destructor [-Wnon-virtual-dtor]
+  432 | class FlagImpl final : public CommandLineFlag {
+      |       ^~~~~~~~
+/home/aghia/usr/local/include/absl/flags/internal/flag.h: In constructor ‘constexpr absl::lts_20230125::flags_internal::FlagImpl::FlagImpl(const char*, const char*, absl::lts_20230125::flags_internal::FlagOpFn, absl::lts_20230125::flags_internal::FlagHelpArg, absl::lts_20230125::flags_internal::FlagValueStorageKind, absl::lts_20230125::flags_internal::FlagDefaultArg)’:
+/home/aghia/usr/local/include/absl/flags/internal/flag.h:441:27: warning: conversion from ‘uint8_t’ {aka ‘unsigned char’} to ‘const unsigned char:1’ may change value [-Wconversion]
+  441 |         help_source_kind_(static_cast<uint8_t>(help.kind)),
+      |                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/aghia/usr/local/include/absl/flags/internal/flag.h:442:29: warning: conversion from ‘uint8_t’ {aka ‘unsigned char’} to ‘const unsigned char:2’ may change value [-Wconversion]
+  442 |         value_storage_kind_(static_cast<uint8_t>(value_kind)),
+      |                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/aghia/usr/local/include/absl/flags/internal/flag.h:443:19: warning: conversion from ‘uint8_t’ {aka ‘unsigned char’} to ‘unsigned char:2’ may change value [-Wconversion]
+  443 |         def_kind_(static_cast<uint8_t>(default_arg.kind)),
+      |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/grpcpp/support/slice.h:24,
+                 from /home/aghia/usr/local/include/grpcpp/support/byte_buffer.h:29,
+                 from /home/aghia/usr/local/include/grpcpp/impl/rpc_service_method.h:30,
+                 from /home/aghia/usr/local/include/grpcpp/impl/codegen/rpc_service_method.h:25,
+                 from /home/aghia/usr/local/include/grpcpp/completion_queue.h:41,
+                 from /home/aghia/usr/local/include/grpcpp/channel.h:25,
+                 from /home/aghia/usr/local/include/grpcpp/grpcpp.h:52,
+                 from App/../../gRPC_module/grpc_common.h:4,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpcpp/support/string_ref.h: In function ‘std::ostream& grpc::operator<<(std::ostream&, const grpc::string_ref&)’:
+/home/aghia/usr/local/include/grpcpp/support/string_ref.h:143:70: warning: declaration of ‘string’ shadows a global declaration [-Wshadow]
+  143 | inline std::ostream& operator<<(std::ostream& out, const string_ref& string) {
+      |                                                    ~~~~~~~~~~~~~~~~~~^~~~~~
+In file included from /usr/include/c++/11/string:39,
+                 from App/App.h:40,
+                 from App/App.cpp:44:
+/usr/include/c++/11/bits/stringfwd.h:79:33: note: shadowed declaration is here
+   79 |   typedef basic_string<char>    string;
+      |                                 ^~~~~~
+In file included from /home/aghia/usr/local/include/grpcpp/security/tls_credentials_options.h:30,
+                 from /home/aghia/usr/local/include/grpcpp/security/credentials.h:30,
+                 from /home/aghia/usr/local/include/grpcpp/create_channel.h:25,
+                 from /home/aghia/usr/local/include/grpcpp/grpcpp.h:55,
+                 from App/../../gRPC_module/grpc_common.h:4,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpcpp/security/tls_certificate_verifier.h: At global scope:
+/home/aghia/usr/local/include/grpcpp/security/tls_certificate_verifier.h:46:1: warning: redundant redeclaration of ‘grpc_tls_certificate_verifier* grpc_tls_certificate_verifier_external_create(grpc_tls_certificate_verifier_external*)’ in same scope [-Wredundant-decls]
+   46 | grpc_tls_certificate_verifier_external_create(
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/grpcpp/security/tls_credentials_options.h:25,
+                 from /home/aghia/usr/local/include/grpcpp/security/credentials.h:30,
+                 from /home/aghia/usr/local/include/grpcpp/create_channel.h:25,
+                 from /home/aghia/usr/local/include/grpcpp/grpcpp.h:55,
+                 from App/../../gRPC_module/grpc_common.h:4,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpc/grpc_security.h:1051:32: note: previous declaration of ‘grpc_tls_certificate_verifier* grpc_tls_certificate_verifier_external_create(grpc_tls_certificate_verifier_external*)’
+ 1051 | grpc_tls_certificate_verifier* grpc_tls_certificate_verifier_external_create(
+      |                                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/grpcpp/grpcpp.h:55,
+                 from App/../../gRPC_module/grpc_common.h:4,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpcpp/create_channel.h:51:26: warning: redundant redeclaration of ‘std::shared_ptr<grpc::Channel> grpc::CreateCustomChannel(const string&, const std::shared_ptr<grpc::ChannelCredentials>&, const grpc::ChannelArguments&)’ in same scope [-Wredundant-decls]
+   51 | std::shared_ptr<Channel> CreateCustomChannel(
+      |                          ^~~~~~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/grpcpp/create_channel.h:25,
+                 from /home/aghia/usr/local/include/grpcpp/grpcpp.h:55,
+                 from App/../../gRPC_module/grpc_common.h:4,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpcpp/security/credentials.h:86:41: note: previous declaration of ‘std::shared_ptr<grpc::Channel> grpc::CreateCustomChannel(const string&, const std::shared_ptr<grpc::ChannelCredentials>&, const grpc::ChannelArguments&)’
+   86 |   friend std::shared_ptr<grpc::Channel> CreateCustomChannel(
+      |                                         ^~~~~~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/grpcpp/grpcpp.h:55,
+                 from App/../../gRPC_module/grpc_common.h:4,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpcpp/create_channel.h:68:26: warning: redundant redeclaration of ‘std::shared_ptr<grpc::Channel> grpc::experimental::CreateCustomChannelWithInterceptors(const string&, const std::shared_ptr<grpc::ChannelCredentials>&, const grpc::ChannelArguments&, std::vector<std::unique_ptr<grpc::experimental::ClientInterceptorFactoryInterface> >)’ in same scope [-Wredundant-decls]
+   68 | std::shared_ptr<Channel> CreateCustomChannelWithInterceptors(
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/grpcpp/create_channel.h:25,
+                 from /home/aghia/usr/local/include/grpcpp/grpcpp.h:55,
+                 from App/../../gRPC_module/grpc_common.h:4,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpcpp/security/credentials.h:92:3: note: previous declaration of ‘std::shared_ptr<grpc::Channel> grpc::experimental::CreateCustomChannelWithInterceptors(const string&, const std::shared_ptr<grpc::ChannelCredentials>&, const grpc::ChannelArguments&, std::vector<std::unique_ptr<grpc::experimental::ClientInterceptorFactoryInterface> >)’
+   92 |   grpc::experimental::CreateCustomChannelWithInterceptors(
+      |   ^~~~
+In file included from /home/aghia/usr/local/include/grpcpp/server.h:36,
+                 from /home/aghia/usr/local/include/grpcpp/grpcpp.h:57,
+                 from App/../../gRPC_module/grpc_common.h:4,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpcpp/security/server_credentials.h:122:36: warning: redundant redeclaration of ‘std::shared_ptr<grpc::ServerCredentials> grpc::experimental::AltsServerCredentials(const grpc::experimental::AltsServerCredentialsOptions&)’ in same scope [-Wredundant-decls]
+  122 | std::shared_ptr<ServerCredentials> AltsServerCredentials(
+      |                                    ^~~~~~~~~~~~~~~~~~~~~
+/home/aghia/usr/local/include/grpcpp/security/server_credentials.h:118:36: note: previous declaration of ‘std::shared_ptr<grpc::ServerCredentials> grpc::experimental::AltsServerCredentials(const grpc::experimental::AltsServerCredentialsOptions&)’
+  118 | std::shared_ptr<ServerCredentials> AltsServerCredentials(
+      |                                    ^~~~~~~~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/grpcpp/server_context.h:34,
+                 from /home/aghia/usr/local/include/grpcpp/server_interface.h:33,
+                 from /home/aghia/usr/local/include/grpcpp/server.h:37,
+                 from /home/aghia/usr/local/include/grpcpp/grpcpp.h:57,
+                 from App/../../gRPC_module/grpc_common.h:4,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpcpp/impl/call_op_set.h: In lambda function:
+/home/aghia/usr/local/include/grpcpp/impl/call_op_set.h:402:36: warning: declaration of ‘const void* message’ shadows a parameter [-Wshadow]
+  402 |   serializer_ = [this](const void* message) {
+      |                        ~~~~~~~~~~~~^~~~~~~
+/home/aghia/usr/local/include/grpcpp/impl/call_op_set.h:397:51: note: shadowed declaration is here
+  397 | Status CallOpSendMessage::SendMessagePtr(const M* message,
+      |                                          ~~~~~~~~~^~~~~~~
+In file included from /home/aghia/usr/local/include/google/protobuf/io/coded_stream.h:133,
+                 from App/../../gRPC_module/src/KVS_access.pb.h:23,
+                 from App/../../gRPC_module/src/KVS_access.grpc.pb.h:22,
+                 from App/../../gRPC_module/grpc_common.h:9,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/google/protobuf/stubs/strutil.h: In function ‘int32_t google::protobuf::strto32(const char*, char**, int)’:
+/home/aghia/usr/local/include/google/protobuf/stubs/strutil.h:365:18: warning: conversion from ‘long int’ to ‘int32_t’ {aka ‘int’} may change value [-Wconversion]
+  365 |     return strtol(nptr, endptr, base);
+      |            ~~~~~~^~~~~~~~~~~~~~~~~~~~
+/home/aghia/usr/local/include/google/protobuf/stubs/strutil.h: In function ‘uint32_t google::protobuf::strtou32(const char*, char**, int)’:
+/home/aghia/usr/local/include/google/protobuf/stubs/strutil.h:372:19: warning: conversion from ‘long unsigned int’ to ‘uint32_t’ {aka ‘unsigned int’} may change value [-Wconversion]
+  372 |     return strtoul(nptr, endptr, base);
+      |            ~~~~~~~^~~~~~~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/google/protobuf/arena.h:52,
+                 from App/../../gRPC_module/src/KVS_access.pb.h:24,
+                 from App/../../gRPC_module/src/KVS_access.grpc.pb.h:22,
+                 from App/../../gRPC_module/grpc_common.h:9,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h: In constructor ‘google::protobuf::internal::SerialArena::Block::Block(google::protobuf::internal::SerialArena::Block*, size_t)’:
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:384:31: warning: declaration of ‘size’ shadows a member of ‘google::protobuf::internal::SerialArena::Block’ [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |                        ~~~~~~~^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:392:18: note: shadowed declaration is here
+  392 |     const size_t size;
+      |                  ^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:384:18: warning: declaration of ‘next’ shadows a member of ‘google::protobuf::internal::SerialArena::Block’ [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |           ~~~~~~~^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:391:18: note: shadowed declaration is here
+  391 |     Block* const next;
+      |                  ^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h: In constructor ‘google::protobuf::internal::SerialArena::Block::Block(google::protobuf::internal::SerialArena::Block*, size_t)’:
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:384:31: warning: declaration of ‘size’ shadows a member of ‘google::protobuf::internal::SerialArena::Block’ [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |                        ~~~~~~~^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:392:18: note: shadowed declaration is here
+  392 |     const size_t size;
+      |                  ^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:384:18: warning: declaration of ‘next’ shadows a member of ‘google::protobuf::internal::SerialArena::Block’ [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |           ~~~~~~~^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:391:18: note: shadowed declaration is here
+  391 |     Block* const next;
+      |                  ^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h: In constructor ‘google::protobuf::internal::SerialArena::Block::Block(google::protobuf::internal::SerialArena::Block*, size_t)’:
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:384:31: warning: declaration of ‘size’ shadows a member of ‘google::protobuf::internal::SerialArena::Block’ [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |                        ~~~~~~~^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:392:18: note: shadowed declaration is here
+  392 |     const size_t size;
+      |                  ^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:384:18: warning: declaration of ‘next’ shadows a member of ‘google::protobuf::internal::SerialArena::Block’ [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |           ~~~~~~~^~~~
+/home/aghia/usr/local/include/google/protobuf/arena_impl.h:391:18: note: shadowed declaration is here
+  391 |     Block* const next;
+      |                  ^~~~
+In file included from /home/aghia/usr/local/include/google/protobuf/any.h:38,
+                 from /home/aghia/usr/local/include/google/protobuf/generated_message_util.h:52,
+                 from App/../../gRPC_module/src/KVS_access.pb.h:26,
+                 from App/../../gRPC_module/src/KVS_access.grpc.pb.h:22,
+                 from App/../../gRPC_module/grpc_common.h:9,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/google/protobuf/message_lite.h: At global scope:
+/home/aghia/usr/local/include/google/protobuf/message_lite.h:570:22: warning: redundant redeclaration of ‘void google::protobuf::ShutdownProtobufLibrary()’ in same scope [-Wredundant-decls]
+  570 | PROTOBUF_EXPORT void ShutdownProtobufLibrary();
+      |                      ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/aghia/usr/local/include/google/protobuf/io/coded_stream.h:131,
+                 from App/../../gRPC_module/src/KVS_access.pb.h:23,
+                 from App/../../gRPC_module/src/KVS_access.grpc.pb.h:22,
+                 from App/../../gRPC_module/grpc_common.h:9,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/google/protobuf/stubs/common.h:158:22: note: previous declaration of ‘void google::protobuf::ShutdownProtobufLibrary()’
+  158 | PROTOBUF_EXPORT void ShutdownProtobufLibrary();
+      |                      ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from App/../../gRPC_module/src/KVS_access.grpc.pb.h:27,
+                 from App/../../gRPC_module/grpc_common.h:9,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpcpp/support/async_unary_call.h: In lambda function:
+/home/aghia/usr/local/include/grpcpp/support/async_unary_call.h:142:52: warning: declaration of ‘grpc::internal::Call* call’ shadows a parameter [-Wshadow]
+  142 |         [](ClientContext* context, internal::Call* call,
+      |                                    ~~~~~~~~~~~~~~~~^~~~
+/home/aghia/usr/local/include/grpcpp/support/async_unary_call.h:112:18: note: shadowed declaration is here
+  112 |       grpc_call* call,
+      |       ~~~~~~~~~~~^~~~
+/home/aghia/usr/local/include/grpcpp/support/async_unary_call.h:144:17: warning: declaration of ‘single_buf’ shadows a previous local [-Wshadow]
+  144 |           auto* single_buf = static_cast<SingleBufType*>(single_buf_view);
+      |                 ^~~~~~~~~~
+/home/aghia/usr/local/include/grpcpp/support/async_unary_call.h:129:20: note: shadowed declaration is here
+  129 |     SingleBufType* single_buf =
+      |                    ^~~~~~~~~~
+/home/aghia/usr/local/include/grpcpp/support/async_unary_call.h: In lambda function:
+/home/aghia/usr/local/include/grpcpp/support/async_unary_call.h:157:58: warning: declaration of ‘grpc::internal::Call* call’ shadows a parameter [-Wshadow]
+  157 |     *finish = [](ClientContext* context, internal::Call* call,
+      |                                          ~~~~~~~~~~~~~~~~^~~~
+/home/aghia/usr/local/include/grpcpp/support/async_unary_call.h:112:18: note: shadowed declaration is here
+  112 |       grpc_call* call,
+      |       ~~~~~~~~~~~^~~~
+/home/aghia/usr/local/include/grpcpp/support/async_unary_call.h:176:15: warning: declaration of ‘single_buf’ shadows a previous local [-Wshadow]
+  176 |         auto* single_buf = static_cast<SingleBufType*>(single_buf_view);
+      |               ^~~~~~~~~~
+/home/aghia/usr/local/include/grpcpp/support/async_unary_call.h:129:20: note: shadowed declaration is here
+  129 |     SingleBufType* single_buf =
+      |                    ^~~~~~~~~~
+In file included from /home/aghia/usr/local/include/absl/numeric/int128.h:1155,
+                 from /home/aghia/usr/local/include/absl/strings/internal/str_format/arg.h:33,
+                 from /home/aghia/usr/local/include/absl/strings/str_format.h:76,
+                 from App/../../gRPC_module/grpc_server.h:3,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/absl/numeric/int128_have_intrinsic.inc: At global scope:
+/home/aghia/usr/local/include/absl/numeric/int128_have_intrinsic.inc:166:18: warning: redundant redeclaration of ‘constexpr absl::lts_20230125::int128 absl::lts_20230125::operator-(absl::lts_20230125::int128)’ in same scope [-Wredundant-decls]
+  166 | constexpr int128 operator-(int128 v);
+      |                  ^~~~~~~~
+In file included from /home/aghia/usr/local/include/absl/strings/internal/str_format/arg.h:33,
+                 from /home/aghia/usr/local/include/absl/strings/str_format.h:76,
+                 from App/../../gRPC_module/grpc_server.h:3,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/absl/numeric/int128.h:1073:18: note: previous declaration of ‘constexpr absl::lts_20230125::int128 absl::lts_20230125::operator-(absl::lts_20230125::int128)’
+ 1073 | constexpr int128 operator-(int128 v);
+      |                  ^~~~~~~~
+In file included from /home/aghia/usr/local/include/absl/numeric/int128.h:1155,
+                 from /home/aghia/usr/local/include/absl/strings/internal/str_format/arg.h:33,
+                 from /home/aghia/usr/local/include/absl/strings/str_format.h:76,
+                 from App/../../gRPC_module/grpc_server.h:3,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/absl/numeric/int128_have_intrinsic.inc:167:16: warning: redundant redeclaration of ‘constexpr bool absl::lts_20230125::operator!=(absl::lts_20230125::int128, absl::lts_20230125::int128)’ in same scope [-Wredundant-decls]
+  167 | constexpr bool operator!=(int128 lhs, int128 rhs);
+      |                ^~~~~~~~
+In file included from /home/aghia/usr/local/include/absl/strings/internal/str_format/arg.h:33,
+                 from /home/aghia/usr/local/include/absl/strings/str_format.h:76,
+                 from App/../../gRPC_module/grpc_server.h:3,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/absl/numeric/int128.h:1136:16: note: previous declaration of ‘constexpr bool absl::lts_20230125::operator!=(absl::lts_20230125::int128, absl::lts_20230125::int128)’
+ 1136 | constexpr bool operator!=(int128 lhs, int128 rhs);
+      |                ^~~~~~~~
+App/App.cpp: In member function ‘virtual grpc::Status KVSServiceImpl::Get(grpc::ServerContext*, const keyvaluestore::Key*, keyvaluestore::Value*)’:
+App/App.cpp:148:31: warning: unused parameter ‘context’ [-Wunused-parameter]
+  148 |     Status Get(ServerContext* context, const Key* key, Value* value) override {
+      |                ~~~~~~~~~~~~~~~^~~~~~~
+App/App.cpp: In member function ‘virtual grpc::Status KVSServiceImpl::Put(grpc::ServerContext*, const keyvaluestore::KV_pair*, keyvaluestore::Value*)’:
+App/App.cpp:155:31: warning: unused parameter ‘context’ [-Wunused-parameter]
+  155 |     Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
+      |                ~~~~~~~~~~~~~~~^~~~~~~
+App/App.cpp: In member function ‘virtual grpc::Status KVSServiceImpl::Delete(grpc::ServerContext*, const keyvaluestore::Key*, keyvaluestore::Value*)’:
+App/App.cpp:161:34: warning: unused parameter ‘context’ [-Wunused-parameter]
+  161 |     Status Delete(ServerContext* context, const Key* key, Value* response) override{
+      |                   ~~~~~~~~~~~~~~~^~~~~~~
+App/App.cpp: In member function ‘virtual grpc::Status KVSServiceImpl::Share_lost_keys(grpc::ServerContext*, const keyvaluestore::New_id_with_S_up_ids*, keyvaluestore::Lost_keys*)’:
+App/App.cpp:167:43: warning: unused parameter ‘context’ [-Wunused-parameter]
+  167 |     Status Share_lost_keys(ServerContext* context, const New_id_with_S_up_ids* request, Lost_keys* response) override {
+      |                            ~~~~~~~~~~~~~~~^~~~~~~
+App/App.cpp: In function ‘bool isPortOpen(const string&, int)’:
+App/App.cpp:279:36: warning: conversion from ‘int’ to ‘uint16_t’ {aka ‘short unsigned int’} may change value [-Wconversion]
+  279 |     serverAddress.sin_port = htons(port);
+      |                                    ^~~~
+In file included from /home/aghia/usr/local/include/grpcpp/server_context.h:34,
+                 from /home/aghia/usr/local/include/grpcpp/server_interface.h:33,
+                 from /home/aghia/usr/local/include/grpcpp/server.h:37,
+                 from /home/aghia/usr/local/include/grpcpp/grpcpp.h:57,
+                 from App/../../gRPC_module/grpc_common.h:4,
+                 from App/../../gRPC_module/grpc_server.h:1,
+                 from App/App.cpp:46:
+/home/aghia/usr/local/include/grpcpp/impl/call_op_set.h: In instantiation of ‘grpc::Status grpc::internal::CallOpSendMessage::SendMessagePtr(const M*, grpc::WriteOptions) [with M = grpc::ByteBuffer]’:
+/home/aghia/usr/local/include/grpcpp/impl/server_callback_handlers.h:785:7:   required from ‘void grpc::internal::CallbackBidiHandler<Request, Response>::ServerCallbackReaderWriterImpl::Write(const ResponseType*, grpc::WriteOptions) [with RequestType = grpc::ByteBuffer; ResponseType = grpc::ByteBuffer]’
+/home/aghia/usr/local/include/grpcpp/impl/server_callback_handlers.h:771:10:   required from here
+/home/aghia/usr/local/include/grpcpp/impl/call_op_set.h:402:36: warning: declaration of ‘const void* message’ shadows a parameter [-Wshadow]
+  402 |   serializer_ = [this](const void* message) {
+      |                        ~~~~~~~~~~~~^~~~~~~
+/home/aghia/usr/local/include/grpcpp/impl/call_op_set.h:397:51: note: shadowed declaration is here
+  397 | Status CallOpSendMessage::SendMessagePtr(const M* message,
+      |                                          ~~~~~~~~~^~~~~~~
+App/TrustedLibrary/Types.cpp: In function ‘std::set<std::__cxx11::basic_string<char> > share_lost_keys(int, std::vector<int>)’:
+App/TrustedLibrary/Types.cpp:98:84: warning: conversion from ‘std::vector<int>::size_type’ {aka ‘long unsigned int’} to ‘unsigned int’ may change value [-Wconversion]
+   98 |     ret = ecall_share_lost_keys(global_eid, &node_id, s_up_ids_array, s_up_ids.size(), lost_keys); // add S_up as input parameter
+      |                                                                       ~~~~~~~~~~~~~^~
+Enclave/Enclave_t.c: In function ‘sgx_ecall_share_lost_keys’:
+Enclave/Enclave_t.c:289:34: warning: comparison is always false due to limited range of data type [-Wtype-limits]
+  289 |                 (size_t)_tmp_cnt > (SIZE_MAX / sizeof(*_tmp_s_up_ids_array))) {
+      |                                  ^
+Enclave/TrustedLibrary/Types.cpp: In function ‘void ecall_share_lost_keys(int*, int*, unsigned int, char*)’:
+Enclave/TrustedLibrary/Types.cpp:207:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+  207 |     for (int i = 0; i < cnt; ++i) {
+      |                     ~~^~~~~
+Enclave/TrustedLibrary/Types.cpp:224:15: warning: comparison of integer expressions of different signedness: ‘unsigned int’ and ‘int’ [-Wsign-compare]
+  224 |         if(cnt<n){
+      |            ~~~^~
+/usr/bin/ld: /home/aghia/sgx_workspace/sgxsdk/lib64/libsgx_tstdc.a(sethread_cond.o): in function `sgx_thread_cond_wait':
+sethread_cond.cpp:(.text.sgx_thread_cond_wait+0xd9): undefined reference to `sgx_thread_wait_untrusted_event_ocall'
+/usr/bin/ld: sethread_cond.cpp:(.text.sgx_thread_cond_wait+0x162): undefined reference to `sgx_thread_setwait_untrusted_events_ocall'
+/usr/bin/ld: /home/aghia/sgx_workspace/sgxsdk/lib64/libsgx_tstdc.a(sethread_cond.o): in function `sgx_thread_cond_broadcast':
+sethread_cond.cpp:(.text.sgx_thread_cond_broadcast+0xdd): undefined reference to `sgx_thread_set_multiple_untrusted_events_ocall'
+/usr/bin/ld: /home/aghia/sgx_workspace/sgxsdk/lib64/libsgx_tstdc.a(sethread_mutex.o): in function `sgx_thread_mutex_lock':
+sethread_mutex.cpp:(.text.sgx_thread_mutex_lock+0xbd): undefined reference to `sgx_thread_wait_untrusted_event_ocall'
+/usr/bin/ld: /home/aghia/sgx_workspace/sgxsdk/lib64/libsgx_tstdc.a(sethread_mutex.o): in function `sgx_thread_mutex_unlock':
+sethread_mutex.cpp:(.text.sgx_thread_mutex_unlock+0x71): undefined reference to `sgx_thread_set_untrusted_event_ocall'
+collect2: error: ld returned 1 exit status
+make[1]: *** [Makefile:267: enclave.so] Error 1
+make: *** [Makefile:189: all] Error 2

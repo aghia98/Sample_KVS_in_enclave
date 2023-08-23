@@ -174,10 +174,14 @@ class KVSServiceImpl final : public KVS::Service {
         //**************************5
         set<string> lost_keys = share_lost_keys(request->new_id(), s_up_ids);
         
-
-        for (set<string>::iterator it = lost_keys.begin(); it != lost_keys.end(); ++it) {
+        if(lost_keys.empty()){
             Key* key = response->add_keys();
-            key->set_key(*it);
+            key->set_key("null");
+        }else{
+            for (set<string>::iterator it = lost_keys.begin(); it != lost_keys.end(); ++it) {
+                Key* key = response->add_keys();
+                key->set_key(*it);
+            }
         }
 
         return Status::OK;
