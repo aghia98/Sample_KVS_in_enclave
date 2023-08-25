@@ -48,6 +48,7 @@ map<string, string> myMap;
 set<string> lost_keys_with_last_share_owner;
 int t=3;
 int n=5;
+int node_id;
 
 
 /* used to eliminate `unused variable' warning */
@@ -197,6 +198,7 @@ vector<int> convert_strings_with_id_to_ids(vector<string> strings_with_id){
 
 void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char* lost_keys) {
   //******************************7
+    //find lost keys
     vector<string> strings_with_id_of_N_active;
     vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
     vector<int> s_up_ids_vector;
@@ -255,7 +257,65 @@ void ecall_add_lost_keys(char keys_with_last_share_owner[]){
             }
             keys_with_last_share_owner++;
         }
+    }    
+}
+//*****************************************************************************************
+vector<string> splitString(const string& input, char delimiter) {
+    vector<string> result;
+    size_t start = 0;
+    size_t end = input.find(delimiter);
+    
+    while (end != string::npos) {
+        result.push_back(input.substr(start, end - start));
+        start = end + 1;
+        end = input.find(delimiter, start);
     }
     
-        
+    result.push_back(input.substr(start));
+    return result;
 }
+
+/*typedef struct TOKEN {
+    int initiator; //current_node_id
+    char *key;
+    int cumul;
+    int passes;
+    int *path;
+} TOKEN;
+
+
+TOKEN* init_token(){
+    TOKEN* token;
+    TOKEN* token = (TOKEN*)malloc(sizeof(TOKEN));
+    
+    int examplePath[] = {1, 2, 3, 4, 5};
+    token->initiator = 123;
+    token->key = "example_key";
+    token->cumul = 42;
+    token->passes = 3;
+    token->path = examplePath;
+
+    return token;
+}
+
+void distributed_polynomial_interpolation(TOKEN* token){
+
+}
+
+void recover_lost_share(string key){
+    TOKEN* token = init_token();
+    distributed_polynomial_interpolation(token);
+}
+
+
+void ecall_recover_lost_shares(){
+    string key;
+    string last_share_owner_id;
+    for(const string& key_with_last_share_owner : lost_keys_with_last_share_owner){
+        vector<string> splitted_key_last_share_owner = splitString(key_with_last_share_owner, '|');
+        key = splitted_key_last_share_owner[0];
+        recover_lost_share(key);
+        //delete share_of_s_id
+    }
+    
+}*/

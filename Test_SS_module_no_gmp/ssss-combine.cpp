@@ -30,8 +30,8 @@
 #include <stdlib.h>
 #include <string>
 
-#include "../SS_no_gmp_module/ss-worker.h"
-//#include "combine.h"
+//#include "../SS_no_gmp_module/ss-worker.h"
+#include "combine.h"
 
 using namespace std;
 
@@ -61,10 +61,16 @@ int main( int argc, char ** argv ) {
 
 	printf("%s\n",combined_shares);
 
+	
+
     char * secret = extract_secret_from_share_strings(combined_shares);
+	int x_share = 1;
+	char* hex = recover_share_from_string_shares(combined_shares, x_share);
 
     fprintf(stdout, "%s\n", secret);
+	fprintf(stdout, "%s\n", hex);
 
     free(secret);
+	free(hex);
     free(combined_shares);
 }

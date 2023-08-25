@@ -49,3 +49,7 @@ int printf(const char* fmt, ...)
     ocall_print_string(buf);
     return (int)strnlen(buf, BUFSIZ - 1) + 1;
 }
+
+int print_token(TOKEN* token){
+    ocall_print_token(TOKEN* token);
+}

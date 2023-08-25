@@ -6,11 +6,11 @@
 using namespace std;
 
 
-int main( int argc, char ** argv ) {
+int main( int argc, char ** argv ) { // ./shamir-split n t < secrets.txt
 
 	seed_random();
 	if (argc == 3) { //split
-		// Read secret from stdin -- n t < secrets.txt
+		// Read secret from stdin 
 		char ** shares;
 
 		char secret[200];
@@ -23,7 +23,7 @@ int main( int argc, char ** argv ) {
   		if (cin.rdbuf()->in_avail() != 0) {
 			string line;
 			int secret_num = 1;
-			vector<int>  x_shares = {3,5,9,1};
+			vector<int>  x_shares = {3,5,9,1,4};
 			while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
 				
 				shares = generate_share_strings(secret, n, t, x_shares);

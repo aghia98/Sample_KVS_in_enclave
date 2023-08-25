@@ -190,7 +190,7 @@ class KVSClient {
  public:
   KVSClient(std::shared_ptr<Channel> channel): stub_(KVS::NewStub(channel)) {}
 
-  string Get(const string k) {
+    string Get(const string k) {
     Key key;
     key.set_key(k);
 
@@ -313,9 +313,6 @@ void print_error_message(sgx_status_t ret)
     	printf("Error code is 0x%X. Please refer to the \"Intel SGX SDK Developer Reference\" for more details.\n", ret);
 }
 
-/* Initialize the enclave:
- *   Call sgx_create_enclave to initialize an enclave instance
- */
 int initialize_enclave(void)
 {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
@@ -366,7 +363,10 @@ void test_share_lost_keys(int current_port, int offset, int n_servers, int start
     /*for (const auto& key : global_lost_keys_set) {
         cout << key << endl;
     }*/
-  
+}
+
+void recover_lost_shares_wrapper(){
+    recover_lost_shares()
 }
 
 void RunServer(uint16_t port) {
@@ -387,6 +387,7 @@ void RunServer(uint16_t port) {
 
     int offset = 50000;
     test_share_lost_keys(port, offset, 5, 50001);//****************1
+
 
     std::cout << "SMS node listening on " << server_address << std::endl;
     // Wait for the server to shutdown. Note that some other thread must be

@@ -1,7 +1,4 @@
-LDFLAGS += `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`\
-           -pthread\
-           -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
-           -ldl
+LDFLAGS += `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse` -pthread -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl
 
 		   
 

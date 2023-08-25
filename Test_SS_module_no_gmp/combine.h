@@ -10,6 +10,6 @@
 
 /// Given a list of shares (`\n` separated without leading whitespace), recreate the original secret.
 char * extract_secret_from_share_strings(const char * string);
-
+char* recover_share_from_string_shares(const char * string, int x_share);
 
 #endif

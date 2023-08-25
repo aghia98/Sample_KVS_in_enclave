@@ -75,7 +75,6 @@ void ecall_put(char key[], char val[]){
     string key_string(key);
     string val_string(val);
     myMap[key_string]=val;
-    printf("[Lambdas] Initial array using lambdas: {");
 }
 
 void ecall_get(char key[], char* val){

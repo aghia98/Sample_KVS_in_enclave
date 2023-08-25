@@ -147,11 +147,48 @@ int join_shares(int * xy_pairs, int n) {
 
 	/* Sometimes we're getting negative numbers, and need to fix that */
 	secret = (secret + prime) % prime;
-	printf("%02X\n",secret);
+	//printf("%02X\n",secret);
 
 	return secret;
 }
 
+int join_shares_to_recover_share(int * xy_pairs, int n, int x_share){
+	int secret = 0;
+	long numerator;
+	long denominator;
+	long startposition;
+	long nextposition;
+	long value;
+	int i;
+	int j;
+
+	// Pairwise calculations between all shares
+	for (i = 0; i < n; ++i) {
+		numerator = 1;
+		denominator = 1;
+
+		for (j = 0; j < n; ++j) {
+			if (i != j) {
+				startposition = xy_pairs[i * 2];		// x for share i
+				nextposition = xy_pairs[j * 2];		// x for share j
+				numerator = (numerator * (x_share-nextposition)) % prime;
+				denominator = (denominator * (startposition - nextposition)) % prime;
+			}
+		}
+
+		value = xy_pairs[i * 2 + 1];
+
+		secret = (secret + (value * numerator * modInverse(denominator))) % prime;
+	}
+
+
+	/* Sometimes we're getting negative numbers, and need to fix that */
+	secret = (secret + prime) % prime;
+	//printf("%02X\n",secret);
+
+	return secret;
+
+}
 
 #ifdef TEST
 void Test_join_shares(CuTest * tc) {
@@ -257,6 +294,68 @@ char * join_strings(char ** shares, int n) {
 	return result;
 }
 
+char* join_strings_to_recover_share(char ** shares, int n, int x_share) {
+		/* TODO: Check if we have a quorum */
+
+	if ((n == 0) || (shares == NULL) || (shares[0] == NULL)) {
+		return NULL;
+	}
+
+	// `len` = number of hex pair values in shares
+	int len = (strlen(shares[0]) - 6) / 2;
+
+	char * result = static_cast<char*>(malloc(len + 1));
+	char codon[3];
+	codon[2] = '\0';	// Must terminate the string!
+
+	int x[n];		// Integer value array
+	int i;			// Counter
+	int j;			// Counter
+
+	// Determine x value for each share
+	for (i = 0; i < n; ++i) {
+		if (shares[i] == NULL) {
+			free(result);
+			return NULL;
+		}
+
+		codon[0] = shares[i][0];
+		codon[1] = shares[i][1];
+
+		x[i] = strtol(codon, NULL, 16);
+	}
+
+	// Iterate through characters and calculate original secret
+	for (i = 0; i < len; ++i) {
+		int * chunks = static_cast<int*>(malloc(sizeof(int) * n  * 2));
+
+		// Collect all shares for character i
+		for (j = 0; j < n; ++j) {
+			// Store x value for share
+			chunks[j * 2] = x[j];
+
+			codon[0] = shares[j][6 + i * 2];
+			codon[1] = shares[j][6 + i * 2 + 1];
+
+			// Store y value for share
+			if (memcmp(codon, "G0", 2) == 0) {
+				chunks[j * 2 + 1] = 256;
+			} else {
+				chunks[j * 2 + 1] = strtol(codon, NULL, 16);
+			}
+		}
+
+		//unsigned char letter = join_shares(chunks, n);
+		char letter = join_shares_to_recover_share(chunks, n, x_share);
+
+		free(chunks);
+
+		//sprintf(result + i, "%c", letter);
+		result[i] = letter;
+	}
+
+	return result;
+}
 
 #ifdef TEST
 void Test_split_string(CuTest * tc) {
@@ -316,6 +415,22 @@ void trim_trailing_whitespace(char * str) {
 		into individual shares, and then extract secret
 */
 
+char* convertToHex(const char* input) {
+    int length = strlen(input);
+    char* result = (char*)malloc(length * 2 + 1);  // Allocate memory for the result string
+    
+    if (result) {
+        char* ptr = result;
+        for (int i = 0; i < length; ++i) {
+            *ptr++ = "0123456789ABCDEF"[((unsigned char)input[i]) >> 4];
+            *ptr++ = "0123456789ABCDEF"[((unsigned char)input[i]) & 0x0F];
+        }
+        *ptr = '\0';  // Null-terminate the result string
+    }
+    
+    return result;
+}
+
 char * extract_secret_from_share_strings(const char * string) {
 	char ** shares = static_cast<char**>(malloc(sizeof(char *) * 255));
 
@@ -356,6 +471,48 @@ char * extract_secret_from_share_strings(const char * string) {
 	return secret;
 }
 
+char* recover_share_from_string_shares(const char * string, int x_share){
+	char ** shares = static_cast<char**>(malloc(sizeof(char *) * 255));
+
+	char * share;
+	char * saveptr = NULL;
+	int i = 0;
+
+	/* strtok_rr modifies the string we are looking at, so make a temp copy */
+	char * temp_string = strdup(string);
+
+	/* Parse the string by line, remove trailing whitespace */
+	share = strtok_rr(temp_string, "\n", &saveptr);
+
+	shares[i] = strdup(share);
+	trim_trailing_whitespace(shares[i]);
+
+	while ( (share = strtok_rr(NULL, "\n", &saveptr))) {
+		i++;
+
+		shares[i] = strdup(share);
+
+		trim_trailing_whitespace(shares[i]);
+
+		if ((shares[i] != NULL) && (strlen(shares[i]) == 0)) {
+			/* Ignore blank lines */
+			free(shares[i]);
+			i--;
+		}
+	}
+
+	i++;
+
+	char * recovered_share = join_strings_to_recover_share(shares, i, x_share);
+	
+
+	free_string_shares(shares, i);
+	free(temp_string);
+
+	char* hex_recovered_share = convertToHex(recovered_share);
+
+	return hex_recovered_share;
+}
 
 #ifdef TEST
 void Test_extract_secret_from_share_strings(CuTest * tc) {
