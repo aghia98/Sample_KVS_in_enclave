@@ -365,9 +365,9 @@ void test_share_lost_keys(int current_port, int offset, int n_servers, int start
     }*/
 }
 
-void recover_lost_shares_wrapper(){
-    recover_lost_shares()
-}
+/*void recover_lost_shares_wrapper(){
+    recover_lost_shares();
+}*/
 
 void RunServer(uint16_t port) {
  

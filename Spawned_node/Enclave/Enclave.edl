@@ -33,15 +33,26 @@
 
 enclave {
     
-    include "user_types.h" /* buffer_t */
+    //include "user_types.h" /* buffer_t */
 
     /* Import ECALL/OCALL from sub-directory EDLs.
      *  [from]: specifies the location of EDL file. 
      *  [import]: specifies the functions to import, 
      *  [*]: implies to import all functions.
      */
+
+    from "sgx_tstdc.edl" import *;
     
-    from "TrustedLibrary/Types.edl" import *;
+    trusted {
+  
+        public void ecall_put([in] char key[100], [in] char share[410]);
+        public void ecall_get([in] char key[100], [in, out, string] char* share);
+        public void ecall_delete([in] char key[100]);
+        public void ecall_share_lost_keys([in] int* node_id, [in, count=cnt] int* s_up_ids_array, unsigned cnt, [in, out, string] char* lost_keys); 
+        public void ecall_add_lost_keys([in] char keys_with_last_share_owner[10000]); 
+        //public void ecall_recover_lost_shares();
+
+    };
 
     /* 
      * ocall_print_string - invokes OCALL to display string buffer inside the enclave.

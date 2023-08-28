@@ -36,8 +36,6 @@ SGX_MODE ?= HW
 SGX_ARCH ?= x64
 SGX_DEBUG ?= 1
 
-include $(SGX_SDK)/buildenv.mk
-
 ifeq ($(shell getconf LONG_BIT), 32)
 	SGX_ARCH := x86
 else ifeq ($(findstring -m32, $(CXXFLAGS)), -m32)
@@ -49,11 +47,13 @@ ifeq ($(SGX_ARCH), x86)
 	SGX_LIBRARY_PATH := $(SGX_SDK)/lib
 	SGX_ENCLAVE_SIGNER := $(SGX_SDK)/bin/x86/sgx_sign
 	SGX_EDGER8R := $(SGX_SDK)/bin/x86/sgx_edger8r
+	SGX_PROTOC := $(SGX_SDK)/bin/x86/sgx_protoc
 else
 	SGX_COMMON_FLAGS := -m64
 	SGX_LIBRARY_PATH := $(SGX_SDK)/lib64
 	SGX_ENCLAVE_SIGNER := $(SGX_SDK)/bin/x64/sgx_sign
 	SGX_EDGER8R := $(SGX_SDK)/bin/x64/sgx_edger8r
+	SGX_PROTOC := $(SGX_SDK)/bin/x64/sgx_protoc
 endif
 
 ifeq ($(SGX_DEBUG), 1)
@@ -91,7 +91,7 @@ FLAGS_grpckvs = `pkg-config --libs --static protobuf grpc++ absl_flags absl_flag
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
            -ldl 
 
-App_Cpp_Files := App/App.cpp $(wildcard App/Edger8rSyntax/*.cpp) $(wildcard App/TrustedLibrary/*.cpp)
+App_Cpp_Files := App/App.cpp $(wildcard App/TrustedLibrary/*.cpp)
 App_Include_Paths := -IInclude -IApp -I$(SGX_SDK)/include -I$(INCLUDE_grpc)  
 
 App_C_Flags := -fPIC -Wno-attributes $(App_Include_Paths)
@@ -117,6 +117,16 @@ App_Name := app
 
 ######## Enclave Settings ########
 
+Enclave_Version_Script := Enclave/Enclave.lds
+ifeq ($(SGX_MODE), HW)
+ifneq ($(SGX_DEBUG), 1)
+ifneq ($(SGX_PRERELEASE), 1)
+	# Choose to use 'Enclave.lds' for HW release mode
+	Enclave_Version_Script = Enclave/Enclave.lds 
+endif
+endif
+endif
+
 ifneq ($(SGX_MODE), HW)
 	Trts_Library_Name := sgx_trts_sim
 	Service_Library_Name := sgx_tservice_sim
@@ -124,19 +134,13 @@ else
 	Trts_Library_Name := sgx_trts
 	Service_Library_Name := sgx_tservice
 endif
+
 Crypto_Library_Name := sgx_tcrypto
 
-Enclave_Cpp_Files := Enclave/Enclave.cpp $(wildcard Enclave/Edger8rSyntax/*.cpp) $(wildcard Enclave/TrustedLibrary/*.cpp)
-Enclave_Include_Paths := -IInclude -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx
+Enclave_Cpp_Files := Enclave/Enclave.cpp
+Enclave_Include_Paths := -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/libcxx -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/tprotobuf
 
-Enclave_C_Flags := $(Enclave_Include_Paths) -nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections $(MITIGATION_CFLAGS)
-CC_BELOW_4_9 := $(shell expr "`$(CC) -dumpversion`" \< "4.9")
-ifeq ($(CC_BELOW_4_9), 1)
-	Enclave_C_Flags += -fstack-protector
-else
-	Enclave_C_Flags += -fstack-protector-strong
-endif
-
+Enclave_C_Flags := -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths) -DPB_ENABLE_SGX
 Enclave_Cpp_Flags := $(Enclave_C_Flags) -nostdinc++
 
 # Enable the security flags
@@ -149,16 +153,16 @@ Enclave_Security_Link_Flags := -Wl,-z,relro,-z,now,-z,noexecstack
 #       Use `--start-group' and `--end-group' to link these libraries.
 # Do NOT move the libraries linked with `--start-group' and `--end-group' within `--whole-archive' and `--no-whole-archive' options.
 # Otherwise, you may get some undesirable errors.
-Enclave_Link_Flags := $(MITIGATION_LDFLAGS) $(Enclave_Security_Link_Flags) \
-    -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_TRUSTED_LIBRARY_PATH) \
+Enclave_Link_Flags := $(Enclave_Security_Link_Flags) \
+    -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
-	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
+	-Wl,--start-group  -lsgx_tstdc -lsgx_tcxx -lsgx_protobuf -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
-	-Wl,--defsym,__ImageBase=0 -Wl,--gc-sections   \
-	-Wl,--version-script=Enclave/Enclave.lds
+	-Wl,--defsym,__ImageBase=0 \
+	-Wl,--version-script=$(Enclave_Version_Script)
 
-Enclave_Cpp_Objects := $(sort $(Enclave_Cpp_Files:.cpp=.o))
+Enclave_Cpp_Objects := $(Enclave_Cpp_Files:.cpp=.o)
 
 Enclave_Name := enclave.so
 Signed_Enclave_Name := enclave.signed.so
@@ -184,20 +188,18 @@ endif
 endif
 
 
-.PHONY: all target run
+.PHONY: all run target
 all: .config_$(Build_Mode)_$(SGX_ARCH)
 	@$(MAKE) target
 
 ifeq ($(Build_Mode), HW_RELEASE)
-target:  $(App_Name) $(Enclave_Name)
+target: $(App_Name) $(Enclave_Name)
 	@echo "The project has been built in release hardware mode."
 	@echo "Please sign the $(Enclave_Name) first with your signing key before you run the $(App_Name) to launch and access the enclave."
 	@echo "To sign the enclave use the command:"
 	@echo "   $(SGX_ENCLAVE_SIGNER) sign -key <your key> -enclave $(Enclave_Name) -out <$(Signed_Enclave_Name)> -config $(Enclave_Config_File)"
 	@echo "You can also sign the enclave using an external signing tool."
 	@echo "To build the project in simulation mode set SGX_MODE=SIM. To build the project in prerelease mode set SGX_PRERELEASE=1 and SGX_MODE=HW."
-
-
 else
 target: $(App_Name) $(Signed_Enclave_Name)
 ifeq ($(Build_Mode), HW_DEBUG)
@@ -211,11 +213,15 @@ else ifeq ($(Build_Mode), SIM_PRERELEASE)
 else
 	@echo "The project has been built in release simulation mode."
 endif
-
 endif
 
 print_cxx:
 	@echo $(CXX)
+	@echo $(SGX_LIBRARY_PATH) 
+	@echo $(Crypto_Library_Name)
+	@echo $(Service_Library_Name)
+	@echo $(Trts_Library_Name)
+	g++ --version
 
 run: all
 ifneq ($(Build_Mode), HW_RELEASE)
@@ -227,7 +233,11 @@ endif
 	@rm -f .config_* $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.*
 	@touch .config_$(Build_Mode)_$(SGX_ARCH)
 
+
+
+
 ######## App Objects ########
+
 
 App/Enclave_u.h: $(SGX_EDGER8R) Enclave/Enclave.edl
 	@cd App && $(SGX_EDGER8R) --untrusted ../Enclave/Enclave.edl --search-path ../Enclave --search-path $(SGX_SDK)/include
@@ -235,19 +245,31 @@ App/Enclave_u.h: $(SGX_EDGER8R) Enclave/Enclave.edl
 
 App/Enclave_u.c: App/Enclave_u.h
 
+
 App/Enclave_u.o: App/Enclave_u.c
 	@$(CC) $(SGX_COMMON_CFLAGS) $(App_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
 
-App/%.o: App/%.cpp  App/Enclave_u.h
+
+App/%.o: App/%.cpp App/Enclave_u.h
 	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(App_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
-$(App_Name): App/Enclave_u.o $(App_Cpp_Objects)
+App/%.cc.o: App/%.cc
+	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(App_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
+
+$(App_Name): App/Enclave_u.o $(App_Cpp_Objects) 
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
 ######## Enclave Objects ########
+
+Enclave/token.pb.h: $(SGX_PROTOC) Enclave/token.proto
+	@$(SGX_PROTOC) --cpp_out Enclave/ -I Enclave/ Enclave/token.proto
+	@echo "GEN  =>  $@"
+
+Enclave/token.pb.cc: Enclave/token.pb.h
 
 Enclave/Enclave_t.h: $(SGX_EDGER8R) Enclave/Enclave.edl
 	@cd Enclave && $(SGX_EDGER8R) --trusted ../Enclave/Enclave.edl --search-path ../Enclave --search-path $(SGX_SDK)/include
@@ -259,12 +281,20 @@ Enclave/Enclave_t.o: Enclave/Enclave_t.c
 	@$(CC) $(SGX_COMMON_CFLAGS) $(Enclave_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
 
-Enclave/%.o: Enclave/%.cpp Enclave/Enclave_t.h
+Enclave/%.o: Enclave/%.cpp
 	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(Enclave_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
-$(Enclave_Name): Enclave/Enclave_t.o $(Enclave_Cpp_Objects)
-	@$(CXX) $^ -o $@ $(Enclave_Link_Flags)
+Enclave/%.o: Enclave/%.cc
+	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(Enclave_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
+
+$(Enclave_Cpp_Objects): Enclave/Enclave_t.h Enclave/token.pb.h
+
+$(Enclave_Name): Enclave/Enclave_t.o $(Enclave_Cpp_Objects) Enclave/token.pb.o
+	@echo $(Enclave_Cpp_Objects)
+	@echo $(Enclave_Link_Flags)
+	$(CXX) $^ -o $@ $(Enclave_Link_Flags)
 	@echo "LINK =>  $@"
 
 $(Signed_Enclave_Name): $(Enclave_Name)
@@ -279,4 +309,4 @@ endif
 .PHONY: clean
 
 clean:
-	@rm -f .config_* $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.* $(Enclave_Test_Key)
+	@rm -f .config_* $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.* Enclave/token.pb.*
