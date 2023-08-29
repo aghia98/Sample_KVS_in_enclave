@@ -137,7 +137,7 @@ void add_lost_keys_in_enclave(const set<string>& local_lost_keys_set){
 
 void recover_lost_shares(){
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    /*ret = ecall_recover_lost_shares(global_eid);
+    ret = ecall_recover_lost_shares(global_eid);
     if (ret != SGX_SUCCESS)
-        abort(); */
+        abort(); 
 }

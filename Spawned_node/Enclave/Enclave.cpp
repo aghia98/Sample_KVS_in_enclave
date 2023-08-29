@@ -45,37 +45,13 @@
 
 #include "token.pb.h"
 
-/* 
- * printf: 
- *   Invokes OCALL to display the enclave buffer to the terminal.
- */
-
-
-
-int printf(const char* fmt, ...)
-{
-    //lm::Person person;
-    //person.ParseFromString("qiduzon");
-    char buf[BUFSIZ] = { '\0' };
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(buf, BUFSIZ, fmt, ap);
-    va_end(ap);
-    ocall_print_string(buf);
-    return (int)strnlen(buf, BUFSIZ - 1) + 1;
-}
-
-/*int print_token(TOKEN* token){
-    ocall_print_token(TOKEN* token);
-}*/
-
 using namespace std;
 // Declare myMap as a global variable
 map<string, string> myMap;
-set<string> lost_keys_with_last_share_owner;
+set<string> lost_keys_with_potential_last_share_owner_and_t_shares_owners;
 int t=3;
 int n=5;
-int node_id;
+int node_id = 6;
 
 
 /* used to eliminate `unused variable' warning */
@@ -97,7 +73,16 @@ int node_id;
     destination[source.length()] = '\0'; // Append null character to terminate the string
 }*/
 
- 
+ int printf(const char* fmt, ...)
+{
+    char buf[BUFSIZ] = { '\0' };
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, BUFSIZ, fmt, ap);
+    va_end(ap);
+    ocall_print_string(buf);
+    return (int)strnlen(buf, BUFSIZ - 1) + 1;
+}
 
 
 void ecall_put(char key[], char val[]){
@@ -275,8 +260,7 @@ void ecall_add_lost_keys(char keys_with_last_share_owner[]){
         while (*keys_with_last_share_owner != '\0') {
             if (*keys_with_last_share_owner == '\n') {
                 if (!line.empty()) {
-                    lost_keys_with_last_share_owner.insert(line);
-                    
+                    lost_keys_with_potential_last_share_owner_and_t_shares_owners.insert(line);
                     line.clear();
                 }
             } else {
@@ -302,47 +286,63 @@ vector<string> splitString(const string& input, char delimiter) {
     return result;
 }
 
-/*typedef struct TOKEN {
-    int initiator; //current_node_id
-    char *key;
-    int cumul;
-    int passes;
-    int *path;
-} TOKEN;
+using namespace token;
 
+Token init_token(string& key, vector<int> path){
+    Token token;
 
-TOKEN* init_token(){
-    TOKEN* token;
-    TOKEN* token = (TOKEN*)malloc(sizeof(TOKEN));
-    
-    int examplePath[] = {1, 2, 3, 4, 5};
-    token->initiator = 123;
-    token->key = "example_key";
-    token->cumul = 42;
-    token->passes = 3;
-    token->path = examplePath;
+    token.set_initiator_id(node_id);
+    token.set_key(key);
+    token.set_cumul(0);
+    token.set_passes(0);
+
+    for(const int s_up_id: path){
+        token.add_path(s_up_id);
+    }
 
     return token;
 }
 
-void distributed_polynomial_interpolation(TOKEN* token){
+void distributed_polynomial_interpolation(Token token){
 
 }
 
-void recover_lost_share(string key){
-    TOKEN* token = init_token();
-    distributed_polynomial_interpolation(token);
+
+void recover_lost_share(string& key, vector<int> t_share_owners){
+    Token token = init_token(key,t_share_owners);
+    
+    string serialized_data;
+    token.SerializeToString(&serialized_data);
+    
+    Token token2;
+    token2.ParseFromString(serialized_data);
+    printf("%d",token2.initiator_id());
+
+    //distributed_polynomial_interpolation(token);
 }
+
 
 
 void ecall_recover_lost_shares(){
+    vector<string> splitted_key_potential_last_share_owner_t_shares_owners;
     string key;
-    string last_share_owner_id;
-    for(const string& key_with_last_share_owner : lost_keys_with_last_share_owner){
-        vector<string> splitted_key_last_share_owner = splitString(key_with_last_share_owner, '|');
-        key = splitted_key_last_share_owner[0];
-        recover_lost_share(key);
-        //delete share_of_s_id
+    string potential_last_share_owner;
+    vector<int> t_shares_owners;
+    for(string lost_key_with_potential_last_share_owner_and_t_shares_owners: lost_keys_with_potential_last_share_owner_and_t_shares_owners){
+        //printf("%s\n",lost_key_with_potential_last_share_owner_and_t_shares_owners);
+        splitted_key_potential_last_share_owner_t_shares_owners = splitString(lost_key_with_potential_last_share_owner_and_t_shares_owners, '|');
+        
+        key = splitted_key_potential_last_share_owner_t_shares_owners[0];
+        potential_last_share_owner = splitted_key_potential_last_share_owner_t_shares_owners[1];
+        
+        for (string& share_owner: splitString(splitted_key_potential_last_share_owner_t_shares_owners[2], ',')){
+            t_shares_owners.push_back(stoi(share_owner));
+            //delete share_of_s_id
+        }
+        recover_lost_share(key, t_shares_owners);
+        /*printf("Key: %s\n",key.c_str());
+        printf("potential last share owner: %s\n", potential_last_share_owner.c_str());
+        printf("t_shares_owners: %s\n", t_shares_owners.c_str()); */
     }
     
-}*/
+}

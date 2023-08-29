@@ -332,6 +332,7 @@ int initialize_enclave(void)
 void ocall_print_string(const char *str)
 {
     printf("%s", str);
+    fflush(stdout);
 }
 
 
@@ -365,9 +366,9 @@ void test_share_lost_keys(int current_port, int offset, int n_servers, int start
     }*/
 }
 
-/*void recover_lost_shares_wrapper(){
+void recover_lost_shares_wrapper(){
     recover_lost_shares();
-}*/
+}
 
 void RunServer(uint16_t port) {
  
@@ -387,7 +388,7 @@ void RunServer(uint16_t port) {
 
     int offset = 50000;
     test_share_lost_keys(port, offset, 5, 50001);//****************1
-
+    recover_lost_shares_wrapper();
 
     std::cout << "SMS node listening on " << server_address << std::endl;
     // Wait for the server to shutdown. Note that some other thread must be

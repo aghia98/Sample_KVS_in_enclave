@@ -68,9 +68,6 @@ int n=5;
     destination[source.length()] = '\0'; // Append null character to terminate the string
 }*/
 
- 
-
-
 void ecall_put(char key[], char val[]){
     string key_string(key);
     string val_string(val);
@@ -191,7 +188,7 @@ vector<int> convert_strings_with_id_to_ids(vector<string> strings_with_id){
     return result;
  } 
 
-void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char* lost_keys) {
+void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char* lost_keys_with_potential_last_share_owner) {
   //******************************7
 
     vector<string> strings_with_id_of_N_active;
@@ -200,7 +197,7 @@ void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char
     string word = "server";
     string keys="";
     int j=0;
-  //convert int* to vector for s_up_ids_array
+    //convert int* to vector for s_up_ids_array
     for (int i = 0; i < cnt; ++i) {
         j++;
         s_up_ids_vector.push_back(s_up_ids_array[i]);
@@ -227,10 +224,21 @@ void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char
         }
 
         if(spawned_node_hash_wrt_k > n_th_node_hash){ //spawned_node is a neighbour for k
-            keys += k+"|"+potential_last_share_owner_id+"\n";
+            //gather at least t share owners
+            string t_shares_owners = "";
+
+
+            for(int i=0; i<t; i++){
+                t_shares_owners += to_string(extractNumber(ordered_strings_with_id_to_hash[i].first));
+                if(i<t-1){
+                    t_shares_owners +=",";
+                }
+            }
+            keys += k+"|"+potential_last_share_owner_id+"|"+t_shares_owners+"\n";
+            
         }
     }
     
-    //printf("yessss");
-    strncpy(lost_keys, keys.c_str(), strlen(lost_keys)); 
+    strncpy(lost_keys_with_potential_last_share_owner, keys.c_str(), strlen(lost_keys_with_potential_last_share_owner)); 
+    //printf(lost_keys);
 }
