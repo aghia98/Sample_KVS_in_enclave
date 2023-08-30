@@ -238,6 +238,8 @@ endif
 
 ######## App Objects ########
 
+App/token.pb.cc: App/token.pb.h
+
 
 App/Enclave_u.h: $(SGX_EDGER8R) Enclave/Enclave.edl
 	@cd App && $(SGX_EDGER8R) --untrusted ../Enclave/Enclave.edl --search-path ../Enclave --search-path $(SGX_SDK)/include
@@ -247,19 +249,20 @@ App/Enclave_u.c: App/Enclave_u.h
 
 
 App/Enclave_u.o: App/Enclave_u.c
-	@$(CC) $(SGX_COMMON_CFLAGS) $(App_C_Flags) -c $< -o $@
+	@$(CXX) $(SGX_COMMON_CFLAGS) $(App_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
 
+App/token.pb.o: App/token.pb.cc
+	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(App_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
 
 App/%.o: App/%.cpp App/Enclave_u.h
 	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(App_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
-App/%.cc.o: App/%.cc
-	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(App_Cpp_Flags) -c $< -o $@
-	@echo "CXX  <=  $<"
+$(App_Cpp_Objects): App/token.pb.h
 
-$(App_Name): App/Enclave_u.o $(App_Cpp_Objects) 
+$(App_Name): App/Enclave_u.o $(App_Cpp_Objects) App/token.pb.o
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
@@ -309,4 +312,4 @@ endif
 .PHONY: clean
 
 clean:
-	@rm -f .config_* $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.* Enclave/token.pb.*
+	@rm -f .config_* $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.* Enclave/token.pb.* App/token.pb.o

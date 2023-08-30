@@ -13,6 +13,7 @@
 // limitations under the License.
 
 syntax = "proto3";
+import "token.proto";
 
 package keyvaluestore;
 
@@ -23,6 +24,7 @@ service KVS {
   rpc Put (KV_pair) returns (Value) {}
   rpc Delete (Key) returns (Value) {}
   rpc Share_lost_keys (New_id_with_S_up_ids) returns (Lost_keys) {}
+  rpc Partial_Polynomial_interpolation (token.Token) returns (Value) {}
 }
 
 // The request message containing the key

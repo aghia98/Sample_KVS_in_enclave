@@ -19,6 +19,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <stdio.h>
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
@@ -50,6 +51,7 @@ using keyvaluestore::Value;
 using keyvaluestore::KV_pair;
 using keyvaluestore::New_id_with_S_up_ids;
 using keyvaluestore::Lost_keys;
+using token::Token;
 
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
@@ -92,13 +94,22 @@ class KVSServiceImpl final : public KVS::Service {
         key->set_key("example");
 
         return Status::OK;
-        /*for (int i = 1; i <= request->id(); ++i) {
-            Key* key = response->add_keys();
-            key->set_key("example");
-        }
-        return Status::OK;
-      } */
   }
+
+  Status Partial_Polynomial_interpolation(ServerContext* context, const Token* token, Value* response) override {
+
+        printf("initiator_id: %d\n", token->initiator_id());
+        printf("key: %s\n", token->key().c_str());
+        printf("cumul: %d\n", token->cumul());
+        printf("passes: %d\n", token->passes());
+
+
+        response->set_value("PARTIAL_INTERPOLATION_SUCCESS");
+
+        
+
+        return Status::OK;
+    }
 
 };
 

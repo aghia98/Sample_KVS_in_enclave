@@ -48,6 +48,8 @@
 
 #include "Enclave_u.h"
 
+using namespace token;
+
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
 
@@ -228,8 +230,7 @@ class KVSClient {
             return "RPC failed";
         }
     }
-    
-    
+     
     int Share_lost_keys(int id, vector<int> s_up_ids){
         New_id_with_S_up_ids request;
         request.set_new_id(id); // Replace with the desired ID value
@@ -261,6 +262,17 @@ class KVSClient {
                 cout << key << endl;
         }*/
         return 0;
+  }
+
+    string Partial_Polynomial_interpolation(Token token) {
+
+        Value reply;
+        ClientContext context;
+
+        Status status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
+        if (status.ok()) return reply.value();
+        std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+        return "RPC failed";
   }
 
  private:
@@ -335,6 +347,37 @@ void ocall_print_string(const char *str)
     fflush(stdout);
 }
 
+void ocall_print_token(const char *serialized_token){
+    Token token;
+
+    token.ParseFromString(serialized_token);
+    printf("***************Received Token begin*********************\n");
+    printf("initiator_id: %d\n", token.initiator_id());
+    printf("key: %s\n", token.key().c_str());
+    printf("cumul: %d\n", token.cumul());
+    printf("passes: %d\n", token.passes());
+
+    printf("path:");
+    for (int i = 0; i < token.path_size(); ++i) {
+        printf(" %d", token.path(i));
+    }
+    printf("\n");
+    printf("***************Received Token end*********************\n");
+
+}
+
+void ocall_send_token(const char *serialized_token, int* next_node_id){
+    printf("next node id: %d\n", *next_node_id);
+    KVSClient* kvs;
+    Token token; 
+    int offset = 50000;
+
+    token.ParseFromString(serialized_token);
+    kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*next_node_id)) , grpc::InsecureChannelCredentials()));
+    kvs->Partial_Polynomial_interpolation(token);
+    delete kvs;
+}
+
 
 //***********************************************************************************************
 
@@ -386,10 +429,6 @@ void RunServer(uint16_t port) {
     // Finally assemble the server.
     std::unique_ptr<Server> server(builder.BuildAndStart());
 
-    int offset = 50000;
-    test_share_lost_keys(port, offset, 5, 50001);//****************1
-    recover_lost_shares_wrapper();
-
     std::cout << "SMS node listening on " << server_address << std::endl;
     // Wait for the server to shutdown. Note that some other thread must be
     // responsible for shutting down the server for this call to ever return.
@@ -397,6 +436,8 @@ void RunServer(uint16_t port) {
 }
 
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
+ABSL_FLAG(uint16_t, t, 3, "number of necessary shares");
+ABSL_FLAG(uint16_t, n, 5, "number of all shares");
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
@@ -406,10 +447,23 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
         getchar();
         return -1; 
     }
+
     absl::ParseCommandLine(argc, argv);
 
-    RunServer(absl::GetFlag(FLAGS_port));
+    uint16_t port = absl::GetFlag(FLAGS_port);
+    int offset = 50000;
+    int t = absl::GetFlag(FLAGS_t);
+    int n = absl::GetFlag(FLAGS_n);
+    int node_id = port - offset;
 
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    ret = ecall_send_params_to_enclave(global_eid, &node_id, &t, &n);
+    if (ret != SGX_SUCCESS)
+        abort();
+    test_share_lost_keys(port, offset, 5, 50001);//****************1
+    recover_lost_shares_wrapper();
+
+    RunServer(port);
     sgx_destroy_enclave(global_eid);
     printf("Server closed \n");
     

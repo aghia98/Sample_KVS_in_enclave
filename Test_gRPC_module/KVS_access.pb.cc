@@ -150,25 +150,30 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_KVS_5faccess_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\020KVS_access.proto\022\rkeyvaluestore\"\022\n\003Key"
-  "\022\013\n\003key\030\001 \001(\t\"\026\n\005Value\022\r\n\005value\030\001 \001(\t\"%\n"
-  "\007KV_pair\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"-\n\t"
-  "Lost_keys\022 \n\004keys\030\001 \003(\0132\022.keyvaluestore."
-  "Key\"8\n\024New_id_with_S_up_ids\022\016\n\006new_id\030\001 "
-  "\001(\005\022\020\n\010S_up_ids\030\002 \003(\0052\371\001\n\003KVS\0221\n\003Get\022\022.k"
-  "eyvaluestore.Key\032\024.keyvaluestore.Value\"\000"
-  "\0225\n\003Put\022\026.keyvaluestore.KV_pair\032\024.keyval"
-  "uestore.Value\"\000\0224\n\006Delete\022\022.keyvaluestor"
-  "e.Key\032\024.keyvaluestore.Value\"\000\022R\n\017Share_l"
-  "ost_keys\022#.keyvaluestore.New_id_with_S_u"
-  "p_ids\032\030.keyvaluestore.Lost_keys\"\000b\006proto"
-  "3"
+  "\n\020KVS_access.proto\022\rkeyvaluestore\032\013token"
+  ".proto\"\022\n\003Key\022\013\n\003key\030\001 \001(\t\"\026\n\005Value\022\r\n\005v"
+  "alue\030\001 \001(\t\"%\n\007KV_pair\022\013\n\003key\030\001 \001(\t\022\r\n\005va"
+  "lue\030\002 \001(\t\"-\n\tLost_keys\022 \n\004keys\030\001 \003(\0132\022.k"
+  "eyvaluestore.Key\"8\n\024New_id_with_S_up_ids"
+  "\022\016\n\006new_id\030\001 \001(\005\022\020\n\010S_up_ids\030\002 \003(\0052\303\002\n\003K"
+  "VS\0221\n\003Get\022\022.keyvaluestore.Key\032\024.keyvalue"
+  "store.Value\"\000\0225\n\003Put\022\026.keyvaluestore.KV_"
+  "pair\032\024.keyvaluestore.Value\"\000\0224\n\006Delete\022\022"
+  ".keyvaluestore.Key\032\024.keyvaluestore.Value"
+  "\"\000\022R\n\017Share_lost_keys\022#.keyvaluestore.Ne"
+  "w_id_with_S_up_ids\032\030.keyvaluestore.Lost_"
+  "keys\"\000\022H\n Partial_Polynomial_interpolati"
+  "on\022\014.token.Token\032\024.keyvaluestore.Value\"\000"
+  "b\006proto3"
   ;
+static const ::_pbi::DescriptorTable* const descriptor_table_KVS_5faccess_2eproto_deps[1] = {
+  &::descriptor_table_token_2eproto,
+};
 static ::_pbi::once_flag descriptor_table_KVS_5faccess_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_KVS_5faccess_2eproto = {
-    false, false, 481, descriptor_table_protodef_KVS_5faccess_2eproto,
+    false, false, 568, descriptor_table_protodef_KVS_5faccess_2eproto,
     "KVS_access.proto",
-    &descriptor_table_KVS_5faccess_2eproto_once, nullptr, 0, 5,
+    &descriptor_table_KVS_5faccess_2eproto_once, descriptor_table_KVS_5faccess_2eproto_deps, 1, 5,
     schemas, file_default_instances, TableStruct_KVS_5faccess_2eproto::offsets,
     file_level_metadata_KVS_5faccess_2eproto, file_level_enum_descriptors_KVS_5faccess_2eproto,
     file_level_service_descriptors_KVS_5faccess_2eproto,

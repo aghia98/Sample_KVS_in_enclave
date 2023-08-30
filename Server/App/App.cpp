@@ -43,6 +43,7 @@
 #include "App.h"
 
 #include "../../gRPC_module/grpc_server.h"
+#include "../../gRPC_module/grpc_client.h"
 
 #include "Enclave_u.h"
 
@@ -186,9 +187,109 @@ class KVSServiceImpl final : public KVS::Service {
 
         return Status::OK;
     }
+
+    Status Partial_Polynomial_interpolation(ServerContext* context, const Token* token, Value* response) override {
+        printf("initiator_id: %d\n", token->initiator_id());
+        printf("key: %s\n", token->key().c_str());
+        printf("cumul: %d\n", token->cumul());
+        printf("passes: %d\n", token->passes());
+
+        response->set_value("PARTIAL_INTERPOLATION_SUCCESS");
+
+        return Status::OK;
+    }
 };
 
+class KVSClient {
+ public:
+  KVSClient(std::shared_ptr<Channel> channel): stub_(KVS::NewStub(channel)) {}
 
+    string Get(const string k) {
+    Key key;
+    key.set_key(k);
+
+    Value reply;
+
+    ClientContext context;
+
+    Status status = stub_->Get(&context, key, &reply);
+
+    // Act upon its status.
+    if (status.ok()) {
+      return reply.value();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return "RPC failed";
+    }
+  }
+
+    string Put(const string k, const string v) {
+        // Follows the same pattern as SayHello.
+        KV_pair request;
+        request.set_key(k);
+        request.set_value(v);
+        Value reply;
+        ClientContext context;
+
+        // Here we can use the stub's newly available method we just added.
+        Status status = stub_->Put(&context, request, &reply);
+        if (status.ok()) {
+            return reply.value();
+        } else {
+            cout << status.error_code() << ": " << status.error_message()
+                    << endl;
+            return "RPC failed";
+        }
+    }
+     
+    int Share_lost_keys(int id, vector<int> s_up_ids){
+        New_id_with_S_up_ids request;
+        request.set_new_id(id); // Replace with the desired ID value
+        for(auto& s_up_id : s_up_ids) request.add_s_up_ids(s_up_id);
+        
+
+        // Create a Lost_keys response
+        Lost_keys response_local;
+        set<string> local_lost_keys_set;
+
+        ClientContext context;
+        Status status = stub_->Share_lost_keys(&context, request, &response_local); //***************3
+        string lost_key;
+
+        if (status.ok()) {
+            for (const auto& key : response_local.keys()) {
+                lost_key=key.key();
+                local_lost_keys_set.insert(lost_key);
+                //global_lost_keys_set.insert(lost_key);
+            }
+            //send lost keys to enclave
+            add_lost_keys_in_enclave(local_lost_keys_set);
+
+        } else {
+            std::cerr << "RPC failed";
+        }
+
+        /*for (const auto& key : global_lost_keys_set) {
+                cout << key << endl;
+        }*/
+        return 0;
+  }
+
+    string Partial_Polynomial_interpolation(Token token) {
+
+        Value reply;
+        ClientContext context;
+
+        Status status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
+        if (status.ok()) return reply.value();
+        std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+        return "RPC failed";
+  }
+
+ private:
+  unique_ptr<KVS::Stub> stub_;
+};
 
 void RunServer(uint16_t port) {
 
@@ -263,8 +364,41 @@ void ocall_print_string(const char *str)
     fflush(stdout);
 }
 
+void ocall_print_token(const char *serialized_token){
+    Token token;
+
+    token.ParseFromString(serialized_token);
+    printf("***************Received Token begin*********************\n");
+    printf("initiator_id: %d\n", token.initiator_id());
+    printf("key: %s\n", token.key().c_str());
+    printf("cumul: %d\n", token.cumul());
+    printf("passes: %d\n", token.passes());
+
+    printf("path:");
+    for (int i = 0; i < token.path_size(); ++i) {
+        printf(" %d", token.path(i));
+    }
+    printf("\n");
+    printf("***************Received Token end*********************\n");
+
+}
+
+void ocall_send_token(const char *serialized_token, int* next_node_id){
+    printf("next node id: %d\n", *next_node_id);
+    KVSClient* kvs;
+    Token token; 
+    int offset = 50000;
+
+    token.ParseFromString(serialized_token);
+    kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*next_node_id)) , grpc::InsecureChannelCredentials()));
+    kvs->Partial_Polynomial_interpolation(token);
+    delete kvs;
+}
+
 
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
+ABSL_FLAG(uint16_t, t, 3, "number of necessary shares");
+ABSL_FLAG(uint16_t, n, 5, "number of all shares");
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
@@ -277,8 +411,19 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
     }
 
     absl::ParseCommandLine(argc, argv);
-    RunServer(absl::GetFlag(FLAGS_port));
 
+    uint16_t port = absl::GetFlag(FLAGS_port);
+    int offset = 50000;
+    int t = absl::GetFlag(FLAGS_t);
+    int n = absl::GetFlag(FLAGS_n);
+    int node_id = port - offset;
+    
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    ret = ecall_send_params_to_enclave(global_eid, &node_id, &t, &n);
+    if (ret != SGX_SUCCESS)
+        abort();
+
+    RunServer(absl::GetFlag(FLAGS_port));
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);
 

@@ -51,6 +51,7 @@ enclave {
         public void ecall_share_lost_keys([in] int* node_id, [in, count=cnt] int* s_up_ids_array, unsigned cnt, [in, out, string] char* lost_keys); 
         public void ecall_add_lost_keys([in] char keys_with_last_share_owner[10000]); 
         public void ecall_recover_lost_shares();
+        public void ecall_send_params_to_enclave([in] int* node_id, [in] int* t, [in] int* n);
 
     };
 
@@ -62,7 +63,9 @@ enclave {
 
     untrusted {
         void ocall_print_string([in, string] const char *str);
-        //void ocall_print_token([in, string] const char *serialized_token);
+        void ocall_print_token([in, string] const char *serialized_token);
+        void ocall_send_token([in, string] const char *serialized_token, [in] int* next_node_id);
+        
     };
 
 };

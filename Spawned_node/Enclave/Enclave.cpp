@@ -46,12 +46,13 @@
 #include "token.pb.h"
 
 using namespace std;
-// Declare myMap as a global variable
+using namespace token;
+
 map<string, string> myMap;
 set<string> lost_keys_with_potential_last_share_owner_and_t_shares_owners;
-int t=3;
-int n=5;
-int node_id = 6;
+int t;
+int n;
+int node_id;
 
 
 /* used to eliminate `unused variable' warning */
@@ -82,6 +83,14 @@ int node_id = 6;
     va_end(ap);
     ocall_print_string(buf);
     return (int)strnlen(buf, BUFSIZ - 1) + 1;
+}
+
+void ecall_send_params_to_enclave(int* node, int* t_, int *n_){
+    node_id = (*node);
+    t = (*t_);
+    n = (*n_);
+
+    printf("t: %d and n: %d and node_id: %d\n",t,n,node_id);
 }
 
 
@@ -286,7 +295,7 @@ vector<string> splitString(const string& input, char delimiter) {
     return result;
 }
 
-using namespace token;
+
 
 Token init_token(string& key, vector<int> path){
     Token token;
@@ -304,21 +313,37 @@ Token init_token(string& key, vector<int> path){
 }
 
 void distributed_polynomial_interpolation(Token token){
+    string serialized_token;
 
+    token.SerializeToString(&serialized_token);
+    ocall_print_token(serialized_token.c_str());
+
+    if(node_id!=token.initiator_id()){
+        //TBD: compute the partial sum
+        
+        token.set_passes(token.passes()+1);
+        //TBD: send token to next node if it exists, else stores it in a temporal Token variable
+        if(token.passes() < token.path().size()){
+            int next_node_id = token.path(token.passes());
+            ocall_send_token(serialized_token.c_str(), &next_node_id);
+        }else{ //store the token
+
+        }
+    }else{
+        if(token.passes()==0){
+            int next_node_id = token.path(0);
+            ocall_send_token(serialized_token.c_str(), &next_node_id);
+        }else{
+            //TBD: store token result
+        }
+    }
 }
 
 
 void recover_lost_share(string& key, vector<int> t_share_owners){
     Token token = init_token(key,t_share_owners);
-    
-    string serialized_data;
-    token.SerializeToString(&serialized_data);
-    
-    Token token2;
-    token2.ParseFromString(serialized_data);
-    printf("%d",token2.initiator_id());
-
-    //distributed_polynomial_interpolation(token);
+    distributed_polynomial_interpolation(token);
+    //delete share from potential last owner
 }
 
 
@@ -335,14 +360,17 @@ void ecall_recover_lost_shares(){
         key = splitted_key_potential_last_share_owner_t_shares_owners[0];
         potential_last_share_owner = splitted_key_potential_last_share_owner_t_shares_owners[1];
         
+        t_shares_owners.clear();
         for (string& share_owner: splitString(splitted_key_potential_last_share_owner_t_shares_owners[2], ',')){
             t_shares_owners.push_back(stoi(share_owner));
-            //delete share_of_s_id
         }
         recover_lost_share(key, t_shares_owners);
+        break; //just for example
+        
         /*printf("Key: %s\n",key.c_str());
         printf("potential last share owner: %s\n", potential_last_share_owner.c_str());
         printf("t_shares_owners: %s\n", t_shares_owners.c_str()); */
     }
+    //flush lost_keys_with_potential_last_share_owner_and_t_shares_owners
     
 }

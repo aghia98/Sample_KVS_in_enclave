@@ -120,3 +120,24 @@ set<string> share_lost_keys(int node_id, vector<int> s_up_ids){
     
     return keys;
 } 
+
+void add_lost_keys_in_enclave(const set<string>& local_lost_keys_set){
+    string lost_keys_string="";
+    for (const auto& key_with_last_share_owner : local_lost_keys_set) {
+        lost_keys_string += key_with_last_share_owner+"\n";
+    } 
+
+    //cout << lost_keys_string << endl;
+
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    ret = ecall_add_lost_keys(global_eid, convertCString(lost_keys_string)); 
+    if (ret != SGX_SUCCESS)
+        abort();
+}
+
+void recover_lost_shares(){
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    ret = ecall_recover_lost_shares(global_eid);
+    if (ret != SGX_SUCCESS)
+        abort(); 
+}
