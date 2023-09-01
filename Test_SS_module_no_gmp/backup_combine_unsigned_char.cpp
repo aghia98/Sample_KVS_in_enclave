@@ -212,7 +212,7 @@ int compute_partial_share(int* xy_pairs, int n, int x_share, int* x_shares, int 
 	share = (value * numerator * modInverse(denominator))% prime;
 	share = (share + prime) % prime;
 	 
-	//printf("%02X\n",share);
+	//printf("%d\n",share);
 
 	return share;
 }
@@ -385,7 +385,7 @@ char* join_strings_to_recover_share(char ** shares, int n, int x_share) { //In f
 }
 
 
-int* recover_partial_share(char ** shares, int n, int x_share, int* x_shares, int x_shares_len) { 
+unsigned char* recover_partial_share(char ** shares, int n, int x_share, int* x_shares, int x_shares_len) { 
 	// In fact n is t and it is equal to 1
 	// "shares" contains just one share
 
@@ -396,8 +396,8 @@ int* recover_partial_share(char ** shares, int n, int x_share, int* x_shares, in
 	// `len` = number of hex pair values in shares
 	int len = (strlen(shares[0]) - 6) / 2;
 
-	//char * result = static_cast<char*>(malloc(len + 1));
-	int* result = static_cast<int*>(malloc(sizeof(int)*(len)));
+	unsigned char * result = static_cast<unsigned char*>(malloc(len + 1));
+	//int* result = static_cast<int*>(malloc(sizeof(int)*len));
 	char codon[3];
 	codon[2] = '\0';	// Must terminate the string!
 
@@ -440,9 +440,10 @@ int* recover_partial_share(char ** shares, int n, int x_share, int* x_shares, in
 		}
 		
 
-		//unsigned char letter = join_shares(chunks, n);
-		int letter = compute_partial_share(chunks, n, x_share, x_shares, x_shares_len); //compute_partial_share(int* xy_pairs, int n, int x_share, int* x_shares, int x_shares_len)
+		
+		unsigned char letter = compute_partial_share(chunks, n, x_share, x_shares, x_shares_len); //compute_partial_share(int* xy_pairs, int n, int x_share, int* x_shares, int x_shares_len)
 
+		//printf("%d\n",letter);
 		free(chunks);
 
 		result[i] = letter;
@@ -635,7 +636,7 @@ char* recover_share_from_string_shares(const char * string, int x_share, int t){
 }
 
 
-int* partial_recovery_of_share_from_one_share(const char * string, int x_share, int* x_shares, int x_shares_len){ //here string = 1 "share\n"
+unsigned char* partial_recovery_of_share_from_one_share(const char * string, int x_share, int t, int* x_shares, int x_shares_len){ //here string = 1 "share\n"
 	char ** shares = static_cast<char**>(malloc(sizeof(char *) * 255));
 
 	char * share;
@@ -667,7 +668,7 @@ int* partial_recovery_of_share_from_one_share(const char * string, int x_share, 
 
 	i++;
 
-	int * partial_recovered_share = recover_partial_share(shares, i, x_share, x_shares, x_shares_len); //int* recover_partial_share(char ** shares, int n, int x_share, int* x_shares, int x_shares_len)
+	unsigned char * partial_recovered_share = recover_partial_share(shares, i, x_share, x_shares, x_shares_len); //int* recover_partial_share(char ** shares, int n, int x_share, int* x_shares, int x_shares_len)
 	
 
 	free_string_shares(shares, i);

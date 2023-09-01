@@ -128,6 +128,7 @@ class KVSClient {
       stub_->AsyncPartial_Polynomial_interpolation(&context, token, &cq));
     
     rpc->Finish(&reply, &status, (void*)1);
+    
     std::cout << "Not waitinnng" << std::endl;
     std::cout << "Not waitinnng" << std::endl;
     std::cout << "Not waitinnng" << std::endl;

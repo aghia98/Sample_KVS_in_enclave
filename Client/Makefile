@@ -15,9 +15,9 @@ LDFLAGS_GRPC = $(LIBRARY_GRPC_PATH)\
 INCLUDES += -I$(HOME)/usr/local/include 
 
 all:
-	g++ -c client.cpp $(INCLUDES)
-	g++ client.o $(LDFLAGS_GRPCKVS) $(LDFLAGS_SS) $(LDFLAGS_HRW) $(LDFLAGS_GRPC) -o client
-	rm client.o
+	g++ -c token.pb.cc client.cpp $(INCLUDES)
+	g++ *.o $(LDFLAGS_GRPCKVS) $(LDFLAGS_SS) $(LDFLAGS_HRW) $(LDFLAGS_GRPC) -o client
+	rm *.o
 
 clean:
 	rm client

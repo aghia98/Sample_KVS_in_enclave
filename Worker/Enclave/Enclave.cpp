@@ -29,11 +29,45 @@
  *
  */
 
+
+#include "sgx_trts.h"
 #include "Enclave.h"
-#include "Enclave_t.h" /* print_string */
+#include "Enclave_t.h"
+#include <string>
 #include <stdarg.h>
 #include <stdio.h> /* vsnprintf */
 #include <string.h>
+
+
+using namespace std;
+// Declare myMap as a global variable
+
+/* used to eliminate `unused variable' warning */
+#define UNUSED(val) (void)(val)
+
+#define ULP 2
+
+/*char* convertCString(std::string str) {
+    char* cstr = new char[str.length() + 1];  // +1 for null-terminator
+    strcpy(cstr, str.c_str());
+    return cstr;
+}*/
+
+void copyString(std::string source, char* destination) {
+    for (std::size_t i = 0; i < source.length(); ++i) {
+        destination[i] = source[i];
+    }
+    destination[source.length()] = '\0'; // Append null character to terminate the string
+}
+
+void ecall_rebuild_secret(char combined_shares[], char* val){
+  //*val="yeaaaaaaaaah";
+  char* secret = extract_secret_from_share_strings(combined_shares);
+  strncpy(val, secret, strlen(val));
+  free(secret);
+  //*val = extract_secret_from_share_strings(combined_shares);
+
+}
 
 /* 
  * printf: 

@@ -325,6 +325,7 @@ void distributed_polynomial_interpolation(Token token){
         //TBD: send token to next node if it exists, else stores it in a temporal Token variable
         if(token.passes() < token.path().size()){
             int next_node_id = token.path(token.passes());
+            token.SerializeToString(&serialized_token);
             ocall_send_token(serialized_token.c_str(), &next_node_id);
         }else{ //store the token
 

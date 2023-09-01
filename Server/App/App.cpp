@@ -189,11 +189,15 @@ class KVSServiceImpl final : public KVS::Service {
     }
 
     Status Partial_Polynomial_interpolation(ServerContext* context, const Token* token, Value* response) override {
-        printf("initiator_id: %d\n", token->initiator_id());
-        printf("key: %s\n", token->key().c_str());
-        printf("cumul: %d\n", token->cumul());
-        printf("passes: %d\n", token->passes());
 
+        string serialized_token;
+        token->SerializeToString(&serialized_token);
+
+        sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+        ret = ecall_distributed_PI(global_eid, serialized_token.c_str());
+        if (ret != SGX_SUCCESS)
+            abort();
+        
         response->set_value("PARTIAL_INTERPOLATION_SUCCESS");
 
         return Status::OK;

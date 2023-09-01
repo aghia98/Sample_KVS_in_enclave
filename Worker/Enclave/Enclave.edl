@@ -33,7 +33,7 @@
 
 enclave {
     
-    include "user_types.h" /* buffer_t */
+    //include "user_types.h" /* buffer_t */
 
     /* Import ECALL/OCALL from sub-directory EDLs.
      *  [from]: specifies the location of EDL file. 
@@ -41,7 +41,18 @@ enclave {
      *  [*]: implies to import all functions.
      */
     
-    from "TrustedLibrary/Types.edl" import *;
+
+    
+     trusted {
+
+        include "../../SS_no_gmp_module/ss-worker.h"
+        
+
+        public void ecall_rebuild_secret([in] char combined_shares[1000], [in, out, string] char* val);
+
+        
+        /* for using user defined types, please refer to Pointers.edl, Arrays.edl. */
+    };
 
     /* 
      * ocall_print_string - invokes OCALL to display string buffer inside the enclave.

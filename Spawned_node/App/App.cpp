@@ -266,13 +266,33 @@ class KVSClient {
 
     string Partial_Polynomial_interpolation(Token token) {
 
-        Value reply;
-        ClientContext context;
+    Value reply;
+    ClientContext context;
 
-        Status status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
-        if (status.ok()) return reply.value();
-        std::cout << status.error_code() << ": " << status.error_message() << std::endl;
-        return "RPC failed";
+    CompletionQueue cq;
+    Status status;
+
+    std::unique_ptr<ClientAsyncResponseReader<Value> > rpc(
+      stub_->AsyncPartial_Polynomial_interpolation(&context, token, &cq));
+    rpc->Finish(&reply, &status, (void*)1);
+
+    void* got_tag;
+    bool ok = false;
+    cq.Next(&got_tag, &ok);
+    if (ok && got_tag == (void*)1) {
+        if (status.ok()) {
+            return reply.value();
+        } else {
+            std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+            return "RPC failed";
+        }
+    }
+
+    /*status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
+    if (status.ok()) return reply.value();
+    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+    return "RPC failed"; */
+
   }
 
  private:

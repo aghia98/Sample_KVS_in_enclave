@@ -337,18 +337,31 @@ void distributed_polynomial_interpolation(Token token){
 
     if(node_id!=token.initiator_id()){
         //TBD: compute the partial sum
+        
         token.set_passes(token.passes()+1);
-        //TBD: send token to next node
+        //TBD: send token to next node if it exists, else stores it in a temporal Token variable
+        if(token.passes() < token.path().size()){
+            int next_node_id = token.path(token.passes());
+            token.SerializeToString(&serialized_token);
+            ocall_send_token(serialized_token.c_str(), &next_node_id);
+        }else{ //store the token
+            printf("heeeeeeeeeeeeeeereeee ready to store\n");
+        }
     }else{
         if(token.passes()==0){
-            int next_node = token.path(0);
-            ocall_send_token(serialized_token.c_str(), &next_node);
+            int next_node_id = token.path(0);
+            ocall_send_token(serialized_token.c_str(), &next_node_id);
         }else{
             //TBD: store token result
         }
     }
 }
 
+void ecall_distributed_PI(const char *serialized_token){
+    Token token;
+    token.ParseFromString(serialized_token);
+    distributed_polynomial_interpolation(token);
+}
 
 void recover_lost_share(string& key, vector<int> t_share_owners){
     Token token = init_token(key,t_share_owners);
