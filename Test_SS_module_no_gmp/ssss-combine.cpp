@@ -45,7 +45,7 @@ void copyString(string source, char* destination) {
     destination[source.length()] = '\0'; // Append null character to terminate the string
 }
 
-/*char hexDigit(int value) {
+char hexDigit(int value) {
     if (value >= 0 && value <= 9) {
         return '0' + value;
     } else {
@@ -57,7 +57,7 @@ void intToHex(int num, char *hex) {
     hex[0] = hexDigit((num >> 4) & 0xF);
     hex[1] = hexDigit(num & 0xF);
     hex[2] = '\0'; // Null-terminate the string
-}*/
+}
 
 char* convertToHex(int* input, int size_input, int x_share, int t) {
     char* result = (char*)malloc(sizeof(char) * size_input * 2 + 5);  // Allocate memory for the result string
@@ -93,9 +93,11 @@ int main( int argc, char ** argv ) {
     
 
     //DString * shares = stdin_buffer();
-	string share1="0103AA3552D4C68145C24A9458";
-	string share2="0903AACF3CEEE3051D47A9F116";
-	string share3="0503AA676C26AF300168A36FA4";
+	string share1="0203AA7FD708A0D1C2460C1A73697A492E555DC0894752";
+	string share2="0303AA2E8C2069ED3A0D4C2D8BB515090967441AADBED8";
+	string share3="0403AA94EABCFC8B8FBE2EFA5B87FB02893477E9E2CC00";
+	int len_res = 20;
+	int res[20];
 
 	string shares_string = share1+'\n'+share2+'\n'+share3+'\n';	
 	
@@ -119,16 +121,15 @@ int main( int argc, char ** argv ) {
 	printf("%s\n",combined_shares);
 
 	
-	int x_share = 2;
-	int x_shares[3] = {1,9,5};
+	int x_share = 5;
+	int x_shares[3] = {2,3,4};
 	int x_shares_len = 3;
-	int len_res = 10;
-	int res[10];
+
 	int prime = 257;
 	int t=3;
 
     char * secret = extract_secret_from_share_strings(combined_shares);
-	char* hex = recover_share_from_string_shares(combined_shares, x_share, 3);
+	//char* hex = recover_share_from_string_shares(combined_shares, x_share, 3);
 
 	fprintf(stdout, "%s\n", secret);
 	
@@ -145,13 +146,13 @@ int main( int argc, char ** argv ) {
 		//printf("%d\n",res3[i]);
 	}
 
-	fprintf(stdout, "%s\n", hex);
+	//fprintf(stdout, "%s\n", hex);
 	char* res_str = convertToHex(res, len_res, x_share, t);
 	printf("%s\n", res_str);
     
 
     free(secret);
-	free(hex);
+	//free(hex);
     free(combined_shares);
 
 	free(share1_c_str);

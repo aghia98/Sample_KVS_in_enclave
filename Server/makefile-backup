@@ -49,14 +49,11 @@ ifeq ($(SGX_ARCH), x86)
 	SGX_LIBRARY_PATH := $(SGX_SDK)/lib
 	SGX_ENCLAVE_SIGNER := $(SGX_SDK)/bin/x86/sgx_sign
 	SGX_EDGER8R := $(SGX_SDK)/bin/x86/sgx_edger8r
-	SGX_PROTOC := $(SGX_SDK)/bin/x86/sgx_protoc
-
 else
 	SGX_COMMON_FLAGS := -m64
 	SGX_LIBRARY_PATH := $(SGX_SDK)/lib64
 	SGX_ENCLAVE_SIGNER := $(SGX_SDK)/bin/x64/sgx_sign
 	SGX_EDGER8R := $(SGX_SDK)/bin/x64/sgx_edger8r
-	SGX_PROTOC := $(SGX_SDK)/bin/x64/sgx_protoc
 endif
 
 ifeq ($(SGX_DEBUG), 1)
@@ -88,7 +85,9 @@ endif
 
 INCLUDE_grpc = $(HOME)/usr/local/include 
 LIBRARY_grpckvs = ../gRPC_module/
+LIBRARY_HRW_PATH = -L../HRW_hashing_module
 
+LDFLAGS_HRW = $(LIBRARY_HRW_PATH) -lhrw
 LDFLAGS_GRPC += `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`\
            -pthread\
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
@@ -112,7 +111,7 @@ else
 endif
 
 App_Cpp_Flags := $(App_C_Flags)
-App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs) -lgrpckvs $(LDFLAGS_GRPC) -lpthread
+App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs) -lgrpckvs $(LDFLAGS_GRPC) -lpthread $(LDFLAGS_HRW)
 
 App_Cpp_Objects := $(App_Cpp_Files:.cpp=.o)
 
@@ -130,7 +129,7 @@ endif
 Crypto_Library_Name := sgx_tcrypto
 
 Enclave_Cpp_Files := Enclave/Enclave.cpp $(wildcard Enclave/Edger8rSyntax/*.cpp) $(wildcard Enclave/TrustedLibrary/*.cpp)
-Enclave_Include_Paths := -IInclude -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I$(SGX_SDK)/include/tprotobuf
+Enclave_Include_Paths := -IInclude -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/libcxx -I$(SGX_SDK)/include/tlibc
 
 Enclave_C_Flags := $(Enclave_Include_Paths) -nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections $(MITIGATION_CFLAGS)
 CC_BELOW_4_9 := $(shell expr "`$(CC) -dumpversion`" \< "4.9")
@@ -152,15 +151,12 @@ Enclave_Security_Link_Flags := -Wl,-z,relro,-z,now,-z,noexecstack
 #       Use `--start-group' and `--end-group' to link these libraries.
 # Do NOT move the libraries linked with `--start-group' and `--end-group' within `--whole-archive' and `--no-whole-archive' options.
 # Otherwise, you may get some undesirable errors.
-
-#LIBRARY_HRW = ../HRW_hashing_module/
-#LIBRARY_shamir_combine = ../SS_no_gmp_module/
-
 LIBRARY_shamir_combine = ../SS_no_gmp_module/
+
 Enclave_Link_Flags := $(MITIGATION_LDFLAGS) $(Enclave_Security_Link_Flags) \
     -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_TRUSTED_LIBRARY_PATH) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
-	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -lsgx_protobuf -l$(Crypto_Library_Name) -l$(Service_Library_Name) \
+	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -l$(Crypto_Library_Name) -l$(Service_Library_Name) \
 	-L$(LIBRARY_shamir_combine) -lshamir_combine \
 	-Wl,--end-group \
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
@@ -267,13 +263,6 @@ $(App_Name): App/Enclave_u.o $(App_Cpp_Objects) App/token.pb.o
 
 ######## Enclave Objects ########
 
-Enclave/token.pb.h: $(SGX_PROTOC) Enclave/token.proto
-	@$(SGX_PROTOC) --cpp_out Enclave/ -I Enclave/ Enclave/token.proto
-	@echo "GEN  =>  $@"
-
-Enclave/token.pb.cc: Enclave/token.pb.h
-
-
 Enclave/Enclave_t.h: $(SGX_EDGER8R) Enclave/Enclave.edl
 	@cd Enclave && $(SGX_EDGER8R) --trusted ../Enclave/Enclave.edl --search-path ../Enclave --search-path $(SGX_SDK)/include
 	@echo "GEN  =>  $@"
@@ -288,13 +277,7 @@ Enclave/%.o: Enclave/%.cpp Enclave/Enclave_t.h
 	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(Enclave_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
-Enclave/%.o: Enclave/%.cc
-	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(Enclave_Cpp_Flags) -c $< -o $@
-	@echo "CXX  <=  $<"
-
-$(Enclave_Cpp_Objects): Enclave/Enclave_t.h Enclave/token.pb.h
-
-$(Enclave_Name): Enclave/Enclave_t.o Enclave/token.pb.o $(Enclave_Cpp_Objects)
+$(Enclave_Name): Enclave/Enclave_t.o $(Enclave_Cpp_Objects)
 	@$(CXX) $^ -o $@ $(Enclave_Link_Flags)
 	@echo "LINK =>  $@"
 
@@ -310,4 +293,4 @@ endif
 .PHONY: clean
 
 clean:
-	@rm -f .config_* $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.* $(Enclave_Test_Key) Enclave/token.pb.* App/token.pb.o Enclave/ss-combine.o
+	@rm -f .config_* $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.* $(Enclave_Test_Key) App/token.pb.o

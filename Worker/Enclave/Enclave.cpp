@@ -36,7 +36,6 @@
 #include <string>
 #include <stdarg.h>
 #include <stdio.h> /* vsnprintf */
-#include <string.h>
 
 
 using namespace std;
@@ -62,6 +61,7 @@ void copyString(std::string source, char* destination) {
 
 void ecall_rebuild_secret(char combined_shares[], char* val){
   //*val="yeaaaaaaaaah";
+  //strdup("hanoune");
   char* secret = extract_secret_from_share_strings(combined_shares);
   strncpy(val, secret, strlen(val));
   free(secret);

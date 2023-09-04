@@ -360,6 +360,11 @@ int initialize_enclave(void)
     return 0;
 }
 
+void ocall_print_number(int* num){
+    printf("%d", *num);
+    fflush(stdout);
+}
+
 /* OCall functions */
 void ocall_print_string(const char *str)
 {
@@ -367,23 +372,28 @@ void ocall_print_string(const char *str)
     fflush(stdout);
 }
 
-void ocall_print_token(const char *serialized_token){
+void ocall_print_token(const char *serialized_token) {
     Token token;
 
-    token.ParseFromString(serialized_token);
-    printf("***************Received Token begin*********************\n");
-    printf("initiator_id: %d\n", token.initiator_id());
-    printf("key: %s\n", token.key().c_str());
-    printf("cumul: %d\n", token.cumul());
-    printf("passes: %d\n", token.passes());
+    if (token.ParseFromString(serialized_token)) {
+        printf("***************Received Token begin*********************\n");
+        printf("initiator_id: %d\n", token.initiator_id());
+        printf("key: %s\n", token.key().c_str());
+        printf("passes: %d\n", token.passes());
 
-    printf("path:");
-    for (int i = 0; i < token.path_size(); ++i) {
-        printf(" %d", token.path(i));
+        printf("sizeeeee: %d\n", token.cumul_size());
+        printf("cumul 0: %d\n", token.cumul(0));
+        printf("cumul 1: %d\n", token.cumul(1));
+
+        printf("path:");
+        for (int i = 0; i < token.path_size(); ++i) {
+            printf(" %d", token.path(i));
+        }
+        printf("\n");
+        printf("***************Received Token end*********************\n");
+    } else {
+        printf("Failed to parse the serialized token.\n");
     }
-    printf("\n");
-    printf("***************Received Token end*********************\n");
-
 }
 
 void ocall_send_token(const char *serialized_token, int* next_node_id){

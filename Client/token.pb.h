@@ -177,12 +177,34 @@ class Token final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kCumulFieldNumber = 3,
     kPathFieldNumber = 5,
     kKeyFieldNumber = 2,
     kInitiatorIdFieldNumber = 1,
-    kCumulFieldNumber = 3,
     kPassesFieldNumber = 4,
   };
+  // repeated int32 cumul = 3;
+  int cumul_size() const;
+  private:
+  int _internal_cumul_size() const;
+  public:
+  void clear_cumul();
+  private:
+  int32_t _internal_cumul(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      _internal_cumul() const;
+  void _internal_add_cumul(int32_t value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      _internal_mutable_cumul();
+  public:
+  int32_t cumul(int index) const;
+  void set_cumul(int index, int32_t value);
+  void add_cumul(int32_t value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+      cumul() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+      mutable_cumul();
+
   // repeated int32 path = 5;
   int path_size() const;
   private:
@@ -228,15 +250,6 @@ class Token final :
   void _internal_set_initiator_id(int32_t value);
   public:
 
-  // int32 cumul = 3;
-  void clear_cumul();
-  int32_t cumul() const;
-  void set_cumul(int32_t value);
-  private:
-  int32_t _internal_cumul() const;
-  void _internal_set_cumul(int32_t value);
-  public:
-
   // int32 passes = 4;
   void clear_passes();
   int32_t passes() const;
@@ -254,11 +267,12 @@ class Token final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > cumul_;
+    mutable std::atomic<int> _cumul_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t > path_;
     mutable std::atomic<int> _path_cached_byte_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_;
     int32_t initiator_id_;
-    int32_t cumul_;
     int32_t passes_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -346,24 +360,51 @@ inline void Token::set_allocated_key(std::string* key) {
   // @@protoc_insertion_point(field_set_allocated:token.Token.key)
 }
 
-// int32 cumul = 3;
-inline void Token::clear_cumul() {
-  _impl_.cumul_ = 0;
+// repeated int32 cumul = 3;
+inline int Token::_internal_cumul_size() const {
+  return _impl_.cumul_.size();
 }
-inline int32_t Token::_internal_cumul() const {
+inline int Token::cumul_size() const {
+  return _internal_cumul_size();
+}
+inline void Token::clear_cumul() {
+  _impl_.cumul_.Clear();
+}
+inline int32_t Token::_internal_cumul(int index) const {
+  return _impl_.cumul_.Get(index);
+}
+inline int32_t Token::cumul(int index) const {
+  // @@protoc_insertion_point(field_get:token.Token.cumul)
+  return _internal_cumul(index);
+}
+inline void Token::set_cumul(int index, int32_t value) {
+  _impl_.cumul_.Set(index, value);
+  // @@protoc_insertion_point(field_set:token.Token.cumul)
+}
+inline void Token::_internal_add_cumul(int32_t value) {
+  _impl_.cumul_.Add(value);
+}
+inline void Token::add_cumul(int32_t value) {
+  _internal_add_cumul(value);
+  // @@protoc_insertion_point(field_add:token.Token.cumul)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+Token::_internal_cumul() const {
   return _impl_.cumul_;
 }
-inline int32_t Token::cumul() const {
-  // @@protoc_insertion_point(field_get:token.Token.cumul)
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >&
+Token::cumul() const {
+  // @@protoc_insertion_point(field_list:token.Token.cumul)
   return _internal_cumul();
 }
-inline void Token::_internal_set_cumul(int32_t value) {
-  
-  _impl_.cumul_ = value;
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+Token::_internal_mutable_cumul() {
+  return &_impl_.cumul_;
 }
-inline void Token::set_cumul(int32_t value) {
-  _internal_set_cumul(value);
-  // @@protoc_insertion_point(field_set:token.Token.cumul)
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< int32_t >*
+Token::mutable_cumul() {
+  // @@protoc_insertion_point(field_mutable_list:token.Token.cumul)
+  return _internal_mutable_cumul();
 }
 
 // int32 passes = 4;

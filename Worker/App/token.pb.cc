@@ -23,11 +23,12 @@ namespace _pbi = _pb::internal;
 namespace token {
 PROTOBUF_CONSTEXPR Token::Token(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.path_)*/{}
+    /*decltype(_impl_.cumul_)*/{}
+  , /*decltype(_impl_._cumul_cached_byte_size_)*/{0}
+  , /*decltype(_impl_.path_)*/{}
   , /*decltype(_impl_._path_cached_byte_size_)*/{0}
   , /*decltype(_impl_.key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.initiator_id_)*/0
-  , /*decltype(_impl_.cumul_)*/0
   , /*decltype(_impl_.passes_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct TokenDefaultTypeInternal {
@@ -67,7 +68,7 @@ static const ::_pb::Message* const file_default_instances[] = {
 
 const char descriptor_table_protodef_token_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\013token.proto\022\005token\"W\n\005Token\022\024\n\014initiat"
-  "or_id\030\001 \001(\005\022\013\n\003key\030\002 \001(\t\022\r\n\005cumul\030\003 \001(\005\022"
+  "or_id\030\001 \001(\005\022\013\n\003key\030\002 \001(\t\022\r\n\005cumul\030\003 \003(\005\022"
   "\016\n\006passes\030\004 \001(\005\022\014\n\004path\030\005 \003(\005b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_token_2eproto_once;
@@ -103,11 +104,12 @@ Token::Token(const Token& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   Token* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.path_){from._impl_.path_}
+      decltype(_impl_.cumul_){from._impl_.cumul_}
+    , /*decltype(_impl_._cumul_cached_byte_size_)*/{0}
+    , decltype(_impl_.path_){from._impl_.path_}
     , /*decltype(_impl_._path_cached_byte_size_)*/{0}
     , decltype(_impl_.key_){}
     , decltype(_impl_.initiator_id_){}
-    , decltype(_impl_.cumul_){}
     , decltype(_impl_.passes_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
@@ -131,11 +133,12 @@ inline void Token::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.path_){arena}
+      decltype(_impl_.cumul_){arena}
+    , /*decltype(_impl_._cumul_cached_byte_size_)*/{0}
+    , decltype(_impl_.path_){arena}
     , /*decltype(_impl_._path_cached_byte_size_)*/{0}
     , decltype(_impl_.key_){}
     , decltype(_impl_.initiator_id_){0}
-    , decltype(_impl_.cumul_){0}
     , decltype(_impl_.passes_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
@@ -156,6 +159,7 @@ Token::~Token() {
 
 inline void Token::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.cumul_.~RepeatedField();
   _impl_.path_.~RepeatedField();
   _impl_.key_.Destroy();
 }
@@ -170,6 +174,7 @@ void Token::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  _impl_.cumul_.Clear();
   _impl_.path_.Clear();
   _impl_.key_.ClearToEmpty();
   ::memset(&_impl_.initiator_id_, 0, static_cast<size_t>(
@@ -202,10 +207,13 @@ const char* Token::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
         } else
           goto handle_unusual;
         continue;
-      // int32 cumul = 3;
+      // repeated int32 cumul = 3;
       case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
-          _impl_.cumul_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_cumul(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<uint8_t>(tag) == 24) {
+          _internal_add_cumul(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -274,10 +282,13 @@ uint8_t* Token::_InternalSerialize(
         2, this->_internal_key(), target);
   }
 
-  // int32 cumul = 3;
-  if (this->_internal_cumul() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_cumul(), target);
+  // repeated int32 cumul = 3;
+  {
+    int byte_size = _impl_._cumul_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          3, _internal_cumul(), byte_size, target);
+    }
   }
 
   // int32 passes = 4;
@@ -311,6 +322,20 @@ size_t Token::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  // repeated int32 cumul = 3;
+  {
+    size_t data_size = ::_pbi::WireFormatLite::
+      Int32Size(this->_impl_.cumul_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::_pbi::WireFormatLite::Int32Size(static_cast<int32_t>(data_size));
+    }
+    int cached_size = ::_pbi::ToCachedSize(data_size);
+    _impl_._cumul_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
   // repeated int32 path = 5;
   {
     size_t data_size = ::_pbi::WireFormatLite::
@@ -337,11 +362,6 @@ size_t Token::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_initiator_id());
   }
 
-  // int32 cumul = 3;
-  if (this->_internal_cumul() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_cumul());
-  }
-
   // int32 passes = 4;
   if (this->_internal_passes() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_passes());
@@ -365,15 +385,13 @@ void Token::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
+  _this->_impl_.cumul_.MergeFrom(from._impl_.cumul_);
   _this->_impl_.path_.MergeFrom(from._impl_.path_);
   if (!from._internal_key().empty()) {
     _this->_internal_set_key(from._internal_key());
   }
   if (from._internal_initiator_id() != 0) {
     _this->_internal_set_initiator_id(from._internal_initiator_id());
-  }
-  if (from._internal_cumul() != 0) {
-    _this->_internal_set_cumul(from._internal_cumul());
   }
   if (from._internal_passes() != 0) {
     _this->_internal_set_passes(from._internal_passes());
@@ -397,6 +415,7 @@ void Token::InternalSwap(Token* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.cumul_.InternalSwap(&other->_impl_.cumul_);
   _impl_.path_.InternalSwap(&other->_impl_.path_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.key_, lhs_arena,

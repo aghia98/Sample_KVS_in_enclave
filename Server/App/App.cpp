@@ -45,6 +45,7 @@
 #include "../../gRPC_module/grpc_server.h"
 #include "../../gRPC_module/grpc_client.h"
 
+
 #include "Enclave_u.h"
 
 /* Global EID shared by multiple threads */
@@ -358,6 +359,11 @@ int initialize_enclave(void)
     return 0;
 }
 
+void ocall_print_number(int* num){
+    printf("%d", *num);
+    fflush(stdout);
+}
+
 /* OCall functions */
 void ocall_print_string(const char *str)
 {
@@ -375,7 +381,6 @@ void ocall_print_token(const char *serialized_token){
     printf("***************Received Token begin*********************\n");
     printf("initiator_id: %d\n", token.initiator_id());
     printf("key: %s\n", token.key().c_str());
-    printf("cumul: %d\n", token.cumul());
     printf("passes: %d\n", token.passes());
 
     printf("path:");

@@ -30,24 +30,21 @@
  */
 
 
-
-
-//#include <string.h>
-
-
 #include <stdarg.h>
 #include <stdio.h> /* vsnprintf */
 #include "sgx_trts.h"
 #include "Enclave.h"
 #include "Enclave_t.h"
 #include <string>
+//#include <string.h>
 #include <vector>
 #include <algorithm>
 #include <map> // Secure Key-Value Store
 #include <set>
 
-#include "token.pb.h"
+//#include "ss-combine.h"
 
+#include "token.pb.h" 
 //***********************************************
 //***********************************************
 
@@ -72,12 +69,12 @@ int node_id;
     return cstr;
 }*/
 
-/*void copyString(std::string source, char* destination) {
+void copyString(std::string source, char* destination) {
     for (std::size_t i = 0; i < source.length(); ++i) {
         destination[i] = source[i];
     }
     destination[source.length()] = '\0'; // Append null character to terminate the string
-}*/
+}
 
 /* 
  * printf: 
@@ -314,19 +311,33 @@ vector<string> splitString(const string& input, char delimiter) {
 
 
 
-Token init_token(string& key, vector<int> path){
+Token init_token(string& key, vector<int> path, int len_cumul){
+    Token token_message;
     Token token;
 
-    token.set_initiator_id(node_id);
-    token.set_key(key);
-    token.set_cumul(0);
-    token.set_passes(0);
+    // Fill in the fields
+    token_message.set_initiator_id(node_id);  // Replace 123 with your desired value
+    token_message.set_key(key);    // Replace "your_key" with your desired value
+
+    //printf("len_cumul: %d\n", len_cumul);
+    for(int i=0; i< len_cumul; i++){
+        token_message.add_cumul(1);
+    }
+    
+
+    token_message.set_passes(2);          // Set the 'passes' field to your desired value
 
     for(const int s_up_id: path){
-        token.add_path(s_up_id);
+        token_message.add_path(s_up_id);
     }
 
-    return token;
+    std::string serialized_message;
+    token_message.SerializeToString(&serialized_message);
+    //local_print_token(serialized_message.c_str());
+
+    ocall_print_token(serialized_message.c_str());
+
+    return token_message;
 }
 
 void distributed_polynomial_interpolation(Token token){
@@ -337,7 +348,28 @@ void distributed_polynomial_interpolation(Token token){
 
     if(node_id!=token.initiator_id()){
         //TBD: compute the partial sum
-        
+        //get value
+        char share[410];
+        memset(share, 'A', 409);
+
+        char token_key_char[410];
+        copyString(token.key(), token_key_char); 
+        ecall_get(token_key_char, share);
+        //get path for x_shares
+        int* x_shares = static_cast<int*>(malloc(token.path().size()*sizeof(int)));
+        for (int i = 0; i < token.path().size(); ++i) {
+            x_shares[i] = token.path(i);
+        }
+        int* sub_share = partial_recovery_of_share_from_one_share(share, node_id, x_shares, token.path().size());
+        //extract_secret_from_share_strings("azz\nsqdaz\n");
+        int len_sub_share = (strlen(share) - 6) / 2;
+        ocall_print_number(&len_sub_share);
+        ocall_print_string(share);
+
+
+        free(sub_share);
+        free(x_shares);
+
         token.set_passes(token.passes()+1);
         //TBD: send token to next node if it exists, else stores it in a temporal Token variable
         if(token.passes() < token.path().size()){
@@ -364,7 +396,8 @@ void ecall_distributed_PI(const char *serialized_token){
 }
 
 void recover_lost_share(string& key, vector<int> t_share_owners){
-    Token token = init_token(key,t_share_owners);
+    int len_cumul = 820;
+    Token token = init_token(key,t_share_owners, len_cumul);
     distributed_polynomial_interpolation(token);
     //delete share from potential last owner
 }

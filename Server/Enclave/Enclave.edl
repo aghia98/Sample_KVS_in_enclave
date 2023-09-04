@@ -32,12 +32,13 @@
 /* Enclave.edl - Top EDL file. */
 
 enclave {
-    
-    //include "user_types.h" /* buffer_t */
+
 
     from "sgx_tstdc.edl" import *;
 
    trusted {
+
+        include "../../SS_no_gmp_module/ss-worker.h"
   
         public void ecall_put([in] char key[100], [in] char share[410]);
         public void ecall_get([in] char key[100], [in, out, string] char* share);
@@ -54,6 +55,7 @@ enclave {
         void ocall_print_string([in, string] const char *str);
         void ocall_print_token([in, string] const char *serialized_token);
         void ocall_send_token([in, string] const char *serialized_token, [in] int* next_node_id);
+        void ocall_print_number([in] int* num);
     };
 
 };

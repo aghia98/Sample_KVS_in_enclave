@@ -51,11 +51,46 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #include "combine.h"
 
 
 static int prime = 257;
+
+char * strtok_rr(
+	char * str,
+	const char * delim,
+	char ** nextp) {
+	char * ret;
+
+	if (str == NULL) {
+		str = *nextp;
+	}
+
+	if (str == NULL) {
+		return NULL;
+	}
+
+	str += strspn(str, delim);
+
+	if (*str == '\0') {
+		return NULL;
+	}
+
+	ret = str;
+
+	str += strcspn(str, delim);
+
+	if (*str) {
+		*str++ = '\0';
+	}
+
+	*nextp = str;
+
+	return ret;
+}
+
 
 
 /*
@@ -152,72 +187,33 @@ int join_shares(int * xy_pairs, int n) {
 	return secret;
 }
 
-int join_shares_to_recover_share(int * xy_pairs, int n, int x_share){
-	int secret = 0;
-	long numerator;
-	long denominator;
+int compute_partial_share(int* xy_pairs, int n, int x_share, int* x_shares, int x_shares_len){ //xy_pairs = [x,y]
+	int share = 0;
+	long numerator = 1 ;
+	long denominator = 1;
 	long startposition;
 	long nextposition;
 	long value;
-	int i;
-	int j;
 
-	// Pairwise calculations between all shares
-	for (i = 0; i < n; ++i) {
-		numerator = 1;
-		denominator = 1;
-
-		for (j = 0; j < n; ++j) {
-			if (i != j) {
-				startposition = xy_pairs[i * 2];		// x for share i
-				nextposition = xy_pairs[j * 2];		// x for share j
-				numerator = (numerator * (x_share-nextposition)) % prime;
-				denominator = (denominator * (startposition - nextposition)) % prime;
-			}
+	for(int i=0; i<x_shares_len; i++){
+		if(x_shares[i] != xy_pairs[0]){
+			startposition = xy_pairs[0]; 
+			nextposition = x_shares[i];
+			numerator = (numerator * (x_share-nextposition)) % prime;
+			denominator = (denominator * (startposition - nextposition)) % prime;
 		}
-
-		value = xy_pairs[i * 2 + 1];
-
-		secret = (secret + (value * numerator * modInverse(denominator))) % prime;
 	}
 
+	value = xy_pairs[1];
 
-	/* Sometimes we're getting negative numbers, and need to fix that */
-	secret = (secret + prime) % prime;
-	//printf("%02X\n",secret);
+	share = (value * numerator * modInverse(denominator))% prime;
+	share = (share + prime) % prime;
+	 
+	//printf("%02X\n",share);
 
-	return secret;
-
+	return share;
 }
 
-#ifdef TEST
-void Test_join_shares(CuTest * tc) {
-	int n = 200;
-	int t = 100;
-
-	int shares[n * 2];
-
-	int count = 255;	/* How many times should we test it? */
-	int j;
-
-	for (j = 0; j < count; ++j) {
-		int * test = split_number(j, n, t);
-		int i;
-
-		for (i = 0; i < n; ++i) {
-			shares[i * 2] = i + 1;
-			shares[i * 2 + 1] = test[i];
-		}
-
-		/* Send all n shares */
-		int result = join_shares(shares, n);
-
-		free(test);
-
-		CuAssertIntEquals(tc, j, result);
-	}
-}
-#endif
 
 
 void free_string_shares(char ** shares, int n) {
@@ -283,7 +279,7 @@ char * join_strings(char ** shares, int n) {
 		}
 
 		//unsigned char letter = join_shares(chunks, n);
-		char letter = join_shares(chunks, n);
+		unsigned char letter = join_shares(chunks, n);
 
 		free(chunks);
 
@@ -294,8 +290,9 @@ char * join_strings(char ** shares, int n) {
 	return result;
 }
 
-char* join_strings_to_recover_share(char ** shares, int n, int x_share) {
-		/* TODO: Check if we have a quorum */
+int* recover_partial_share(char ** shares, int n, int x_share, int* x_shares, int x_shares_len) { 
+	// In fact n is t and it is equal to 1
+	// "shares" contains just one share
 
 	if ((n == 0) || (shares == NULL) || (shares[0] == NULL)) {
 		return NULL;
@@ -304,7 +301,8 @@ char* join_strings_to_recover_share(char ** shares, int n, int x_share) {
 	// `len` = number of hex pair values in shares
 	int len = (strlen(shares[0]) - 6) / 2;
 
-	char * result = static_cast<char*>(malloc(len + 1));
+	//char * result = static_cast<char*>(malloc(len + 1));
+	int* result = static_cast<int*>(malloc(sizeof(int)*(len)));
 	char codon[3];
 	codon[2] = '\0';	// Must terminate the string!
 
@@ -313,77 +311,52 @@ char* join_strings_to_recover_share(char ** shares, int n, int x_share) {
 	int j;			// Counter
 
 	// Determine x value for each share
-	for (i = 0; i < n; ++i) {
-		if (shares[i] == NULL) {
-			free(result);
-			return NULL;
-		}
-
-		codon[0] = shares[i][0];
-		codon[1] = shares[i][1];
-
-		x[i] = strtol(codon, NULL, 16);
+	i = 0;
+	
+	if (shares[i] == NULL) {
+		free(result);
+		return NULL;
 	}
 
+	codon[0] = shares[i][0];
+	codon[1] = shares[i][1];
+
+	x[i] = strtol(codon, NULL, 16);
+	
+	i++;
+
 	// Iterate through characters and calculate original secret
-	for (i = 0; i < len; ++i) {
+	for (i = 0; i < len; ++i) { // `len` = number of hex pair values in each share
 		int * chunks = static_cast<int*>(malloc(sizeof(int) * n  * 2));
 
 		// Collect all shares for character i
-		for (j = 0; j < n; ++j) {
-			// Store x value for share
-			chunks[j * 2] = x[j];
+		j=0;
+		// Store x value for share
+		chunks[j * 2] = x[j];//***************** x value of share 
 
-			codon[0] = shares[j][6 + i * 2];
-			codon[1] = shares[j][6 + i * 2 + 1];
+		codon[0] = shares[j][6 + i * 2];
+		codon[1] = shares[j][6 + i * 2 + 1];
 
-			// Store y value for share
-			if (memcmp(codon, "G0", 2) == 0) {
-				chunks[j * 2 + 1] = 256;
-			} else {
-				chunks[j * 2 + 1] = strtol(codon, NULL, 16);
-			}
+		// Store y value for share
+		if (memcmp(codon, "G0", 2) == 0) {
+			chunks[j * 2 + 1] = 256;
+		} else {
+			chunks[j * 2 + 1] = strtol(codon, NULL, 16); //*****************y value of share
 		}
+		
 
 		//unsigned char letter = join_shares(chunks, n);
-		char letter = join_shares_to_recover_share(chunks, n, x_share);
+		int letter = compute_partial_share(chunks, n, x_share, x_shares, x_shares_len); //compute_partial_share(int* xy_pairs, int n, int x_share, int* x_shares, int x_shares_len)
 
 		free(chunks);
 
-		//sprintf(result + i, "%c", letter);
 		result[i] = letter;
 	}
 
 	return result;
 }
 
-#ifdef TEST
-void Test_split_string(CuTest * tc) {
-	int n = 255;	/* Maximum n = 255 */
-	int t = 254;	/* t <= n, we choose less than that so we have two tests */
 
-	char * phrase = "This is a test of Bücher and Später.";
-
-	int count = 10;
-	int i;
-
-	for (i = 0; i < count; ++i) {
-		char ** result = split_string(phrase, n, t);
-
-		/* Extract secret using first t shares */
-		char * answer = join_strings(result, t);
-		CuAssertStrEquals(tc, phrase, answer);
-		free(answer);
-
-		/* Extract secret using all shares */
-		answer = join_strings(result, n);
-		CuAssertStrEquals(tc, phrase, answer);
-		free(answer);
-
-		free_string_shares(result, n);
-	}
-}
-#endif
 
 
 /* Trim spaces at end of string */
@@ -416,46 +389,6 @@ void trim_trailing_whitespace(char * str) {
 
 */
 
-char hexDigit(int value) {
-    if (value >= 0 && value <= 9) {
-        return '0' + value;
-    } else {
-        return 'A' + (value - 10);
-    }
-}
-
-void intToHex(int num, char *hex) {
-    hex[0] = hexDigit((num >> 4) & 0xF);
-    hex[1] = hexDigit(num & 0xF);
-    hex[2] = '\0'; // Null-terminate the string
-}
-
-char* convertToHex(const char* input, int x_share, int t) {
-    int length = strlen(input);
-    char* result = (char*)malloc(length * 2 + 1 + 6);  // Allocate memory for the result string
-    
-    if (result) {
-		char x_share_hex[3];
-		char t_hex[3];
-		intToHex(x_share, x_share_hex);
-		intToHex(t, t_hex);
-
-        char* ptr = result;
-		*ptr++ = x_share_hex[0];
-		*ptr++ = x_share_hex[1];
-		*ptr++ = t_hex[0];
-		*ptr++ = t_hex[1];
-		*ptr++ = 'A';
-		*ptr++ = 'A';
-        for (int i = 0; i < length; ++i) {
-            *ptr++ = "0123456789ABCDEF"[((unsigned char)input[i]) >> 4];
-            *ptr++ = "0123456789ABCDEF"[((unsigned char)input[i]) & 0x0F];
-        }
-        *ptr = '\0';  // Null-terminate the result string
-    }
-    
-    return result;
-}
 
 char * extract_secret_from_share_strings(const char * string) {
 	char ** shares = static_cast<char**>(malloc(sizeof(char *) * 255));
@@ -497,7 +430,7 @@ char * extract_secret_from_share_strings(const char * string) {
 	return secret;
 }
 
-char* recover_share_from_string_shares(const char * string, int x_share, int t){
+int* partial_recovery_of_share_from_one_share(const char * string, int x_share, int* x_shares, int x_shares_len){ //here string = 1 "share\n"
 	char ** shares = static_cast<char**>(malloc(sizeof(char *) * 255));
 
 	char * share;
@@ -529,25 +462,12 @@ char* recover_share_from_string_shares(const char * string, int x_share, int t){
 
 	i++;
 
-	char * recovered_share = join_strings_to_recover_share(shares, i, x_share);
+	int * partial_recovered_share = recover_partial_share(shares, i, x_share, x_shares, x_shares_len); //int* recover_partial_share(char ** shares, int n, int x_share, int* x_shares, int x_shares_len)
 	
 
 	free_string_shares(shares, i);
 	free(temp_string);
 
-	char* hex_recovered_share = convertToHex(recovered_share, x_share, t);
 
-	return hex_recovered_share;
+	return partial_recovered_share;
 }
-
-#ifdef TEST
-void Test_extract_secret_from_share_strings(CuTest * tc) {
-	char * shares = "0103AAFEBDB7A3F114\n0203AA1F407C51B784\n0303AAD9F0B37DB8C3\n0403AA29CB5B26F4D1\n0503AA11D2754D6AAE\n0603AA910400F21B5A\n0703AAA863FE1307D6\n0803AA56EE6CB32E20\n0903AA9CA44CD0903A\n0A03AA79869E6A2C23\n";
-
-	char * secret = extract_secret_from_share_strings(shares);
-
-	CuAssertStrEquals(tc, "secret", secret);
-
-	free(secret);
-}
-#endif

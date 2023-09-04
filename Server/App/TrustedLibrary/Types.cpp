@@ -97,7 +97,7 @@ set<string> share_lost_keys(int node_id, vector<int> s_up_ids){
     if (ret != SGX_SUCCESS)
         abort();
 
-    cout << lost_keys_with_potential_last_share_owner << endl;
+    //cout << lost_keys_with_potential_last_share_owner << endl;
     //*************************post-process************************
     
     set<string> keys;

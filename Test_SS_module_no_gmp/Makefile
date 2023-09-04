@@ -1,12 +1,12 @@
 LDFLAGS_SS += -L../SS_no_gmp_module -lshamir_combine	
 
 ssss-split:
-	g++ -c split.cpp common.cpp ssss-split.cpp
+	g++ -c split.cpp ssss-split.cpp
 	g++ *.o -o shamir-split
 	rm *.o
 
 ssss-combine:
-	g++ -c combine.cpp strtok.cpp ssss-combine.cpp
+	g++ -c combine.cpp ssss-combine.cpp
 	g++ *.o -o shamir-combine
 	rm *.o 
 

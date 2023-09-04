@@ -295,24 +295,63 @@ vector<string> splitString(const string& input, char delimiter) {
     return result;
 }
 
-
-
-Token init_token(string& key, vector<int> path){
+/*void local_print_token(const char *serialized_token) {
     Token token;
 
-    token.set_initiator_id(node_id);
-    token.set_key(key);
-    token.set_cumul(0);
-    token.set_passes(0);
+    if (token.ParseFromString(serialized_token)) {
+        printf("***************Received Token begin*********************\n");
+        printf("initiator_id: %d\n", token.initiator_id());
+        printf("key: %s\n", token.key().c_str());
+        printf("passes: %d\n", token.passes());
+
+        printf("sizeeeee: %d\n", token.cumul_size());
+        printf("cumul 0: %d\n", token.cumul(0));
+        printf("cumul 1: %d\n", token.cumul(1));
+
+        printf("path:");
+        for (int i = 0; i < token.path_size(); ++i) {
+            printf(" %d", token.path(i));
+        }
+        printf("\n");
+        printf("***************Received Token end*********************\n");
+    } else {
+        printf("Failed to parse the serialized token.\n");
+    }
+}*/
+
+
+
+Token init_token(string& key, vector<int> path, int len_cumul){
+    Token token_message;
+    Token token;
+
+    // Fill in the fields
+    token_message.set_initiator_id(node_id);  // Replace 123 with your desired value
+    token_message.set_key(key);    // Replace "your_key" with your desired value
+
+    //printf("len_cumul: %d\n", len_cumul);
+    for(int i=0; i< len_cumul; i++){
+        token_message.add_cumul(1);
+    }
+    
+
+    token_message.set_passes(0);          // Set the 'passes' field to your desired value
 
     for(const int s_up_id: path){
-        token.add_path(s_up_id);
+        token_message.add_path(s_up_id);
     }
 
-    return token;
+    std::string serialized_message;
+    token_message.SerializeToString(&serialized_message);
+    //local_print_token(serialized_message.c_str());
+
+    //ocall_print_token(serialized_message.c_str());
+
+    return token_message;
 }
 
 void distributed_polynomial_interpolation(Token token){
+    printf("entreeeeeeed 1\n");
     string serialized_token;
 
     token.SerializeToString(&serialized_token);
@@ -320,7 +359,7 @@ void distributed_polynomial_interpolation(Token token){
 
     if(node_id!=token.initiator_id()){
         //TBD: compute the partial sum
-        
+        printf("entreeeeeeed 2\n");
         token.set_passes(token.passes()+1);
         //TBD: send token to next node if it exists, else stores it in a temporal Token variable
         if(token.passes() < token.path().size()){
@@ -342,7 +381,8 @@ void distributed_polynomial_interpolation(Token token){
 
 
 void recover_lost_share(string& key, vector<int> t_share_owners){
-    Token token = init_token(key,t_share_owners);
+    int len_cumul = 820;
+    Token token = init_token(key,t_share_owners, len_cumul);
     distributed_polynomial_interpolation(token);
     //delete share from potential last owner
 }
@@ -359,6 +399,7 @@ void ecall_recover_lost_shares(){
         splitted_key_potential_last_share_owner_t_shares_owners = splitString(lost_key_with_potential_last_share_owner_and_t_shares_owners, '|');
         
         key = splitted_key_potential_last_share_owner_t_shares_owners[0];
+        
         potential_last_share_owner = splitted_key_potential_last_share_owner_t_shares_owners[1];
         
         t_shares_owners.clear();
