@@ -50,6 +50,11 @@
 
 using namespace token;
 
+//Global variables;
+int node_id_global;
+int t_global;
+int n_global;
+
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
 
@@ -266,35 +271,54 @@ class KVSClient {
 
     string Partial_Polynomial_interpolation(Token token) {
 
-    Value reply;
-    ClientContext context;
+        Value reply;
+        ClientContext context;
 
-    CompletionQueue cq;
-    Status status;
+        CompletionQueue cq;
+        Status status;
 
-    std::unique_ptr<ClientAsyncResponseReader<Value> > rpc(
-      stub_->AsyncPartial_Polynomial_interpolation(&context, token, &cq));
-    rpc->Finish(&reply, &status, (void*)1);
+        std::unique_ptr<ClientAsyncResponseReader<Value> > rpc(
+        stub_->AsyncPartial_Polynomial_interpolation(&context, token, &cq));
+        rpc->Finish(&reply, &status, (void*)1);
 
-    void* got_tag;
-    bool ok = false;
-    cq.Next(&got_tag, &ok);
-    if (ok && got_tag == (void*)1) {
-        if (status.ok()) {
-            return reply.value();
-        } else {
-            std::cout << status.error_code() << ": " << status.error_message() << std::endl;
-            return "RPC failed";
+        void* got_tag;
+        bool ok = false;
+        cq.Next(&got_tag, &ok);
+        if (ok && got_tag == (void*)1) {
+            if (status.ok()) {
+                return reply.value();
+            } else {
+                std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+                return "RPC failed";
+            }
+        }
+
+        /*status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
+        if (status.ok()) return reply.value();
+        std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+        return "RPC failed"; */
+  }
+
+  int Get_tokens(){
+        Node_id request;
+        List_tokens list_tokens;
+
+        int source_id = node_id_global;
+
+        request.set_id(source_id);
+
+        ClientContext context;
+        Status status = stub_->Get_tokens(&context, request, &list_tokens);
+
+        if (status.ok()){
+            return 0;
+        }else{
+            return -1;
         }
     }
 
-    /*status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
-    if (status.ok()) return reply.value();
-    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
-    return "RPC failed"; */
 
-  }
-
+ 
  private:
   unique_ptr<KVS::Stub> stub_;
 };
@@ -360,11 +384,6 @@ int initialize_enclave(void)
     return 0;
 }
 
-void ocall_print_number(int* num){
-    printf("%d", *num);
-    fflush(stdout);
-}
-
 /* OCall functions */
 void ocall_print_string(const char *str)
 {
@@ -372,28 +391,28 @@ void ocall_print_string(const char *str)
     fflush(stdout);
 }
 
-void ocall_print_token(const char *serialized_token) {
+void ocall_print_token(const char *serialized_token){
     Token token;
 
-    if (token.ParseFromString(serialized_token)) {
-        printf("***************Received Token begin*********************\n");
-        printf("initiator_id: %d\n", token.initiator_id());
-        printf("key: %s\n", token.key().c_str());
-        printf("passes: %d\n", token.passes());
+    token.ParseFromString(serialized_token);
+    printf("***************Received Token begin*********************\n");
+    printf("initiator_id: %d\n", token.initiator_id());
+    printf("key: %s\n", token.key().c_str());
+    printf("passes: %d\n", token.passes());
 
-        printf("sizeeeee: %d\n", token.cumul_size());
-        printf("cumul 0: %d\n", token.cumul(0));
-        printf("cumul 1: %d\n", token.cumul(1));
-
-        printf("path:");
-        for (int i = 0; i < token.path_size(); ++i) {
-            printf(" %d", token.path(i));
-        }
-        printf("\n");
-        printf("***************Received Token end*********************\n");
-    } else {
-        printf("Failed to parse the serialized token.\n");
+    printf("cumul:");
+    for (int i = 0; i < 20; ++i) {
+        printf(" %d", token.cumul(i));
     }
+    printf("\n");
+
+    printf("path:");
+    for (int i = 0; i < token.path_size(); ++i) {
+        printf(" %d", token.path(i));
+    }
+    printf("\n");
+    printf("***************Received Token end*********************\n");
+
 }
 
 void ocall_send_token(const char *serialized_token, int* next_node_id){
@@ -485,6 +504,10 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
     int t = absl::GetFlag(FLAGS_t);
     int n = absl::GetFlag(FLAGS_n);
     int node_id = port - offset;
+
+    t_global = t;
+    n_global = n;
+    node_id_global = node_id;
 
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_send_params_to_enclave(global_eid, &node_id, &t, &n);

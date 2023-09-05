@@ -35,7 +35,7 @@
  { 
      int32     initiator_id = 1; 
      string    key = 2;  
-     int32     cumul = 3;  
+     repeated int32     cumul = 3;  
      int32     passes = 4;
      repeated int32 path = 5;
  }

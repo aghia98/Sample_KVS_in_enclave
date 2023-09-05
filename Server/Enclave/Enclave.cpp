@@ -344,28 +344,31 @@ void distributed_polynomial_interpolation(Token token){
     string serialized_token;
 
     token.SerializeToString(&serialized_token);
-    ocall_print_token(serialized_token.c_str());
+    //ocall_print_token(serialized_token.c_str());
 
     if(node_id!=token.initiator_id()){
         //TBD: compute the partial sum
         //get value
         char share[410];
         memset(share, 'A', 409);
-
         char token_key_char[410];
         copyString(token.key(), token_key_char); 
         ecall_get(token_key_char, share);
+        
         //get path for x_shares
         int* x_shares = static_cast<int*>(malloc(token.path().size()*sizeof(int)));
         for (int i = 0; i < token.path().size(); ++i) {
             x_shares[i] = token.path(i);
         }
-        int* sub_share = partial_recovery_of_share_from_one_share(share, node_id, x_shares, token.path().size());
-        //extract_secret_from_share_strings("azz\nsqdaz\n");
-        int len_sub_share = (strlen(share) - 6) / 2;
-        ocall_print_number(&len_sub_share);
-        ocall_print_string(share);
 
+        int* sub_share = partial_recovery_of_share_from_one_share(share, token.initiator_id() , x_shares, token.path().size());
+        
+        int len_sub_share = (strlen(share) - 6) / 2;
+        //ocall_print_string(share);
+
+        for(int i=0; i< len_sub_share; i++){
+            token.set_cumul(i, token.cumul(i)+sub_share[i]);
+        }
 
         free(sub_share);
         free(x_shares);
@@ -375,9 +378,15 @@ void distributed_polynomial_interpolation(Token token){
         if(token.passes() < token.path().size()){
             int next_node_id = token.path(token.passes());
             token.SerializeToString(&serialized_token);
+            //printf("afterrrrrrrrrrrrrr\n");
+            //ocall_print_token(serialized_token.c_str());
             ocall_send_token(serialized_token.c_str(), &next_node_id);
         }else{ //store the token
+            
             printf("heeeeeeeeeeeeeeereeee ready to store\n");
+            
+            token.SerializeToString(&serialized_token);
+            ocall_print_token(serialized_token.c_str());
         }
     }else{
         if(token.passes()==0){

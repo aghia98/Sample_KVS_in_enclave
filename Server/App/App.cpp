@@ -48,6 +48,11 @@
 
 #include "Enclave_u.h"
 
+//Global variables;
+int node_id_global;
+int t_global;
+int n_global;
+
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
 
@@ -202,6 +207,10 @@ class KVSServiceImpl final : public KVS::Service {
         response->set_value("PARTIAL_INTERPOLATION_SUCCESS");
 
         return Status::OK;
+    }
+
+    Status Get_tokens(ServerContext* context, const Node_id* source, List_tokens* list_tokens){
+        
     }
 };
 
@@ -383,6 +392,12 @@ void ocall_print_token(const char *serialized_token){
     printf("key: %s\n", token.key().c_str());
     printf("passes: %d\n", token.passes());
 
+    printf("cumul:");
+    for (int i = 0; i < 20; ++i) {
+        printf(" %d", token.cumul(i));
+    }
+    printf("\n");
+
     printf("path:");
     for (int i = 0; i < token.path_size(); ++i) {
         printf(" %d", token.path(i));
@@ -426,6 +441,10 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
     int t = absl::GetFlag(FLAGS_t);
     int n = absl::GetFlag(FLAGS_n);
     int node_id = port - offset;
+
+    t_global = t;
+    n_global = n;
+    node_id_global = node_id;
     
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_send_params_to_enclave(global_eid, &node_id, &t, &n);

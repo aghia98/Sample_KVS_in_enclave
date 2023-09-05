@@ -154,7 +154,6 @@ Enclave_Security_Link_Flags := -Wl,-z,relro,-z,now,-z,noexecstack
 # Otherwise, you may get some undesirable errors.
 
 #LIBRARY_HRW = ../HRW_hashing_module/
-#LIBRARY_shamir_combine = ../SS_no_gmp_module/
 
 LIBRARY_shamir_combine = ../SS_no_gmp_module/
 Enclave_Link_Flags := $(MITIGATION_LDFLAGS) $(Enclave_Security_Link_Flags) \

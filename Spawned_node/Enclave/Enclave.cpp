@@ -67,12 +67,12 @@ int node_id;
     return cstr;
 }*/
 
-/*void copyString(std::string source, char* destination) {
+void copyString(std::string source, char* destination) {
     for (std::size_t i = 0; i < source.length(); ++i) {
         destination[i] = source[i];
     }
     destination[source.length()] = '\0'; // Append null character to terminate the string
-}*/
+}
 
  int printf(const char* fmt, ...)
 {
@@ -351,23 +351,54 @@ Token init_token(string& key, vector<int> path, int len_cumul){
 }
 
 void distributed_polynomial_interpolation(Token token){
-    printf("entreeeeeeed 1\n");
     string serialized_token;
 
     token.SerializeToString(&serialized_token);
-    ocall_print_token(serialized_token.c_str());
+    //ocall_print_token(serialized_token.c_str());
 
     if(node_id!=token.initiator_id()){
         //TBD: compute the partial sum
-        printf("entreeeeeeed 2\n");
+        //get value
+        char share[410];
+        memset(share, 'A', 409);
+        char token_key_char[410];
+        copyString(token.key(), token_key_char); 
+        ecall_get(token_key_char, share);
+        
+        //get path for x_shares
+        int* x_shares = static_cast<int*>(malloc(token.path().size()*sizeof(int)));
+        for (int i = 0; i < token.path().size(); ++i) {
+            x_shares[i] = token.path(i);
+        }
+
+        int* sub_share = partial_recovery_of_share_from_one_share(share, token.initiator_id() , x_shares, token.path().size());
+        
+        int len_sub_share = (strlen(share) - 6) / 2;
+        //printf("%d\n",len_sub_share);
+        //ocall_print_string(share);
+
+
+        for(int i=0; i< len_sub_share; i++){
+            token.set_cumul(i, token.cumul(i)+sub_share[i]);
+        }
+
+        free(sub_share);
+        free(x_shares);
+
         token.set_passes(token.passes()+1);
         //TBD: send token to next node if it exists, else stores it in a temporal Token variable
         if(token.passes() < token.path().size()){
             int next_node_id = token.path(token.passes());
             token.SerializeToString(&serialized_token);
+            //printf("afterrrrrrrrrrrrrr\n");
+            //ocall_print_token(serialized_token.c_str());
             ocall_send_token(serialized_token.c_str(), &next_node_id);
         }else{ //store the token
-
+            
+            printf("heeeeeeeeeeeeeeereeee ready to store\n");
+            
+            token.SerializeToString(&serialized_token);
+            ocall_print_token(serialized_token.c_str());
         }
     }else{
         if(token.passes()==0){
@@ -384,6 +415,7 @@ void recover_lost_share(string& key, vector<int> t_share_owners){
     int len_cumul = 820;
     Token token = init_token(key,t_share_owners, len_cumul);
     distributed_polynomial_interpolation(token);
+    printf("Suceess of distributed polynomial interpolation\n");
     //delete share from potential last owner
 }
 

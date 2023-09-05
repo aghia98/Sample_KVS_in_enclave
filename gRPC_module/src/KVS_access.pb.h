@@ -52,12 +52,18 @@ extern KV_pairDefaultTypeInternal _KV_pair_default_instance_;
 class Key;
 struct KeyDefaultTypeInternal;
 extern KeyDefaultTypeInternal _Key_default_instance_;
+class List_tokens;
+struct List_tokensDefaultTypeInternal;
+extern List_tokensDefaultTypeInternal _List_tokens_default_instance_;
 class Lost_keys;
 struct Lost_keysDefaultTypeInternal;
 extern Lost_keysDefaultTypeInternal _Lost_keys_default_instance_;
 class New_id_with_S_up_ids;
 struct New_id_with_S_up_idsDefaultTypeInternal;
 extern New_id_with_S_up_idsDefaultTypeInternal _New_id_with_S_up_ids_default_instance_;
+class Node_id;
+struct Node_idDefaultTypeInternal;
+extern Node_idDefaultTypeInternal _Node_id_default_instance_;
 class Value;
 struct ValueDefaultTypeInternal;
 extern ValueDefaultTypeInternal _Value_default_instance_;
@@ -65,8 +71,10 @@ extern ValueDefaultTypeInternal _Value_default_instance_;
 PROTOBUF_NAMESPACE_OPEN
 template<> ::keyvaluestore::KV_pair* Arena::CreateMaybeMessage<::keyvaluestore::KV_pair>(Arena*);
 template<> ::keyvaluestore::Key* Arena::CreateMaybeMessage<::keyvaluestore::Key>(Arena*);
+template<> ::keyvaluestore::List_tokens* Arena::CreateMaybeMessage<::keyvaluestore::List_tokens>(Arena*);
 template<> ::keyvaluestore::Lost_keys* Arena::CreateMaybeMessage<::keyvaluestore::Lost_keys>(Arena*);
 template<> ::keyvaluestore::New_id_with_S_up_ids* Arena::CreateMaybeMessage<::keyvaluestore::New_id_with_S_up_ids>(Arena*);
+template<> ::keyvaluestore::Node_id* Arena::CreateMaybeMessage<::keyvaluestore::Node_id>(Arena*);
 template<> ::keyvaluestore::Value* Arena::CreateMaybeMessage<::keyvaluestore::Value>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace keyvaluestore {
@@ -876,6 +884,311 @@ class New_id_with_S_up_ids final :
   union { Impl_ _impl_; };
   friend struct ::TableStruct_KVS_5faccess_2eproto;
 };
+// -------------------------------------------------------------------
+
+class Node_id final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:keyvaluestore.Node_id) */ {
+ public:
+  inline Node_id() : Node_id(nullptr) {}
+  ~Node_id() override;
+  explicit PROTOBUF_CONSTEXPR Node_id(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Node_id(const Node_id& from);
+  Node_id(Node_id&& from) noexcept
+    : Node_id() {
+    *this = ::std::move(from);
+  }
+
+  inline Node_id& operator=(const Node_id& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Node_id& operator=(Node_id&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Node_id& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Node_id* internal_default_instance() {
+    return reinterpret_cast<const Node_id*>(
+               &_Node_id_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    5;
+
+  friend void swap(Node_id& a, Node_id& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Node_id* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Node_id* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Node_id* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Node_id>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Node_id& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const Node_id& from) {
+    Node_id::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Node_id* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "keyvaluestore.Node_id";
+  }
+  protected:
+  explicit Node_id(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kIdFieldNumber = 1,
+  };
+  // int32 id = 1;
+  void clear_id();
+  int32_t id() const;
+  void set_id(int32_t value);
+  private:
+  int32_t _internal_id() const;
+  void _internal_set_id(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:keyvaluestore.Node_id)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_KVS_5faccess_2eproto;
+};
+// -------------------------------------------------------------------
+
+class List_tokens final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:keyvaluestore.List_tokens) */ {
+ public:
+  inline List_tokens() : List_tokens(nullptr) {}
+  ~List_tokens() override;
+  explicit PROTOBUF_CONSTEXPR List_tokens(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  List_tokens(const List_tokens& from);
+  List_tokens(List_tokens&& from) noexcept
+    : List_tokens() {
+    *this = ::std::move(from);
+  }
+
+  inline List_tokens& operator=(const List_tokens& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline List_tokens& operator=(List_tokens&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const List_tokens& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const List_tokens* internal_default_instance() {
+    return reinterpret_cast<const List_tokens*>(
+               &_List_tokens_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    6;
+
+  friend void swap(List_tokens& a, List_tokens& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(List_tokens* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(List_tokens* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  List_tokens* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<List_tokens>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const List_tokens& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const List_tokens& from) {
+    List_tokens::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(List_tokens* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "keyvaluestore.List_tokens";
+  }
+  protected:
+  explicit List_tokens(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kTokensFieldNumber = 1,
+  };
+  // repeated .token.Token tokens = 1;
+  int tokens_size() const;
+  private:
+  int _internal_tokens_size() const;
+  public:
+  void clear_tokens();
+  ::token::Token* mutable_tokens(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::token::Token >*
+      mutable_tokens();
+  private:
+  const ::token::Token& _internal_tokens(int index) const;
+  ::token::Token* _internal_add_tokens();
+  public:
+  const ::token::Token& tokens(int index) const;
+  ::token::Token* add_tokens();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::token::Token >&
+      tokens() const;
+
+  // @@protoc_insertion_point(class_scope:keyvaluestore.List_tokens)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::token::Token > tokens_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_KVS_5faccess_2eproto;
+};
 // ===================================================================
 
 
@@ -1210,9 +1523,78 @@ New_id_with_S_up_ids::mutable_s_up_ids() {
   return _internal_mutable_s_up_ids();
 }
 
+// -------------------------------------------------------------------
+
+// Node_id
+
+// int32 id = 1;
+inline void Node_id::clear_id() {
+  _impl_.id_ = 0;
+}
+inline int32_t Node_id::_internal_id() const {
+  return _impl_.id_;
+}
+inline int32_t Node_id::id() const {
+  // @@protoc_insertion_point(field_get:keyvaluestore.Node_id.id)
+  return _internal_id();
+}
+inline void Node_id::_internal_set_id(int32_t value) {
+  
+  _impl_.id_ = value;
+}
+inline void Node_id::set_id(int32_t value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:keyvaluestore.Node_id.id)
+}
+
+// -------------------------------------------------------------------
+
+// List_tokens
+
+// repeated .token.Token tokens = 1;
+inline int List_tokens::_internal_tokens_size() const {
+  return _impl_.tokens_.size();
+}
+inline int List_tokens::tokens_size() const {
+  return _internal_tokens_size();
+}
+inline ::token::Token* List_tokens::mutable_tokens(int index) {
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.List_tokens.tokens)
+  return _impl_.tokens_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::token::Token >*
+List_tokens::mutable_tokens() {
+  // @@protoc_insertion_point(field_mutable_list:keyvaluestore.List_tokens.tokens)
+  return &_impl_.tokens_;
+}
+inline const ::token::Token& List_tokens::_internal_tokens(int index) const {
+  return _impl_.tokens_.Get(index);
+}
+inline const ::token::Token& List_tokens::tokens(int index) const {
+  // @@protoc_insertion_point(field_get:keyvaluestore.List_tokens.tokens)
+  return _internal_tokens(index);
+}
+inline ::token::Token* List_tokens::_internal_add_tokens() {
+  return _impl_.tokens_.Add();
+}
+inline ::token::Token* List_tokens::add_tokens() {
+  ::token::Token* _add = _internal_add_tokens();
+  // @@protoc_insertion_point(field_add:keyvaluestore.List_tokens.tokens)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::token::Token >&
+List_tokens::tokens() const {
+  // @@protoc_insertion_point(field_list:keyvaluestore.List_tokens.tokens)
+  return _impl_.tokens_;
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------
