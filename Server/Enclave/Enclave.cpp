@@ -405,7 +405,7 @@ void ecall_distributed_PI(const char *serialized_token){
 }
 
 void recover_lost_share(string& key, vector<int> t_share_owners){
-    int len_cumul = 820;
+    int len_cumul = 410;
     Token token = init_token(key,t_share_owners, len_cumul);
     distributed_polynomial_interpolation(token);
     //delete share from potential last owner
@@ -437,5 +437,9 @@ void ecall_recover_lost_shares(){
     }
     //flush lost_keys_with_potential_last_share_owner_and_t_shares_owners
     
+}
+
+void ecall_get_tokens(int* token_initiator_id, char* serialized_token){
+
 }
 

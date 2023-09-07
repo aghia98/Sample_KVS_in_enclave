@@ -210,6 +210,12 @@ class KVSServiceImpl final : public KVS::Service {
     }
 
     Status Get_tokens(ServerContext* context, const Node_id* source, List_tokens* list_tokens){
+        char serialized_token[1000];
+        memset(serialized_token, 'A', 999);
+        
+        ret = ecall_get_tokens(global_eid, source->id(), serialized_token);
+        if (ret != SGX_SUCCESS)
+            abort();
         
     }
 };

@@ -323,6 +323,8 @@ class KVSClient {
   unique_ptr<KVS::Stub> stub_;
 };
 
+
+
 bool isPortOpen(const std::string& ipAddress, int port) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
@@ -425,6 +427,15 @@ void ocall_send_token(const char *serialized_token, int* next_node_id){
     kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*next_node_id)) , grpc::InsecureChannelCredentials()));
     kvs->Partial_Polynomial_interpolation(token);
     delete kvs;
+}
+
+void ocall_get_tokens(int* node_id){
+    KVSClient* kvs;
+    int offset = 50000;
+
+    kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*node_id)) , grpc::InsecureChannelCredentials()));
+    kvs->Get_tokens();
+    delete kvs:
 }
 
 

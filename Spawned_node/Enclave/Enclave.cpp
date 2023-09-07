@@ -323,7 +323,6 @@ vector<string> splitString(const string& input, char delimiter) {
 
 Token init_token(string& key, vector<int> path, int len_cumul){
     Token token_message;
-    Token token;
 
     // Fill in the fields
     token_message.set_initiator_id(node_id);  // Replace 123 with your desired value
@@ -341,8 +340,8 @@ Token init_token(string& key, vector<int> path, int len_cumul){
         token_message.add_path(s_up_id);
     }
 
-    std::string serialized_message;
-    token_message.SerializeToString(&serialized_message);
+    //std::string serialized_message;
+    //token_message.SerializeToString(&serialized_message);
     //local_print_token(serialized_message.c_str());
 
     //ocall_print_token(serialized_message.c_str());
@@ -405,17 +404,19 @@ void distributed_polynomial_interpolation(Token token){
             int next_node_id = token.path(0);
             ocall_send_token(serialized_token.c_str(), &next_node_id);
         }else{
-            //TBD: store token result
+            //TBDeleted from here: store token result
         }
     }
 }
 
 
 void recover_lost_share(string& key, vector<int> t_share_owners){
-    int len_cumul = 820;
+    int len_cumul = 410;
     Token token = init_token(key,t_share_owners, len_cumul);
     distributed_polynomial_interpolation(token);
     printf("Suceess of distributed polynomial interpolation\n");
+    int token_owner_id = t_share_owners.back();
+    ocall_get_tokens(&token_owner_id);
     //delete share from potential last owner
 }
 
