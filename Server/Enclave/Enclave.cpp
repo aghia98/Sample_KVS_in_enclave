@@ -56,6 +56,8 @@ set<string> lost_keys_with_potential_last_share_owner_and_t_shares_owners;
 int t;
 int n;
 int node_id;
+string temp_token;
+//map<int,string> node_id_to_token_temp;
 
 /* used to eliminate `unused variable' warning */
 #define UNUSED(val) (void)(val)
@@ -361,10 +363,11 @@ void distributed_polynomial_interpolation(Token token){
             x_shares[i] = token.path(i);
         }
 
+        printf("share: %s\n",share);
+
         int* sub_share = partial_recovery_of_share_from_one_share(share, token.initiator_id() , x_shares, token.path().size());
         
         int len_sub_share = (strlen(share) - 6) / 2;
-        //ocall_print_string(share);
 
         for(int i=0; i< len_sub_share; i++){
             token.set_cumul(i, token.cumul(i)+sub_share[i]);
@@ -386,6 +389,7 @@ void distributed_polynomial_interpolation(Token token){
             printf("heeeeeeeeeeeeeeereeee ready to store\n");
             
             token.SerializeToString(&serialized_token);
+            temp_token = serialized_token;
             ocall_print_token(serialized_token.c_str());
         }
     }else{
@@ -440,6 +444,8 @@ void ecall_recover_lost_shares(){
 }
 
 void ecall_get_tokens(int* token_initiator_id, char* serialized_token){
-
+   
+    strncpy(serialized_token, temp_token.c_str(), strlen(serialized_token));
+    
 }
 

@@ -192,6 +192,7 @@ class KVSServiceImpl final : public KVS::Service {
     }
 };
 
+
 //set<string> global_lost_keys_set; //global variable
 class KVSClient {
  public:
@@ -299,9 +300,11 @@ class KVSClient {
         return "RPC failed"; */
   }
 
-  int Get_tokens(){
+  string Get_tokens(){
         Node_id request;
         List_tokens list_tokens;
+
+        
 
         int source_id = node_id_global;
 
@@ -311,17 +314,32 @@ class KVSClient {
         Status status = stub_->Get_tokens(&context, request, &list_tokens);
 
         if (status.ok()){
-            return 0;
+            Token token = list_tokens.tokens(0);
+            string serialized_token;
+            token.SerializeToString(&serialized_token);
+            //printf("halllo\n");
+
+            
+            //printf("%s\n",serialized_token.c_str());
+            
+
+            //ret = ecall_store_share(global_eid, serialized_token.c_str());
+
+            /*if (ret != SGX_SUCCESS)
+                abort(); */
+            //printf("halllo2\n");  
+
+            return serialized_token;
         }else{
-            return -1;
+            return "null";
         }
     }
 
-
- 
  private:
   unique_ptr<KVS::Stub> stub_;
 };
+
+
 
 
 
@@ -395,6 +413,7 @@ void ocall_print_string(const char *str)
 
 void ocall_print_token(const char *serialized_token){
     Token token;
+    
 
     token.ParseFromString(serialized_token);
     printf("***************Received Token begin*********************\n");
@@ -418,7 +437,8 @@ void ocall_print_token(const char *serialized_token){
 }
 
 void ocall_send_token(const char *serialized_token, int* next_node_id){
-    printf("next node id: %d\n", *next_node_id);
+    //printf("next node id: %d\n", *next_node_id);
+
     KVSClient* kvs;
     Token token; 
     int offset = 50000;
@@ -429,13 +449,18 @@ void ocall_send_token(const char *serialized_token, int* next_node_id){
     delete kvs;
 }
 
-void ocall_get_tokens(int* node_id){
+void ocall_get_tokens(int* node_id, char* serialized_token){
     KVSClient* kvs;
     int offset = 50000;
-
+    
     kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*node_id)) , grpc::InsecureChannelCredentials()));
-    kvs->Get_tokens();
-    delete kvs:
+    string serialized_token_ = kvs->Get_tokens();
+    delete kvs;
+
+    //printf("and thennn ?\n");
+
+    strncpy(serialized_token, serialized_token_.c_str(), strlen(serialized_token));
+
 }
 
 
@@ -463,6 +488,7 @@ void test_share_lost_keys(int current_port, int offset, int n_servers, int start
         kvs->Share_lost_keys(current_id, S_up_ids); //******************************2
         delete kvs;
     }
+    
 
     /*for (const auto& key : global_lost_keys_set) {
         cout << key << endl;

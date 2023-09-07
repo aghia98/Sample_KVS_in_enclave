@@ -213,9 +213,22 @@ class KVSServiceImpl final : public KVS::Service {
         char serialized_token[1000];
         memset(serialized_token, 'A', 999);
         
-        ret = ecall_get_tokens(global_eid, source->id(), serialized_token);
+        sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+        
+        int source_ = source->id();
+        ret = ecall_get_tokens(global_eid, &source_, serialized_token);
         if (ret != SGX_SUCCESS)
             abort();
+
+        //ocall_print_token(serialized_token);
+
+        Token token;
+        token.ParseFromString(serialized_token);
+
+        *(list_tokens->add_tokens()) = token;
+
+
+        return Status::OK;
         
     }
 };
@@ -372,11 +385,6 @@ int initialize_enclave(void)
     }
 
     return 0;
-}
-
-void ocall_print_number(int* num){
-    printf("%d", *num);
-    fflush(stdout);
 }
 
 /* OCall functions */

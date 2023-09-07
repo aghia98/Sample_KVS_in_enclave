@@ -60,12 +60,44 @@ int node_id;
 
 #define ULP 2
 
+char hexDigit(int value) {
+    if (value >= 0 && value <= 9) {
+        return '0' + value;
+    } else {
+        return 'A' + (value - 10);
+    }
+}
 
-/*char* convertCString(std::string str) {
-    char* cstr = new char[str.length() + 1];  // +1 for null-terminator
-    strcpy(cstr, str.c_str());
-    return cstr;
-}*/
+void intToHex(int num, char *hex) {
+    hex[0] = hexDigit((num >> 4) & 0xF);
+    hex[1] = hexDigit(num & 0xF);
+    hex[2] = '\0'; // Null-terminate the string
+}
+
+string convertToHex(const vector<int>& input, int x_share, int t) {
+    string result;
+    
+    char hex[3];
+
+    intToHex(x_share, hex);
+    result += hex[0];
+    result += hex[1];
+
+    intToHex(t, hex);
+    result += hex[0];
+    result += hex[1];
+
+    result += "AA";
+
+    for (int i = 0; i < input.size(); i++) {
+        intToHex(input[i], hex);
+        result += hex[0];
+        result += hex[1];
+    }
+
+    return result;
+}
+
 
 void copyString(std::string source, char* destination) {
     for (std::size_t i = 0; i < source.length(); ++i) {
@@ -98,11 +130,11 @@ void ecall_put(char key[], char val[]){
     string key_string(key);
     string val_string(val);
     myMap[key_string]=val;
+
 }
 
 void ecall_get(char key[], char* val){
   string key_string(key);
-  string ex="server650";
   
   auto iterator = myMap.find(key_string);
   string source;
@@ -409,14 +441,60 @@ void distributed_polynomial_interpolation(Token token){
     }
 }
 
+void store_share(const char *serialized_token){
+    Token token;
+    
+    token.ParseFromString(serialized_token);
+    vector<int> got_share;
+    int value;
+    
+
+    printf("size of cumul: %d\n", token.cumul_size());
+    for(int i = 0; i < token.cumul_size(); i++){
+        value = token.cumul(i);
+        if(value==1){
+            break;
+        }
+        //token.set_cumul(i, value-1);
+        got_share.push_back((value-1)%257);
+    }
+    string hex_share = convertToHex(got_share, node_id, t);
+
+    char token_key_char[100];
+
+    //copyString(std::string source, char* destination);
+    char key[100];
+    char share[410];
+    copyString(token.key(), key);
+    copyString(hex_share, share);
+
+    ecall_put(key, share);
+
+    //*************************************************
+    char value_[410];
+    memset(value_, 'A', 409);
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    char* cstring_k = "Secret_1";
+    ecall_get(cstring_k, value_);
+}
+
 
 void recover_lost_share(string& key, vector<int> t_share_owners){
     int len_cumul = 410;
     Token token = init_token(key,t_share_owners, len_cumul);
     distributed_polynomial_interpolation(token);
-    printf("Suceess of distributed polynomial interpolation\n");
+    printf("Success of distributed polynomial interpolation\n");
     int token_owner_id = t_share_owners.back();
-    ocall_get_tokens(&token_owner_id);
+    //printf("token_owner_id: %d\n",token_owner_id);
+
+    //get token from its last owner
+    char serialized_token[1000];
+    memset(serialized_token, 'A', 999);
+    ocall_get_tokens(&token_owner_id, serialized_token);
+
+    //store share
+    store_share(serialized_token);
+  
     //delete share from potential last owner
 }
 
@@ -440,7 +518,7 @@ void ecall_recover_lost_shares(){
             t_shares_owners.push_back(stoi(share_owner));
         }
         recover_lost_share(key, t_shares_owners);
-        break; //just for example
+        //break; //just for example
         
         /*printf("Key: %s\n",key.c_str());
         printf("potential last share owner: %s\n", potential_last_share_owner.c_str());
@@ -449,3 +527,8 @@ void ecall_recover_lost_shares(){
     //flush lost_keys_with_potential_last_share_owner_and_t_shares_owners
     
 }
+
+
+
+
+
