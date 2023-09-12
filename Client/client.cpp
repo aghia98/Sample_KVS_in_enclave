@@ -77,33 +77,6 @@ class KVSClient {
     }
   }
 
-   int Share_lost_keys(int id){
-    New_id_with_S_up_ids request;
-    request.set_new_id(id); // Replace with the desired ID value
-    request.add_s_up_ids(33);
-    request.add_s_up_ids(34);
-
-
-    // Create a Lost_keys response
-    Lost_keys response;
-
-    ClientContext context;
-    Status status = stub_->Share_lost_keys(&context, request, &response);
-
-    if (status.ok()) {
-        std::cout << "Lost Keys: ";
-        for (const auto& key : response.keys()) {
-            std::cout << key.key() << " ";
-        }
-        std::cout << std::endl;
-    } else {
-        std::cerr << "RPC failed";
-    }
-
-    return 0;
-
-  }
-
  private:
   unique_ptr<KVS::Stub> stub_;
 };
@@ -162,24 +135,6 @@ void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_ad
   }
 }
 
-/*void transmit_shares(string k, char** shares, int n, string ip_address, int port){
-  string v;
-  string fixed = ip_address+":";
-  string reply;
-  KVSClient* kvs;
-  //int unavailable_nodes=0;
-
-  for(int i=0; i<n; i++){ //transmitting shares
-    if(isPortOpen("127.0.0.1", port+i)){
-      kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+i) , grpc::InsecureChannelCredentials()));
-      v = shares[i];
-      reply = kvs->Put(k,v);
-      cout << "Client received: " << reply << endl;
-    
-      delete kvs;
-    } 
-  }
-}*/
 
 string* get_shares(string k, int n, int t, string ip_address, int port){
   string fixed = ip_address+":";
@@ -221,16 +176,7 @@ void display_vector(const vector<T>& vec) {
     std::cout << std::endl;
 }
 
-void test_share_lost_keys(){
-  KVSClient* kvs;
-  kvs = new KVSClient(grpc::CreateChannel("localhost:50001" , grpc::InsecureChannelCredentials()));
-  kvs->Share_lost_keys(5);
-  delete kvs;
-}
 
-/*int main(){
-  test_share_lost_keys();
-}*/
 
 int main(int argc, char** argv) { // ./client -t x -n y --address localhost < secrets.txt
 
@@ -264,7 +210,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
       }
   }
 
-  vector<int> list_of_N_ports = {50001,50002,50003,50004,50005}; int offset=50000;
+  vector<int> list_of_N_ports = {50001,50002,50003,50004,50005,50006}; int offset=50000;
   vector<int> ids_of_N_active;
   vector<string> strings_with_id_of_N_active;
   vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;

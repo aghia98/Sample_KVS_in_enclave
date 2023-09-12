@@ -128,6 +128,8 @@ void ecall_get(char key[], char* val){
 void ecall_delete(char key[]){
   string key_string(key);
   myMap.erase(key_string);
+  
+  //printf("%s deleted \n", key);
 }
 
 //********************************************************************************************************************************

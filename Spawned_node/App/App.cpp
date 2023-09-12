@@ -236,6 +236,24 @@ class KVSClient {
             return "RPC failed";
         }
     }
+
+    string Delete(const string key){
+        ClientContext context;
+        Key request;
+        request.set_key(key);
+        Value reply;
+
+        Status status = stub_->Delete(&context, request, &reply);
+
+        if (status.ok()) {
+            return reply.value();
+        } else {
+            cout << status.error_code() << ": " << status.error_message() << endl;
+            return "RPC failed";
+        }
+    }
+
+
      
     int Share_lost_keys(int id, vector<int> s_up_ids){
         New_id_with_S_up_ids request;
@@ -461,6 +479,16 @@ void ocall_get_tokens(int* node_id, char* serialized_token){
 
     strncpy(serialized_token, serialized_token_.c_str(), strlen(serialized_token));
 
+}
+
+void ocall_delete_last_share(int* node_id, const char* key){
+    KVSClient* kvs;
+    int offset = 50000;
+    printf("Share to delete: %s from %d\n",key, *node_id);
+
+    kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*node_id)) , grpc::InsecureChannelCredentials()));
+    kvs->Delete(key);
+    delete kvs;
 }
 
 

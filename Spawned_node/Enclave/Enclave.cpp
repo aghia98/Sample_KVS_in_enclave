@@ -449,7 +449,7 @@ void store_share(const char *serialized_token){
     int value;
     
 
-    printf("size of cumul: %d\n", token.cumul_size());
+    //printf("size of cumul: %d\n", token.cumul_size());
     for(int i = 0; i < token.cumul_size(); i++){
         value = token.cumul(i);
         if(value==1){
@@ -494,17 +494,18 @@ void recover_lost_share(string& key, vector<int> t_share_owners){
 
     //store share
     store_share(serialized_token);
-  
-    //delete share from potential last owner
 }
 
-
+void delete_last_share(int potential_last_share_owner, string key){
+    ocall_delete_last_share(&potential_last_share_owner, key.c_str());
+}
 
 void ecall_recover_lost_shares(){
     vector<string> splitted_key_potential_last_share_owner_t_shares_owners;
     string key;
     string potential_last_share_owner;
     vector<int> t_shares_owners;
+    
     for(string lost_key_with_potential_last_share_owner_and_t_shares_owners: lost_keys_with_potential_last_share_owner_and_t_shares_owners){
         //printf("%s\n",lost_key_with_potential_last_share_owner_and_t_shares_owners);
         splitted_key_potential_last_share_owner_t_shares_owners = splitString(lost_key_with_potential_last_share_owner_and_t_shares_owners, '|');
@@ -517,7 +518,13 @@ void ecall_recover_lost_shares(){
         for (string& share_owner: splitString(splitted_key_potential_last_share_owner_t_shares_owners[2], ',')){
             t_shares_owners.push_back(stoi(share_owner));
         }
+
         recover_lost_share(key, t_shares_owners);
+
+        if(potential_last_share_owner != "null"){
+             delete_last_share(stoi(potential_last_share_owner), key);
+        }
+
         //break; //just for example
         
         /*printf("Key: %s\n",key.c_str());

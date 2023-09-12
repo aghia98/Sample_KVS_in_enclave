@@ -299,7 +299,7 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secre
         return -1; 
     }
 
-    vector<int> list_of_N_ports = {50001,50002,50003,50004,50005}; int offset=50000;
+    vector<int> list_of_N_ports = {50001,50002,50003,50004,50005,50006}; int offset=50000;
     vector<int> ids_of_N_active;
     vector<string> strings_with_id_of_N_active;
     vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
