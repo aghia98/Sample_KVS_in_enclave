@@ -160,6 +160,9 @@ class KVSServiceImpl final : public KVS::Service {
     Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
         put(request->key(), request->value());
         response->set_value("PUT_SUCCESS");
+
+        cout << "Node received :" << endl;
+        cout << "( " << request->key() << " , " << request->value() << " ) \n" << endl;
         return Status::OK;
   }
 
@@ -422,7 +425,7 @@ void ocall_print_token(const char *serialized_token){
 }
 
 void ocall_send_token(const char *serialized_token, int* next_node_id){
-    printf("next node id: %d\n", *next_node_id);
+    //printf("next node id: %d\n", *next_node_id);
     KVSClient* kvs;
     Token token; 
     int offset = 50000;

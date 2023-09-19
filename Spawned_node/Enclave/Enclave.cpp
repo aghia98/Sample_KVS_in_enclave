@@ -455,7 +455,6 @@ void store_share(const char *serialized_token){
         if(value==1){
             break;
         }
-        //token.set_cumul(i, value-1);
         got_share.push_back((value-1)%257);
     }
     string hex_share = convertToHex(got_share, node_id, t);
@@ -467,6 +466,8 @@ void store_share(const char *serialized_token){
     char share[410];
     copyString(token.key(), key);
     copyString(hex_share, share);
+
+    printf("\nRecreated share: %s\n", share);
 
     ecall_put(key, share);
 
@@ -483,7 +484,7 @@ void recover_lost_share(string& key, vector<int> t_share_owners){
     int len_cumul = 410;
     Token token = init_token(key,t_share_owners, len_cumul);
     distributed_polynomial_interpolation(token);
-    printf("Success of distributed polynomial interpolation\n");
+    //printf("Success of distributed polynomial interpolation\n");
     int token_owner_id = t_share_owners.back();
     //printf("token_owner_id: %d\n",token_owner_id);
 
@@ -532,6 +533,7 @@ void ecall_recover_lost_shares(){
         printf("t_shares_owners: %s\n", t_shares_owners.c_str()); */
     }
     //flush lost_keys_with_potential_last_share_owner_and_t_shares_owners
+    lost_keys_with_potential_last_share_owner_and_t_shares_owners.clear();
     
 }
 

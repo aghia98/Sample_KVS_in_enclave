@@ -365,7 +365,7 @@ void distributed_polynomial_interpolation(Token token){
             x_shares[i] = token.path(i);
         }
 
-        printf("share: %s\n",share);
+        //printf("share: %s\n",share);
 
         int* sub_share = partial_recovery_of_share_from_one_share(share, token.initiator_id() , x_shares, token.path().size());
         
@@ -388,11 +388,11 @@ void distributed_polynomial_interpolation(Token token){
             ocall_send_token(serialized_token.c_str(), &next_node_id);
         }else{ //store the token
             
-            printf("heeeeeeeeeeeeeeereeee ready to store\n");
+            //printf("heeeeeeeeeeeeeeereeee ready to store\n");
             
             token.SerializeToString(&serialized_token);
             temp_token = serialized_token;
-            ocall_print_token(serialized_token.c_str());
+            //ocall_print_token(serialized_token.c_str());
         }
     }else{
         if(token.passes()==0){
@@ -436,7 +436,7 @@ void ecall_recover_lost_shares(){
             t_shares_owners.push_back(stoi(share_owner));
         }
         recover_lost_share(key, t_shares_owners);
-        break; //just for example
+        //break; //just for example
         /*printf("Key: %s\n",key.c_str());
         printf("potential last share owner: %s\n", potential_last_share_owner.c_str());
         printf("t_shares_owners: %s\n", t_shares_owners.c_str()); */
@@ -448,6 +448,7 @@ void ecall_recover_lost_shares(){
 void ecall_get_tokens(int* token_initiator_id, char* serialized_token){
    
     strncpy(serialized_token, temp_token.c_str(), strlen(serialized_token));
+    temp_token = "";
     
 }
 

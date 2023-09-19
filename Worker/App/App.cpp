@@ -265,10 +265,11 @@ vector<int> get_ids_of_N_active(vector<int>& list_of_N_ports, int offset){
 string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_address, int t){
     int port;
     int offset=50000;
+    int node_id;
     //int got_shares=0;
     KVSClient* kvs;
     string shares = "";
-    string reply;
+    string share = "";
     string fixed = ip_address+":";
     vector<string> strings_with_id_of_N_active = convert_ids_to_strings_with_id(ids_of_N_active, "server");
     vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,secret_id); //Order according to HRW
@@ -276,9 +277,13 @@ string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_addre
 
     for(int i=0; i<t; i++){
         pair = ordered_strings_with_id_to_hash[i];
-        port = extractNumber(pair.first) + offset;
+        node_id = extractNumber(pair.first);
+        port =  node_id + offset;
         kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port), grpc::InsecureChannelCredentials()));
-        shares += kvs->Get(secret_id)+'\n'; 
+        share = kvs->Get(secret_id);
+        cout << "Got share from node id = " << node_id <<" : " << share << endl;
+        shares += share+'\n'; 
+        
         delete kvs;
     }
 
@@ -335,12 +340,16 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secre
     ids_of_N_active = get_ids_of_N_active(list_of_N_ports, offset);
     if(ids_of_N_active.size() >= t){
         string shares_string = get_shares(ids_of_N_active, secret_id, ip_address, t);
-        char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
-        cout << shares_string << endl;
+        //cout << shares_string << endl;
 
+        char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
+        
         copyString(shares_string, combined_shares); 
         string secret = rebuild_secret(combined_shares);
-        cout << secret << endl;
+        
+        printf("\n");
+        cout << "Rebuilt secret : "<< secret << endl;
+        
         free(combined_shares);
 
     }else{
@@ -350,7 +359,7 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secre
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);
 
-    printf("Worker closed \n");
+    printf("\nWorker closed \n");
     
     return 0;
 }

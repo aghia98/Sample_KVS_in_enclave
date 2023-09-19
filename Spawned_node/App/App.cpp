@@ -335,17 +335,6 @@ class KVSClient {
             Token token = list_tokens.tokens(0);
             string serialized_token;
             token.SerializeToString(&serialized_token);
-            //printf("halllo\n");
-
-            
-            //printf("%s\n",serialized_token.c_str());
-            
-
-            //ret = ecall_store_share(global_eid, serialized_token.c_str());
-
-            /*if (ret != SGX_SUCCESS)
-                abort(); */
-            //printf("halllo2\n");  
 
             return serialized_token;
         }else{

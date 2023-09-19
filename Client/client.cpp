@@ -128,8 +128,11 @@ void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_ad
     kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(x_share+offset) , grpc::InsecureChannelCredentials()));
     v = shares[i];
     reply = kvs->Put(k,v);
-    cout << "Client received: " << reply << endl;
+    cout << "Share transmitted to node id = " << x_share << ": " << endl;
+    cout << v << endl;
+    cout << "Result: " << reply << endl;
     i++;
+    printf("\n");
 
     delete kvs;
   }
@@ -228,6 +231,8 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
   cout << "dynamic ";
   cout << "security level." << endl;
 
+  cout << "\nSecrets' split :\n" << endl;
+
   //read secrets from file
   cin.sync_with_stdio(false);
   if (cin.rdbuf()->in_avail() != 0) {
@@ -249,7 +254,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
             for(int i=0; i<n;i++){ //extract top-n nodes'id
               auto pair = ordered_strings_with_id_to_hash[i];
               string server_with_id = pair.first;
-              cout << "ID: " << server_with_id << ", Hash: " << pair.second << endl;
+              //cout << "ID: " << server_with_id << ", Hash: " << pair.second << endl;
               shares_x.push_back(extractNumber(server_with_id));
 
             }
@@ -258,11 +263,13 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
 
             char ** shares = generate_share_strings(secret, n, t, shares_x);
           
-            for(int i=0; i<n; i++) cout << shares[i] << endl; 
-
-            //transmit_shares(k, shares, n, ip_address, port);
+            //for(int i=0; i<n; i++) cout << shares[i] << endl; 
+            
+            cout << " ( " << k << " , " << secret << " )\n" << endl;
 
             transmit_shares(k, shares, shares_x, ip_address, offset);
+
+            cout << "\n-------------------------------------------\n" << endl;
             
             free_string_shares(shares, n);
             secret_num++; 
