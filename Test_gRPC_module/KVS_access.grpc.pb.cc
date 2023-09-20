@@ -26,8 +26,6 @@ static const char* KVS_method_names[] = {
   "/keyvaluestore.KVS/Put",
   "/keyvaluestore.KVS/Delete",
   "/keyvaluestore.KVS/Share_lost_keys",
-  "/keyvaluestore.KVS/Partial_Polynomial_interpolation",
-  "/keyvaluestore.KVS/Get_tokens",
 };
 
 std::unique_ptr< KVS::Stub> KVS::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -41,8 +39,6 @@ KVS::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const
   , rpcmethod_Put_(KVS_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Delete_(KVS_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Share_lost_keys_(KVS_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Partial_Polynomial_interpolation_(KVS_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Get_tokens_(KVS_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status KVS::Stub::Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response) {
@@ -137,52 +133,6 @@ void KVS::Stub::async::Share_lost_keys(::grpc::ClientContext* context, const ::k
   return result;
 }
 
-::grpc::Status KVS::Stub::Partial_Polynomial_interpolation(::grpc::ClientContext* context, const ::token::Token& request, ::keyvaluestore::Value* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::token::Token, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Partial_Polynomial_interpolation_, context, request, response);
-}
-
-void KVS::Stub::async::Partial_Polynomial_interpolation(::grpc::ClientContext* context, const ::token::Token* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::token::Token, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Partial_Polynomial_interpolation_, context, request, response, std::move(f));
-}
-
-void KVS::Stub::async::Partial_Polynomial_interpolation(::grpc::ClientContext* context, const ::token::Token* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Partial_Polynomial_interpolation_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::PrepareAsyncPartial_Polynomial_interpolationRaw(::grpc::ClientContext* context, const ::token::Token& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::Value, ::token::Token, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Partial_Polynomial_interpolation_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::AsyncPartial_Polynomial_interpolationRaw(::grpc::ClientContext* context, const ::token::Token& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncPartial_Polynomial_interpolationRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
-::grpc::Status KVS::Stub::Get_tokens(::grpc::ClientContext* context, const ::keyvaluestore::Node_id& request, ::keyvaluestore::List_tokens* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::Node_id, ::keyvaluestore::List_tokens, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Get_tokens_, context, request, response);
-}
-
-void KVS::Stub::async::Get_tokens(::grpc::ClientContext* context, const ::keyvaluestore::Node_id* request, ::keyvaluestore::List_tokens* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::Node_id, ::keyvaluestore::List_tokens, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Get_tokens_, context, request, response, std::move(f));
-}
-
-void KVS::Stub::async::Get_tokens(::grpc::ClientContext* context, const ::keyvaluestore::Node_id* request, ::keyvaluestore::List_tokens* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Get_tokens_, context, request, response, reactor);
-}
-
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::List_tokens>* KVS::Stub::PrepareAsyncGet_tokensRaw(::grpc::ClientContext* context, const ::keyvaluestore::Node_id& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::List_tokens, ::keyvaluestore::Node_id, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Get_tokens_, context, request);
-}
-
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::List_tokens>* KVS::Stub::AsyncGet_tokensRaw(::grpc::ClientContext* context, const ::keyvaluestore::Node_id& request, ::grpc::CompletionQueue* cq) {
-  auto* result =
-    this->PrepareAsyncGet_tokensRaw(context, request, cq);
-  result->StartCall();
-  return result;
-}
-
 KVS::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KVS_method_names[0],
@@ -224,26 +174,6 @@ KVS::Service::Service() {
              ::keyvaluestore::Lost_keys* resp) {
                return service->Share_lost_keys(ctx, req, resp);
              }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      KVS_method_names[4],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< KVS::Service, ::token::Token, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](KVS::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::token::Token* req,
-             ::keyvaluestore::Value* resp) {
-               return service->Partial_Polynomial_interpolation(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      KVS_method_names[5],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< KVS::Service, ::keyvaluestore::Node_id, ::keyvaluestore::List_tokens, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](KVS::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::keyvaluestore::Node_id* req,
-             ::keyvaluestore::List_tokens* resp) {
-               return service->Get_tokens(ctx, req, resp);
-             }, this)));
 }
 
 KVS::Service::~Service() {
@@ -271,20 +201,6 @@ KVS::Service::~Service() {
 }
 
 ::grpc::Status KVS::Service::Share_lost_keys(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Lost_keys* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-::grpc::Status KVS::Service::Partial_Polynomial_interpolation(::grpc::ServerContext* context, const ::token::Token* request, ::keyvaluestore::Value* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-}
-
-::grpc::Status KVS::Service::Get_tokens(::grpc::ServerContext* context, const ::keyvaluestore::Node_id* request, ::keyvaluestore::List_tokens* response) {
   (void) context;
   (void) request;
   (void) response;

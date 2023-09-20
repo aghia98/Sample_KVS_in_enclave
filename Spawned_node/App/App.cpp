@@ -46,9 +46,11 @@
 #include "../../gRPC_module/grpc_server.h"
 #include "../../gRPC_module/grpc_client.h"
 
+#include "../../Token_module/grpc_server.h"
+#include "../../Token_module/grpc_client.h"
+
 #include "Enclave_u.h"
 
-using namespace token;
 
 //Global variables;
 int node_id_global;
@@ -150,28 +152,28 @@ static sgx_errlist_t sgx_errlist[] = {
 
 
 // Logic and data behind the server's behavior.
-class KVSServiceImpl final : public KVS::Service {
+class KVSServiceImpl final : public keyvaluestore::KVS::Service {
 
-    Status Get(ServerContext* context, const Key* key, Value* value) override {
+    Status Get(ServerContext* context, const keyvaluestore::Key* key, keyvaluestore::Value* value) override {
         value->set_value(get(key->key()));
         
         return Status::OK;
     }
 
 
-    Status Put(ServerContext* context, const KV_pair* request, Value* response) override {
+    Status Put(ServerContext* context, const keyvaluestore::KV_pair* request, keyvaluestore::Value* response) override {
         put(request->key(), request->value());
         response->set_value("PUT_SUCCESS");
         return Status::OK;
   }
 
-    Status Delete(ServerContext* context, const Key* key, Value* response) override{
+    Status Delete(ServerContext* context, const keyvaluestore::Key* key, keyvaluestore::Value* response) override{
         delete_(key->key());
         response->set_value("DELETE_SUCCESS");
         return Status::OK;
   }
 
-    Status Share_lost_keys(ServerContext* context, const New_id_with_S_up_ids* request, Lost_keys* response) override {
+    Status Share_lost_keys(ServerContext* context, const keyvaluestore::New_id_with_S_up_ids* request, keyvaluestore::Lost_keys* response) override {
         
         vector<int> s_up_ids;
 
@@ -184,7 +186,7 @@ class KVSServiceImpl final : public KVS::Service {
         
         //checking result
         for (set<string>::iterator it = lost_keys.begin(); it != lost_keys.end(); ++it) {
-            Key* key = response->add_keys();
+            keyvaluestore::Key* key = response->add_keys();
             key->set_key(*it);
         }
 
@@ -196,13 +198,13 @@ class KVSServiceImpl final : public KVS::Service {
 //set<string> global_lost_keys_set; //global variable
 class KVSClient {
  public:
-  KVSClient(std::shared_ptr<Channel> channel): stub_(KVS::NewStub(channel)) {}
+  KVSClient(std::shared_ptr<Channel> channel): stub_(keyvaluestore::KVS::NewStub(channel)) {}
 
     string Get(const string k) {
-    Key key;
+    keyvaluestore::Key key;
     key.set_key(k);
 
-    Value reply;
+    keyvaluestore::Value reply;
 
     ClientContext context;
 
@@ -220,10 +222,10 @@ class KVSClient {
 
     string Put(const string k, const string v) {
         // Follows the same pattern as SayHello.
-        KV_pair request;
+        keyvaluestore::KV_pair request;
         request.set_key(k);
         request.set_value(v);
-        Value reply;
+        keyvaluestore::Value reply;
         ClientContext context;
 
         // Here we can use the stub's newly available method we just added.
@@ -239,9 +241,9 @@ class KVSClient {
 
     string Delete(const string key){
         ClientContext context;
-        Key request;
+        keyvaluestore::Key request;
         request.set_key(key);
-        Value reply;
+        keyvaluestore::Value reply;
 
         Status status = stub_->Delete(&context, request, &reply);
 
@@ -253,16 +255,14 @@ class KVSClient {
         }
     }
 
-
-     
     int Share_lost_keys(int id, vector<int> s_up_ids){
-        New_id_with_S_up_ids request;
+        keyvaluestore::New_id_with_S_up_ids request;
         request.set_new_id(id); // Replace with the desired ID value
         for(auto& s_up_id : s_up_ids) request.add_s_up_ids(s_up_id);
         
 
         // Create a Lost_keys response
-        Lost_keys response_local;
+        keyvaluestore::Lost_keys response_local;
         set<string> local_lost_keys_set;
 
         ClientContext context;
@@ -288,41 +288,91 @@ class KVSClient {
         return 0;
   }
 
-    string Partial_Polynomial_interpolation(Token token) {
+ private:
+  unique_ptr<keyvaluestore::KVS::Stub> stub_;
+};
 
-        Value reply;
-        ClientContext context;
 
-        CompletionQueue cq;
-        Status status;
+class TokenServiceImpl final : public tokengrpc::Token::Service {
+    
+    /*Status Partial_Polynomial_interpolation(ServerContext* context, const token::Token* token, tokengrpc::Value* response) override {
+        string serialized_token;
+        token->SerializeToString(&serialized_token);
 
-        std::unique_ptr<ClientAsyncResponseReader<Value> > rpc(
-        stub_->AsyncPartial_Polynomial_interpolation(&context, token, &cq));
-        rpc->Finish(&reply, &status, (void*)1);
+        sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+        ret = ecall_distributed_PI(global_eid, serialized_token.c_str());
+        if (ret != SGX_SUCCESS)
+            abort();
+        
+        response->set_value("PARTIAL_INTERPOLATION_SUCCESS");
 
-        void* got_tag;
-        bool ok = false;
-        cq.Next(&got_tag, &ok);
-        if (ok && got_tag == (void*)1) {
-            if (status.ok()) {
-                return reply.value();
-            } else {
-                std::cout << status.error_code() << ": " << status.error_message() << std::endl;
-                return "RPC failed";
+        return Status::OK;
+    }
+
+    Status Get_tokens(ServerContext* context, const tokengrpc::Node_id* source, tokengrpc::List_tokens* list_tokens){
+        char serialized_token[1000];
+        memset(serialized_token, 'A', 999);
+        
+        sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+        
+        int source_ = source->id();
+        ret = ecall_get_tokens(global_eid, &source_, serialized_token);
+        if (ret != SGX_SUCCESS)
+            abort();
+
+        //ocall_print_token(serialized_token);
+
+        token::Token token;
+        token.ParseFromString(serialized_token);
+
+        *(list_tokens->add_tokens()) = token;
+
+
+        return Status::OK;    
+    }*/
+
+}; 
+
+class TokenClient {
+    public:
+        TokenClient(std::shared_ptr<Channel> channel): stub_(tokengrpc::Token::NewStub(channel)) {}
+
+        string Partial_Polynomial_interpolation(token::Token token) {
+
+            tokengrpc::Value reply;
+            ClientContext context;
+
+            CompletionQueue cq;
+            Status status;
+
+
+            std::unique_ptr<ClientAsyncResponseReader<tokengrpc::Value> > rpc(
+                stub_->AsyncPartial_Polynomial_interpolation(&context, token, &cq));
+            
+            rpc->Finish(&reply, &status, (void*)1);
+            
+            void* got_tag;
+            bool ok = false;
+            cq.Next(&got_tag, &ok);
+            if (ok && got_tag == (void*)1) {
+                if (status.ok()) {
+                    return reply.value();
+                } else {
+                    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+                    return "RPC failed";
+                }
             }
-        }
+            
 
-        /*status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
-        if (status.ok()) return reply.value();
-        std::cout << status.error_code() << ": " << status.error_message() << std::endl;
-        return "RPC failed"; */
+            /*status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
+            if (status.ok()) return reply.value();
+            std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+            return "RPC failed"; */
   }
 
   string Get_tokens(){
-        Node_id request;
-        List_tokens list_tokens;
-
-        
+        tokengrpc::Node_id request;
+        tokengrpc::List_tokens list_tokens;
 
         int source_id = node_id_global;
 
@@ -332,7 +382,7 @@ class KVSClient {
         Status status = stub_->Get_tokens(&context, request, &list_tokens);
 
         if (status.ok()){
-            Token token = list_tokens.tokens(0);
+            token::Token token = list_tokens.tokens(0);
             string serialized_token;
             token.SerializeToString(&serialized_token);
 
@@ -342,11 +392,10 @@ class KVSClient {
         }
     }
 
- private:
-  unique_ptr<KVS::Stub> stub_;
+
+    private:
+        unique_ptr<tokengrpc::Token::Stub> stub_;
 };
-
-
 
 
 
@@ -419,7 +468,7 @@ void ocall_print_string(const char *str)
 }
 
 void ocall_print_token(const char *serialized_token){
-    Token token;
+    token::Token token;
     
 
     token.ParseFromString(serialized_token);
@@ -446,23 +495,28 @@ void ocall_print_token(const char *serialized_token){
 void ocall_send_token(const char *serialized_token, int* next_node_id){
     //printf("next node id: %d\n", *next_node_id);
 
-    KVSClient* kvs;
-    Token token; 
+    TokenClient* token_client;
+    token::Token token; 
     int offset = 50000;
 
+
     token.ParseFromString(serialized_token);
-    kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*next_node_id)) , grpc::InsecureChannelCredentials()));
-    kvs->Partial_Polynomial_interpolation(token);
-    delete kvs;
+    
+    token_client = new TokenClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*next_node_id)) , grpc::InsecureChannelCredentials()));
+    token_client->Partial_Polynomial_interpolation(token);
+    delete token_client;
 }
 
 void ocall_get_tokens(int* node_id, char* serialized_token){
-    KVSClient* kvs;
+    TokenClient* token_client;
     int offset = 50000;
     
-    kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*node_id)) , grpc::InsecureChannelCredentials()));
-    string serialized_token_ = kvs->Get_tokens();
-    delete kvs;
+    token_client = new TokenClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*node_id)) , grpc::InsecureChannelCredentials()));
+    string serialized_token_ = token_client->Get_tokens();
+    
+    //ocall_print_token(serialized_token_.c_str());
+    
+    delete token_client;
 
     //printf("and thennn ?\n");
 
@@ -519,7 +573,8 @@ void recover_lost_shares_wrapper(){
 void RunServer(uint16_t port) {
  
     std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
-    KVSServiceImpl service;
+    KVSServiceImpl kvs_service;
+    TokenServiceImpl token_service;
 
     grpc::EnableDefaultHealthCheckService(true);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
@@ -528,7 +583,8 @@ void RunServer(uint16_t port) {
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     // Register "service" as the instance through which we'll communicate with
     // clients. In this case it corresponds to an *synchronous* service.
-    builder.RegisterService(&service);
+    builder.RegisterService(&kvs_service);
+    builder.RegisterService(&token_service);
     // Finally assemble the server.
     std::unique_ptr<Server> server(builder.BuildAndStart());
 

@@ -147,13 +147,13 @@ static sgx_errlist_t sgx_errlist[] = {
 
 class KVSClient {
  public:
-  KVSClient(std::shared_ptr<Channel> channel): stub_(KVS::NewStub(channel)) {}
+  KVSClient(std::shared_ptr<Channel> channel): stub_(keyvaluestore::KVS::NewStub(channel)) {}
 
   string Get(const string k) {
-    Key key;
+    keyvaluestore::Key key;
     key.set_key(k);
 
-    Value reply;
+    keyvaluestore::Value reply;
 
     ClientContext context;
 
@@ -170,7 +170,7 @@ class KVSClient {
   }
 
  private:
-  unique_ptr<KVS::Stub> stub_;
+  unique_ptr<keyvaluestore::KVS::Stub> stub_;
 };
 
 /* Check error conditions for loading enclave */

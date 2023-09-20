@@ -36,13 +36,13 @@ ABSL_FLAG(std::string, target, "localhost:50001", "Server address");
 
 class KVSClient {
  public:
-  KVSClient(std::shared_ptr<Channel> channel): stub_(KVS::NewStub(channel)) {}
+  KVSClient(std::shared_ptr<Channel> channel): stub_(keyvaluestore::KVS::NewStub(channel)) {}
 
   string Get(const string k) {
-    Key key;
+    keyvaluestore::Key key;
     key.set_key(k);
 
-    Value reply;
+    keyvaluestore::Value reply;
 
     ClientContext context;
 
@@ -60,10 +60,10 @@ class KVSClient {
 
   string Put(const string k, const string v) {
     // Follows the same pattern as SayHello.
-    KV_pair request;
+    keyvaluestore::KV_pair request;
     request.set_key(k);
     request.set_value(v);
-    Value reply;
+    keyvaluestore::Value reply;
     ClientContext context;
 
     // Here we can use the stub's newly available method we just added.
@@ -78,7 +78,7 @@ class KVSClient {
   }
 
  private:
-  unique_ptr<KVS::Stub> stub_;
+  unique_ptr<keyvaluestore::KVS::Stub> stub_;
 };
 
 bool isPortOpen(const std::string& ipAddress, int port) {

@@ -385,7 +385,7 @@ void distributed_polynomial_interpolation(Token token){
     string serialized_token;
 
     token.SerializeToString(&serialized_token);
-    //ocall_print_token(serialized_token.c_str());
+    
 
     if(node_id!=token.initiator_id()){
         //TBD: compute the partial sum
@@ -483,6 +483,11 @@ void store_share(const char *serialized_token){
 void recover_lost_share(string& key, vector<int> t_share_owners){
     int len_cumul = 410;
     Token token = init_token(key,t_share_owners, len_cumul);
+    
+    /*string serialized_token__;
+    token.SerializeToString(&serialized_token__);
+    ocall_print_token(serialized_token__.c_str());*/
+    
     distributed_polynomial_interpolation(token);
     //printf("Success of distributed polynomial interpolation\n");
     int token_owner_id = t_share_owners.back();

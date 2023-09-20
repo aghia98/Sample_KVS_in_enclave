@@ -10,9 +10,6 @@ protoc-kvs:
 	protoc --grpc_out=. --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` KVS_access.proto 
 	protoc --cpp_out=. KVS_access.proto
 
-protoc-token:
-	protoc --cpp_out=. token.proto
-
 client:
 	g++ -c KVS_access.pb.cc KVS_access.grpc.pb.cc token.pb.cc client.cpp $(INCLUDES)
 	g++ *.o $(LDFLAGS) -o client
