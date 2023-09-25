@@ -12,7 +12,7 @@ LDFLAGS_GRPC = $(LIBRARY_GRPC_PATH)\
            -ldl	
 
 #SOURCES_GRPC += ../gRPC_module/src/
-INCLUDES += -I$(HOME)/usr/local/include 
+INCLUDES += -I$(HOME)/usr/local/include
 
 all:
 	g++ -c client.cpp $(INCLUDES)

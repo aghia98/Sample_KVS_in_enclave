@@ -17,6 +17,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <memory>
 #include <string>
@@ -27,11 +28,16 @@
 #include "../gRPC_module/grpc_client.h"
 #include "../SS_no_gmp_module/ss-client.h"
 #include "../HRW_hashing_module/hrw.h"
+#include "../json/json.hpp"
 
 using namespace std;
+using json = nlohmann::json;
+
+int offset = 50000;
 
 
 ABSL_FLAG(std::string, target, "localhost:50001", "Server address");
+
 
 
 class KVSClient {
@@ -108,6 +114,31 @@ bool isPortOpen(const std::string& ipAddress, int port) {
     return true;
 }
 
+map<int, string> parse_json(const string& file_location){
+
+  ifstream file(file_location);
+  if (!file.is_open()) {
+      std::cerr << "Failed to open JSON file." << std::endl;
+  }
+
+  json jsonData;
+  try {
+      file >> jsonData;
+  } catch (json::parse_error& e) {
+      std::cerr << "JSON parsing error: " << e.what() << std::endl;
+  }
+
+  map<int, std::string> resultMap;
+
+  for (auto it = jsonData.begin(); it != jsonData.end(); ++it) {
+      int key = std::stoi(it.key());
+      std::string value = it.value();
+      resultMap[key] = value;
+  }
+
+  return resultMap;
+
+}
 
 int number_of_open_ports_among_n(int starting_port, int n){
   int cpt=0;
@@ -117,7 +148,7 @@ int number_of_open_ports_among_n(int starting_port, int n){
   return cpt;
 }
 
-void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_address, int offset){ //the share (x_share, y_share) is sent to node port offset+x_share
+void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_address){ //the share (x_share, y_share) is sent to node port offset+x_share
   string v;
   string fixed = ip_address+":";
   string reply;
@@ -139,7 +170,7 @@ void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_ad
 }
 
 
-string* get_shares(string k, int n, int t, string ip_address, int port){
+/*string* get_shares(string k, int n, int t, string ip_address, int port){
   string fixed = ip_address+":";
   string reply;
   KVSClient* kvs;
@@ -160,30 +191,34 @@ string* get_shares(string k, int n, int t, string ip_address, int port){
   }
 
   return shares;
-}
+}*/
 
-vector<int> get_ids_of_N_active(vector<int>& list_of_N_ports, int offset){
+vector<int> get_ids_of_N_active(map<int,string>& id_to_port_map){
   vector<int> result;
-  for(int port: list_of_N_ports){
-    if (isPortOpen("127.0.0.1", port)) result.push_back(port-offset);
+
+  for (const auto& entry : id_to_port_map) {
+    if (isPortOpen("127.0.0.1", stoi(entry.second))) result.push_back(entry.first);
   }
 
   return result;
 }
 
-template <typename T>
+/*template <typename T>
 void display_vector(const vector<T>& vec) {
     for (auto& element : vec) {
         std::cout << element << " ";
     }
     std::cout << std::endl;
-}
+} */
 
 
 
 int main(int argc, char** argv) { // ./client -t x -n y --address localhost < secrets.txt
 
 	seed_random();
+
+  map<int, std::string> id_to_port_map = parse_json("network.json");
+  
 
   char** shares;
   int t;
@@ -213,7 +248,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
       }
   }
 
-  vector<int> list_of_N_ports = {50001,50002,50003,50004,50005,50006}; int offset=50000;
+  //vector<int> list_of_N_ports = {50001,50002,50003,50004,50005,50006}; 
   vector<int> ids_of_N_active;
   vector<string> strings_with_id_of_N_active;
   vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
@@ -240,7 +275,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
       int secret_num = 1;
       while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
           
-          ids_of_N_active = get_ids_of_N_active(list_of_N_ports, offset);
+          ids_of_N_active = get_ids_of_N_active(id_to_port_map);
 
           if(ids_of_N_active.size() >= n){ // enough active SMS nodes
             k = "Secret_"+to_string(secret_num);
@@ -267,7 +302,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
             
             cout << " ( " << k << " , " << secret << " )\n" << endl;
 
-            transmit_shares(k, shares, shares_x, ip_address, offset);
+            transmit_shares(k, shares, shares_x, ip_address);
 
             cout << "\n-------------------------------------------\n" << endl;
             
