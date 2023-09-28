@@ -51,11 +51,18 @@
 
 #include "Enclave_u.h"
 
+#include <fstream>
+#include "../../json/json.hpp"
+using json = nlohmann::json;
+
 
 //Global variables;
 int node_id_global;
 int t_global;
 int n_global;
+int offset = 50000;
+map<int, string> id_to_port_map;
+
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -150,6 +157,31 @@ static sgx_errlist_t sgx_errlist[] = {
     },
 };
 
+map<int, string> parse_json(const string& file_location){
+
+  ifstream file(file_location);
+  if (!file.is_open()) {
+      std::cerr << "Failed to open JSON file." << std::endl;
+  }
+
+  json jsonData;
+  try {
+      file >> jsonData;
+  } catch (json::parse_error& e) {
+      std::cerr << "JSON parsing error: " << e.what() << std::endl;
+  }
+
+  map<int, std::string> resultMap;
+
+  for (auto it = jsonData.begin(); it != jsonData.end(); ++it) {
+      int key = std::stoi(it.key());
+      std::string value = it.value();
+      resultMap[key] = value;
+  }
+
+  return resultMap;
+
+}
 
 // Logic and data behind the server's behavior.
 class KVSServiceImpl final : public keyvaluestore::KVS::Service {
@@ -497,21 +529,19 @@ void ocall_send_token(const char *serialized_token, int* next_node_id){
 
     TokenClient* token_client;
     token::Token token; 
-    int offset = 50000;
 
 
     token.ParseFromString(serialized_token);
     
-    token_client = new TokenClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*next_node_id)) , grpc::InsecureChannelCredentials()));
+    token_client = new TokenClient(grpc::CreateChannel("localhost:"+id_to_port_map[*next_node_id] , grpc::InsecureChannelCredentials()));
     token_client->Partial_Polynomial_interpolation(token);
     delete token_client;
 }
 
 void ocall_get_tokens(int* node_id, char* serialized_token){
     TokenClient* token_client;
-    int offset = 50000;
     
-    token_client = new TokenClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*node_id)) , grpc::InsecureChannelCredentials()));
+    token_client = new TokenClient(grpc::CreateChannel("localhost:"+id_to_port_map[*node_id] , grpc::InsecureChannelCredentials()));
     string serialized_token_ = token_client->Get_tokens();
     
     //ocall_print_token(serialized_token_.c_str());
@@ -526,10 +556,9 @@ void ocall_get_tokens(int* node_id, char* serialized_token){
 
 void ocall_delete_last_share(int* node_id, const char* key){
     KVSClient* kvs;
-    int offset = 50000;
     printf("Share to delete: %s from %d\n",key, *node_id);
 
-    kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*node_id)) , grpc::InsecureChannelCredentials()));
+    kvs = new KVSClient(grpc::CreateChannel("localhost:"+id_to_port_map[*node_id] , grpc::InsecureChannelCredentials()));
     kvs->Delete(key);
     delete kvs;
 }
@@ -537,26 +566,22 @@ void ocall_delete_last_share(int* node_id, const char* key){
 
 //***********************************************************************************************
 
-void test_share_lost_keys(int current_port, int offset, int n_servers, int starting_port){
+void test_share_lost_keys(){
     KVSClient* kvs;
-    int current_id = current_port - offset;
 
     vector<int> S_up_ids;
-    for(int i=0; i<n_servers; i++){
 
-        int port = starting_port+i;
-
-        if(port!=current_port){
-            if(isPortOpen("127.0.0.1", port)) {
-                
-                S_up_ids.push_back(port-offset);
+    for(const auto& pair : id_to_port_map){
+        if(pair.first != node_id_global){
+            if(isPortOpen("127.0.0.1", stoi(pair.second))) {
+                S_up_ids.push_back(pair.first);
             }
         }
-        
     }
+
     for(int s_up_id : S_up_ids){
-        kvs = new KVSClient(grpc::CreateChannel("localhost:"+to_string(offset+s_up_id) , grpc::InsecureChannelCredentials()));
-        kvs->Share_lost_keys(current_id, S_up_ids); //******************************2
+        kvs = new KVSClient(grpc::CreateChannel("localhost:"+id_to_port_map[s_up_id] , grpc::InsecureChannelCredentials()));
+        kvs->Share_lost_keys(node_id_global, S_up_ids); //******************************2
         delete kvs;
     }
     
@@ -601,6 +626,7 @@ ABSL_FLAG(uint16_t, n, 5, "number of all shares");
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
 {   
+    id_to_port_map = parse_json("network.json");
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
         getchar();
@@ -610,20 +636,17 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
     absl::ParseCommandLine(argc, argv);
 
     uint16_t port = absl::GetFlag(FLAGS_port);
-    int offset = 50000;
-    int t = absl::GetFlag(FLAGS_t);
-    int n = absl::GetFlag(FLAGS_n);
-    int node_id = port - offset;
+    
 
-    t_global = t;
-    n_global = n;
-    node_id_global = node_id;
+    t_global = absl::GetFlag(FLAGS_t);
+    n_global = absl::GetFlag(FLAGS_n);
+    node_id_global = port - offset;
 
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_send_params_to_enclave(global_eid, &node_id, &t, &n);
+    ret = ecall_send_params_to_enclave(global_eid, &node_id_global, &t_global, &n_global);
     if (ret != SGX_SUCCESS)
         abort();
-    test_share_lost_keys(port, offset, 5, 50001);//****************1
+    test_share_lost_keys();//****************1
     recover_lost_shares_wrapper();
 
     RunServer(port);

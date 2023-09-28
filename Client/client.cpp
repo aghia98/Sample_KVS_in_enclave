@@ -28,12 +28,15 @@
 #include "../gRPC_module/grpc_client.h"
 #include "../SS_no_gmp_module/ss-client.h"
 #include "../HRW_hashing_module/hrw.h"
-#include "../json/json.hpp"
 
-using namespace std;
+#include "../json/json.hpp"
 using json = nlohmann::json;
 
-int offset = 50000;
+using namespace std;
+
+
+
+map<int, std::string> id_to_port_map;
 
 
 ABSL_FLAG(std::string, target, "localhost:50001", "Server address");
@@ -156,7 +159,7 @@ void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_ad
   int i=0;
 
   for(int x_share : x_shares){
-    kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(x_share+offset) , grpc::InsecureChannelCredentials()));
+    kvs = new KVSClient(grpc::CreateChannel(fixed+id_to_port_map[x_share] , grpc::InsecureChannelCredentials()));
     v = shares[i];
     reply = kvs->Put(k,v);
     cout << "Share transmitted to node id = " << x_share << ": " << endl;
@@ -217,7 +220,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
 
 	seed_random();
 
-  map<int, std::string> id_to_port_map = parse_json("network.json");
+  id_to_port_map = parse_json("network.json");
   
 
   char** shares;

@@ -48,6 +48,10 @@
 #include "../../Token_module/grpc_server.h"
 #include "../../Token_module/grpc_client.h"
 
+#include <fstream>
+#include "../../json/json.hpp"
+using json = nlohmann::json;
+
 
 #include "Enclave_u.h"
 
@@ -55,6 +59,8 @@
 int node_id_global;
 int t_global;
 int n_global;
+int offset = 50000;
+map<int, string> id_to_port_map;
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -149,6 +155,31 @@ static sgx_errlist_t sgx_errlist[] = {
     },
 };
 
+map<int, string> parse_json(const string& file_location){
+
+  ifstream file(file_location);
+  if (!file.is_open()) {
+      std::cerr << "Failed to open JSON file." << std::endl;
+  }
+
+  json jsonData;
+  try {
+      file >> jsonData;
+  } catch (json::parse_error& e) {
+      std::cerr << "JSON parsing error: " << e.what() << std::endl;
+  }
+
+  map<int, std::string> resultMap;
+
+  for (auto it = jsonData.begin(); it != jsonData.end(); ++it) {
+      int key = std::stoi(it.key());
+      std::string value = it.value();
+      resultMap[key] = value;
+  }
+
+  return resultMap;
+
+}
 
 // Logic and data behind the server's behavior.
 class KVSServiceImpl final : public keyvaluestore::KVS::Service {
@@ -461,10 +492,10 @@ void ocall_send_token(const char *serialized_token, int* next_node_id){
     //printf("next node id: %d\n", *next_node_id);
     TokenClient* token_client;
     token::Token token; 
-    int offset = 50000;
+    
 
     token.ParseFromString(serialized_token);
-    token_client = new TokenClient(grpc::CreateChannel("localhost:"+to_string(offset+ (*next_node_id)) , grpc::InsecureChannelCredentials()));
+    token_client = new TokenClient(grpc::CreateChannel("localhost:"+id_to_port_map[*next_node_id] , grpc::InsecureChannelCredentials()));
     token_client->Partial_Polynomial_interpolation(token);
     delete token_client;
 }
@@ -477,6 +508,7 @@ ABSL_FLAG(uint16_t, n, 5, "number of all shares");
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
 {
+    id_to_port_map = parse_json("network.json");
 
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
@@ -487,17 +519,13 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
     absl::ParseCommandLine(argc, argv);
 
     uint16_t port = absl::GetFlag(FLAGS_port);
-    int offset = 50000;
-    int t = absl::GetFlag(FLAGS_t);
-    int n = absl::GetFlag(FLAGS_n);
-    int node_id = port - offset;
 
-    t_global = t;
-    n_global = n;
-    node_id_global = node_id;
+    t_global = absl::GetFlag(FLAGS_t);
+    n_global = absl::GetFlag(FLAGS_n);
+    node_id_global = port-offset;
     
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_send_params_to_enclave(global_eid, &node_id, &t, &n);
+    ret = ecall_send_params_to_enclave(global_eid, &node_id_global, &t_global, &n_global);
     if (ret != SGX_SUCCESS)
         abort();
 

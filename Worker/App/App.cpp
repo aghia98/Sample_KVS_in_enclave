@@ -49,7 +49,14 @@
 
 #include "Enclave_u.h"
 
+#include <fstream>
+#include "../../json/json.hpp"
+using json = nlohmann::json;
+
 using namespace std;
+
+//int offset = 50000;
+map<int, string> id_to_port_map;
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -143,6 +150,32 @@ static sgx_errlist_t sgx_errlist[] = {
         NULL
     },
 };
+
+map<int, string> parse_json(const string& file_location){
+
+  ifstream file(file_location);
+  if (!file.is_open()) {
+      std::cerr << "Failed to open JSON file." << std::endl;
+  }
+
+  json jsonData;
+  try {
+      file >> jsonData;
+  } catch (json::parse_error& e) {
+      std::cerr << "JSON parsing error: " << e.what() << std::endl;
+  }
+
+  map<int, std::string> resultMap;
+
+  for (auto it = jsonData.begin(); it != jsonData.end(); ++it) {
+      int key = std::stoi(it.key());
+      std::string value = it.value();
+      resultMap[key] = value;
+  }
+
+  return resultMap;
+
+}
 
 
 class KVSClient {
@@ -253,10 +286,11 @@ bool isPortOpen(const std::string& ipAddress, int port) {
     return true;
 }
 
-vector<int> get_ids_of_N_active(vector<int>& list_of_N_ports, int offset){
+vector<int> get_ids_of_N_active(map<int,string>& id_to_port_map){
   vector<int> result;
-  for(int port: list_of_N_ports){
-    if (isPortOpen("127.0.0.1", port)) result.push_back(port-offset);
+
+  for (const auto& entry : id_to_port_map) {
+    if (isPortOpen("127.0.0.1", stoi(entry.second))) result.push_back(entry.first);
   }
 
   return result;
@@ -264,7 +298,6 @@ vector<int> get_ids_of_N_active(vector<int>& list_of_N_ports, int offset){
 
 string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_address, int t){
     int port;
-    int offset=50000;
     int node_id;
     //int got_shares=0;
     KVSClient* kvs;
@@ -278,8 +311,7 @@ string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_addre
     for(int i=0; i<t; i++){
         pair = ordered_strings_with_id_to_hash[i];
         node_id = extractNumber(pair.first);
-        port =  node_id + offset;
-        kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port), grpc::InsecureChannelCredentials()));
+        kvs = new KVSClient(grpc::CreateChannel(fixed+id_to_port_map[node_id], grpc::InsecureChannelCredentials()));
         share = kvs->Get(secret_id);
         cout << "Got share from node id = " << node_id <<" : " << share << endl;
         shares += share+'\n'; 
@@ -297,14 +329,16 @@ ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secret_id <secret_id> -t <t>
- 
+    
+    id_to_port_map = parse_json("network.json");
+
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
         getchar();
         return -1; 
     }
 
-    vector<int> list_of_N_ports = {50001,50002,50003,50004,50005,50006}; int offset=50000;
+    //vector<int> list_of_N_ports = {50001,50002,50003,50004,50005,50006};
     vector<int> ids_of_N_active;
     vector<string> strings_with_id_of_N_active;
     vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
@@ -337,7 +371,7 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secre
                 return 1;
         }
     }
-    ids_of_N_active = get_ids_of_N_active(list_of_N_ports, offset);
+    ids_of_N_active = get_ids_of_N_active(id_to_port_map);
     if(ids_of_N_active.size() >= t){
         string shares_string = get_shares(ids_of_N_active, secret_id, ip_address, t);
         //cout << shares_string << endl;
