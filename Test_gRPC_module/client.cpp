@@ -45,7 +45,6 @@ using keyvaluestore::Value;
 using keyvaluestore::KV_pair;
 using keyvaluestore::New_id_with_S_up_ids;
 using keyvaluestore::Lost_keys;
-using token::Token;
 
 using namespace std;
 
@@ -116,44 +115,6 @@ class KVSClient {
     }
   }
 
-  string Partial_Polynomial_interpolation(Token token) {
-
-    Value reply;
-    ClientContext context;
-
-    CompletionQueue cq;
-    Status status;
-
-    std::unique_ptr<ClientAsyncResponseReader<Value> > rpc(
-      stub_->AsyncPartial_Polynomial_interpolation(&context, token, &cq));
-    
-    rpc->Finish(&reply, &status, (void*)1);
-    
-    std::cout << "Not waitinnng" << std::endl;
-    std::cout << "Not waitinnng" << std::endl;
-    std::cout << "Not waitinnng" << std::endl;
-    std::cout << "Not waitinnng" << std::endl;
-    std::cout << "Not waitinnng" << std::endl;
-    
-    void* got_tag;
-    bool ok = false;
-    cq.Next(&got_tag, &ok);
-    if (ok && got_tag == (void*)1) {
-        if (status.ok()) {
-            return reply.value();
-        } else {
-            std::cout << status.error_code() << ": " << status.error_message() << std::endl;
-            return "RPC failed";
-        }
-    }
-    //std::cout << "Not waitinnng" << std::endl;
-    //return reply.value();
-    /*status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
-    if (status.ok()) return reply.value();
-    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
-    return "RPC failed";*/
-  }
-
   int Share_lost_keys(int id){
     New_id_with_S_up_ids request;
     request.set_new_id(id); 
@@ -194,7 +155,7 @@ int main(int argc, char** argv) { // ./client --target localhost:50001
   KVSClient kvs(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
   
-  /*string k("aghiles33");
+  string k("aghiles33");
   string v("0758908571");
 
   reply = kvs.Put(k,v);
@@ -209,16 +170,9 @@ int main(int argc, char** argv) { // ./client --target localhost:50001
   reply = kvs.Get(k);
   std::cout << "Get ....Client received: " << reply << std::endl;
 
-  reply = kvs.Share_lost_keys(10);*/
+  //reply = kvs.Share_lost_keys(10);
 
-  Token token;
-  token.set_initiator_id(54);
-  token.set_key("sqdazr");
-  token.set_cumul(0);
-  token.set_passes(0); 
-
-  reply = kvs.Partial_Polynomial_interpolation(token);
-  std::cout << "Partial_Polynomial_interpolation ....Client received: " << reply << std::endl;
+  
 
   return 0;
 }
