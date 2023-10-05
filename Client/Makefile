@@ -1,4 +1,4 @@
-LIBRARY_GRPC_PATH = `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`
+LIBRARY_GRPC_PATH = `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse` -lsystemd
 LIBRARY_GRPCKVS_PATH = -L../gRPC_module
 LIBRARY_SS_PATH = -L../SS_no_gmp_module
 LIBRARY_HRW_PATH = -L../HRW_hashing_module

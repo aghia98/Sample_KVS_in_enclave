@@ -31,7 +31,7 @@
 #include "KVS_access.grpc.pb.h"
 #endif
 
-ABSL_FLAG(std::string, target, "localhost:50001", "Server address");
+ABSL_FLAG(std::string, target, "10.9.0.5:50001", "Server address");
 
 using grpc::Channel;
 using grpc::ClientContext;
