@@ -177,7 +177,7 @@ vector<int> get_ids_of_N_active(map<int,string>& id_to_address_map){
   vector<int> result;
 
   for (const auto& entry : id_to_address_map) {
-    if (isPortOpen(entry.second, 50000)) result.push_back(entry.first);
+    if (isPortOpen(entry.second, default_sms_port)) result.push_back(entry.first);
   }
 
   return result;
