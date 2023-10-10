@@ -56,7 +56,8 @@ using json = nlohmann::json;
 using namespace std;
 
 //int offset = 50000;
-map<int, string> id_to_port_map;
+map<int, string> id_to_address_map;
+int default_sms_port = 50000;
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -286,24 +287,23 @@ bool isPortOpen(const std::string& ipAddress, int port) {
     return true;
 }
 
-vector<int> get_ids_of_N_active(map<int,string>& id_to_port_map){
+vector<int> get_ids_of_N_active(map<int,string>& id_to_address_map){
   vector<int> result;
 
-  for (const auto& entry : id_to_port_map) {
-    if (isPortOpen("127.0.0.1", stoi(entry.second))) result.push_back(entry.first);
+  for (const auto& entry : id_to_address_map) {
+    if (isPortOpen(entry.second, default_sms_port)) result.push_back(entry.first);
   }
 
   return result;
 }
 
-string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_address, int t){
+string get_shares(vector<int> ids_of_N_active, string secret_id, int t){
     int port;
     int node_id;
     //int got_shares=0;
     KVSClient* kvs;
     string shares = "";
     string share = "";
-    string fixed = ip_address+":";
     vector<string> strings_with_id_of_N_active = convert_ids_to_strings_with_id(ids_of_N_active, "server");
     vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,secret_id); //Order according to HRW
     pair<string, uint32_t> pair; 
@@ -311,7 +311,7 @@ string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_addre
     for(int i=0; i<t; i++){
         pair = ordered_strings_with_id_to_hash[i];
         node_id = extractNumber(pair.first);
-        kvs = new KVSClient(grpc::CreateChannel(fixed+id_to_port_map[node_id], grpc::InsecureChannelCredentials()));
+        kvs = new KVSClient(grpc::CreateChannel(id_to_address_map[node_id]+":"+to_string(default_sms_port), grpc::InsecureChannelCredentials()));
         share = kvs->Get(secret_id);
         cout << "Got share from node id = " << node_id <<" : " << share << endl;
         shares += share+'\n'; 
@@ -328,9 +328,9 @@ string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_addre
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 
 /* Application entry */
-int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secret_id <secret_id> -t <t>
+int SGX_CDECL main(int argc, char *argv[]){ // ./app --secret_id <secret_id> -t <t>
     
-    id_to_port_map = parse_json("network.json");
+    id_to_address_map = parse_json("network.json");
 
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
@@ -344,12 +344,10 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secre
     vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
     int n;
     int t;
-    //int port;
-    string ip_address;
     string secret_id;
 
     struct option long_options[] = {
-        {"address", required_argument, nullptr, 'a'},
+        //{"address", required_argument, nullptr, 'a'},
         {"secret_id", required_argument, nullptr, 's'},
         {nullptr, 0, nullptr, 0}
     };
@@ -357,9 +355,6 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secre
     int option;
     while ((option = getopt_long(argc, argv, "t:", long_options, nullptr)) != -1) {
         switch (option) {
-            case 'a':
-                ip_address = optarg;
-                break;
             case 's':
                 secret_id = optarg;
                 break;
@@ -367,13 +362,13 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secre
                 t = atoi(optarg);
                 break;
             default:
-                cerr << "Usage: " << argv[0] << " --address <address> --secret_id <secret_id> -t <t> -n <n>" << endl; //TBD: --port_init should be dynamically found
+                cerr << "Usage: " << argv[0] << "--secret_id <secret_id> -t <t> -n <n>" << endl; //TBD: --port_init should be dynamically found
                 return 1;
         }
     }
-    ids_of_N_active = get_ids_of_N_active(id_to_port_map);
+    ids_of_N_active = get_ids_of_N_active(id_to_address_map);
     if(ids_of_N_active.size() >= t){
-        string shares_string = get_shares(ids_of_N_active, secret_id, ip_address, t);
+        string shares_string = get_shares(ids_of_N_active, secret_id, t);
         //cout << shares_string << endl;
 
         char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
