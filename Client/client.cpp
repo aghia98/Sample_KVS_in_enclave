@@ -36,7 +36,8 @@ using namespace std;
 
 
 
-map<int, std::string> id_to_port_map;
+map<int, std::string> id_to_address_map;
+int default_sms_port = 50000;
 
 
 ABSL_FLAG(std::string, target, "localhost:50001", "Server address");
@@ -143,23 +144,22 @@ map<int, string> parse_json(const string& file_location){
 
 }
 
-int number_of_open_ports_among_n(int starting_port, int n){
+/*int number_of_open_ports_among_n(int starting_port, int n){
   int cpt=0;
   for(int i=0; i<n; i++){
     if(isPortOpen("127.0.0.1", starting_port+i)) cpt++;
   }
   return cpt;
-}
+}*/
 
-void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_address){ //the share (x_share, y_share) is sent to node port offset+x_share
+void transmit_shares(string k, char** shares, vector<int> x_shares){ //the share (x_share, y_share) is sent to node port offset+x_share
   string v;
-  string fixed = ip_address+":";
   string reply;
   KVSClient* kvs;
   int i=0;
 
   for(int x_share : x_shares){
-    kvs = new KVSClient(grpc::CreateChannel(fixed+id_to_port_map[x_share] , grpc::InsecureChannelCredentials()));
+    kvs = new KVSClient(grpc::CreateChannel(id_to_address_map[x_share]+":"+to_string(default_sms_port) , grpc::InsecureChannelCredentials()));
     v = shares[i];
     reply = kvs->Put(k,v);
     cout << "Share transmitted to node id = " << x_share << ": " << endl;
@@ -173,34 +173,11 @@ void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_ad
 }
 
 
-/*string* get_shares(string k, int n, int t, string ip_address, int port){
-  string fixed = ip_address+":";
-  string reply;
-  KVSClient* kvs;
-  int got_shares=0;
-  int node_id=0;
-  string* shares = new string[t];
-
-  while(got_shares<t){
-    if(isPortOpen("127.0.0.1", port+node_id)){
-      kvs = new KVSClient(grpc::CreateChannel(fixed+to_string(port+node_id), grpc::InsecureChannelCredentials()));
-      shares[got_shares] = kvs->Get(k);
-      //cout << "Client received from node at port " << port+node_id << ": " << reply << endl;
-
-      delete kvs;
-      got_shares++;
-    }
-    node_id++;
-  }
-
-  return shares;
-}*/
-
-vector<int> get_ids_of_N_active(map<int,string>& id_to_port_map){
+vector<int> get_ids_of_N_active(map<int,string>& id_to_address_map){
   vector<int> result;
 
-  for (const auto& entry : id_to_port_map) {
-    if (isPortOpen("127.0.0.1", stoi(entry.second))) result.push_back(entry.first);
+  for (const auto& entry : id_to_address_map) {
+    if (isPortOpen(entry.second, 50000)) result.push_back(entry.first);
   }
 
   return result;
@@ -216,20 +193,19 @@ void display_vector(const vector<T>& vec) {
 
 
 
-int main(int argc, char** argv) { // ./client -t x -n y --address localhost < secrets.txt
+int main(int argc, char** argv) { // ./client -t x -n y < secrets.txt
 
 	seed_random();
 
-  id_to_port_map = parse_json("network.json");
+  id_to_address_map = parse_json("network.json");
   
 
   char** shares;
   int t;
   int n;
-  string ip_address;
   
   struct option long_options[] = {
-      {"address", required_argument, nullptr, 'a'},
+      //{"address", required_argument, nullptr, 'a'},
       {nullptr, 0, nullptr, 0}
   };
 
@@ -242,11 +218,8 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
           case 'n':
               n = atoi(optarg);
               break;
-          case 'a':
-              ip_address = optarg;
-              break;
           default:
-              cerr << "Usage: " << argv[0] << " -t <t> -n <n> --address <address>" << endl;
+              cerr << "Usage: " << argv[0] << " -t <t> -n <n>" << endl;
               return 1;
       }
   }
@@ -261,7 +234,6 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
   string k;
   string v;
   char secret[200];
-  string fixed = ip_address+":";
   string reply;
   
 
@@ -278,7 +250,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
       int secret_num = 1;
       while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
           
-          ids_of_N_active = get_ids_of_N_active(id_to_port_map);
+          ids_of_N_active = get_ids_of_N_active(id_to_address_map);
 
           if(ids_of_N_active.size() >= n){ // enough active SMS nodes
             k = "Secret_"+to_string(secret_num);
@@ -289,7 +261,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
 
             vector<int> shares_x;
 
-            for(int i=0; i<n;i++){ //extract top-n nodes'id
+            for(int i=0; i<n;i++){ //extract top-n nodes' id
               auto pair = ordered_strings_with_id_to_hash[i];
               string server_with_id = pair.first;
               //cout << "ID: " << server_with_id << ", Hash: " << pair.second << endl;
@@ -305,7 +277,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
             
             cout << " ( " << k << " , " << secret << " )\n" << endl;
 
-            transmit_shares(k, shares, shares_x, ip_address);
+            transmit_shares(k, shares, shares_x);
 
             cout << "\n-------------------------------------------\n" << endl;
             
@@ -317,17 +289,6 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
           }
       }
 
-      //***********************************************************************************************
-      //string* got_shares;
-      //if (number_of_open_ports_among_n(port, n) >= t){
-        //got_shares = get_shares("Secret_1", n, t, ip_address, port);
-        //for(int i=0; i<t; i++){
-          //cout << got_shares[i] << endl;
-        //}
-        //delete[] got_shares;
-      //} else{
-        //cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
-      //}
       
   } else {
       cerr << "No input provided through redirection." << endl;
