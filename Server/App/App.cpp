@@ -59,8 +59,8 @@ using json = nlohmann::json;
 int node_id_global;
 int t_global;
 int n_global;
-int offset = 50000;
-map<int, string> id_to_port_map;
+map<int, string> id_to_address_map;
+int default_sms_port = 50000;
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -495,20 +495,21 @@ void ocall_send_token(const char *serialized_token, int* next_node_id){
     
 
     token.ParseFromString(serialized_token);
-    token_client = new TokenClient(grpc::CreateChannel("localhost:"+id_to_port_map[*next_node_id] , grpc::InsecureChannelCredentials()));
+    token_client = new TokenClient(grpc::CreateChannel(id_to_address_map[*next_node_id]+":"+to_string(default_sms_port) , grpc::InsecureChannelCredentials()));
     token_client->Partial_Polynomial_interpolation(token);
     delete token_client;
 }
 
 
-ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
+//ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 ABSL_FLAG(uint16_t, t, 3, "number of necessary shares");
 ABSL_FLAG(uint16_t, n, 5, "number of all shares");
+ABSL_FLAG(uint16_t, node_id, 1, "node id");
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
 {
-    id_to_port_map = parse_json("network.json");
+    id_to_address_map = parse_json("network.json");
 
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
@@ -518,18 +519,17 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
 
     absl::ParseCommandLine(argc, argv);
 
-    uint16_t port = absl::GetFlag(FLAGS_port);
 
     t_global = absl::GetFlag(FLAGS_t);
     n_global = absl::GetFlag(FLAGS_n);
-    node_id_global = port-offset;
+    node_id_global = absl::GetFlag(FLAGS_node_id);
     
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_send_params_to_enclave(global_eid, &node_id_global, &t_global, &n_global);
     if (ret != SGX_SUCCESS)
         abort();
 
-    RunServer(absl::GetFlag(FLAGS_port));
+    RunServer(default_sms_port);
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);
 
