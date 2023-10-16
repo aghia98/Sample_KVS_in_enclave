@@ -37,6 +37,7 @@
 
 # include <unistd.h>
 # include <pwd.h>
+# include <arpa/inet.h> //check if the grpc server port is open
 # define MAX_PATH FILENAME_MAX
 
 #include "sgx_urts.h"
@@ -198,7 +199,7 @@ class KVSServiceImpl final : public keyvaluestore::KVS::Service {
         cout << "Node received :" << endl;
         cout << "( " << request->key() << " , " << request->value() << " ) \n" << endl;
         return Status::OK;
-  }
+    }
 
     Status Delete(ServerContext* context, const keyvaluestore::Key* key, keyvaluestore::Value* response) override{
         delete_(key->key());
@@ -375,47 +376,93 @@ class TokenClient{
     public:
         TokenClient(std::shared_ptr<Channel> channel): stub_(tokengrpc::Token::NewStub(channel)) {}
 
-        string Partial_Polynomial_interpolation(token::Token token) {
+         string Partial_Polynomial_interpolation(token::Token token) {
 
             tokengrpc::Value reply;
             ClientContext context;
 
-            Status status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
+            CompletionQueue cq;
+            Status status;
+
+
+            std::unique_ptr<ClientAsyncResponseReader<tokengrpc::Value> > rpc(
+                stub_->AsyncPartial_Polynomial_interpolation(&context, token, &cq));
+            
+            rpc->Finish(&reply, &status, (void*)1);
+            
+            void* got_tag;
+            bool ok = false;
+            cq.Next(&got_tag, &ok);
+            if (ok && got_tag == (void*)1) {
+                if (status.ok()) {
+                    return reply.value();
+                } else {
+                    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+                    return "RPC failed";
+                }
+            }
+            
+
+            /*status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
             if (status.ok()) return reply.value();
             std::cout << status.error_code() << ": " << status.error_message() << std::endl;
-            return "RPC failed";
+            return "RPC failed"; */
         }
+
+    string Get_tokens(){
+        tokengrpc::Node_id request;
+        tokengrpc::List_tokens list_tokens;
+
+        int source_id = node_id_global;
+
+        request.set_id(source_id);
+
+        ClientContext context;
+        Status status = stub_->Get_tokens(&context, request, &list_tokens);
+
+        if (status.ok()){
+            token::Token token = list_tokens.tokens(0);
+            string serialized_token;
+            token.SerializeToString(&serialized_token);
+
+            return serialized_token;
+        }else{
+            return "null";
+        }
+    }
 
     private:
         unique_ptr<tokengrpc::Token::Stub> stub_;
     
 };
 
-void RunServer(uint16_t port) {
+bool isPortOpen(const std::string& ipAddress, int port) {
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == -1) {
+        // Failed to create socket
+        return false;
+    }
 
-    std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
-    KVSServiceImpl kvs_service;
-    TokenServiceImpl token_service;
+    struct sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(port);
+    if (inet_pton(AF_INET, ipAddress.c_str(), &(serverAddress.sin_addr)) <= 0) {
+        // Invalid address format
+        close(sock);
+        return false;
+    }
 
-    grpc::EnableDefaultHealthCheckService(true);
-    grpc::reflection::InitProtoReflectionServerBuilderPlugin();
-    ServerBuilder builder;
-    // Listen on the given address without any authentication mechanism.
-    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    // Register "service" as the instance through which we'll communicate with
-    // clients. In this case it corresponds to an *synchronous* service.
-    builder.RegisterService(&kvs_service);
-    builder.RegisterService(&token_service);
+    if (connect(sock, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
+        // Connection failed, port is closed
+        close(sock);
+        return false;
+    }
 
-    
-    // Finally assemble the server.
-    std::unique_ptr<Server> server(builder.BuildAndStart());
-    std::cout << "SMS node listening on " << server_address << std::endl;
-    // Wait for the server to shutdown. Note that some other thread must be
-    // responsible for shutting down the server for this call to ever return.
-
-    server->Wait();
+    // Connection successful, port is open
+    close(sock);
+    return true;
 }
+
 
 /* Check error conditions for loading enclave */
 void print_error_message(sgx_status_t ret)
@@ -457,9 +504,6 @@ int initialize_enclave(void)
 /* OCall functions */
 void ocall_print_string(const char *str)
 {
-    /* Proxy/Bridge will check the length and null-terminate 
-     * the input string to prevent buffer overflow. 
-     */
     printf("%s", str);
     fflush(stdout);
 }
@@ -500,10 +544,90 @@ void ocall_send_token(const char *serialized_token, int* next_node_id){
     delete token_client;
 }
 
+void ocall_get_tokens(int* node_id, char* serialized_token){
+    TokenClient* token_client;
+    
+    token_client = new TokenClient(grpc::CreateChannel("localhost:"+id_to_port_map[*node_id] , grpc::InsecureChannelCredentials()));
+    string serialized_token_ = token_client->Get_tokens();
+    
+    //ocall_print_token(serialized_token_.c_str());
+    
+    delete token_client;
+
+    //printf("and thennn ?\n");
+
+    strncpy(serialized_token, serialized_token_.c_str(), strlen(serialized_token));
+}
+
+void ocall_delete_last_share(int* node_id, const char* key){
+    KVSClient* kvs;
+    printf("Share to delete: %s from %d\n",key, *node_id);
+
+    kvs = new KVSClient(grpc::CreateChannel("localhost:"+id_to_port_map[*node_id] , grpc::InsecureChannelCredentials()));
+    kvs->Delete(key);
+    delete kvs;
+}
+
+void test_share_lost_keys(){
+    KVSClient* kvs;
+
+    vector<int> S_up_ids;
+
+    for(const auto& pair : id_to_port_map){
+        if(pair.first != node_id_global){
+            if(isPortOpen("127.0.0.1", stoi(pair.second))) {
+                S_up_ids.push_back(pair.first);
+            }
+        }
+    }
+
+    for(int s_up_id : S_up_ids){
+        kvs = new KVSClient(grpc::CreateChannel("localhost:"+id_to_port_map[s_up_id] , grpc::InsecureChannelCredentials()));
+        kvs->Share_lost_keys(node_id_global, S_up_ids); //******************************2
+        delete kvs;
+    }
+    
+
+    /*for (const auto& key : global_lost_keys_set) {
+        cout << key << endl;
+    }*/
+}
+
+void recover_lost_shares_wrapper(){
+    recover_lost_shares();
+}
+
+void RunServer(uint16_t port) {
+
+    std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
+    KVSServiceImpl kvs_service;
+    TokenServiceImpl token_service;
+
+    grpc::EnableDefaultHealthCheckService(true);
+    grpc::reflection::InitProtoReflectionServerBuilderPlugin();
+    ServerBuilder builder;
+    // Listen on the given address without any authentication mechanism.
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    // Register "service" as the instance through which we'll communicate with
+    // clients. In this case it corresponds to an *synchronous* service.
+    builder.RegisterService(&kvs_service);
+    builder.RegisterService(&token_service);
+
+    
+    // Finally assemble the server.
+    std::unique_ptr<Server> server(builder.BuildAndStart());
+    std::cout << "SMS node listening on " << server_address << std::endl;
+    // Wait for the server to shutdown. Note that some other thread must be
+    // responsible for shutting down the server for this call to ever return.
+
+    server->Wait();
+}
+
 
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 ABSL_FLAG(uint16_t, t, 3, "number of necessary shares");
 ABSL_FLAG(uint16_t, n, 5, "number of all shares");
+ABSL_FLAG(uint16_t, recovery, 0, "start node without shares recovery");
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
@@ -523,13 +647,19 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
     t_global = absl::GetFlag(FLAGS_t);
     n_global = absl::GetFlag(FLAGS_n);
     node_id_global = port-offset;
+    uint16_t recovery = absl::GetFlag(FLAGS_recovery);
     
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_send_params_to_enclave(global_eid, &node_id_global, &t_global, &n_global);
     if (ret != SGX_SUCCESS)
         abort();
+    
+    if(recovery){
+        test_share_lost_keys();
+        recover_lost_shares_wrapper();
+    }
 
-    RunServer(absl::GetFlag(FLAGS_port));
+    RunServer(port);
     /* Destroy the enclave */
     sgx_destroy_enclave(global_eid);
 
