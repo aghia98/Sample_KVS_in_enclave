@@ -501,13 +501,12 @@ void ocall_send_token(const char *serialized_token, int* next_node_id){
 }
 
 
-//ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
 ABSL_FLAG(uint16_t, t, 3, "number of necessary shares");
 ABSL_FLAG(uint16_t, n, 5, "number of all shares");
 ABSL_FLAG(uint16_t, node_id, 1, "node id");
 
 /* Application entry */
-int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
+int SGX_CDECL main(int argc, char *argv[]) // ./app --node_id 1 --t 3 --n 5
 {
     id_to_address_map = parse_json("network.json");
 

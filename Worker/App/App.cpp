@@ -323,10 +323,6 @@ string get_shares(vector<int> ids_of_N_active, string secret_id, int t){
 }
 
 
-
-
-ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");
-
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[]){ // ./app --secret_id <secret_id> -t <t>
     
