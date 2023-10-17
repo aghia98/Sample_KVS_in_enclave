@@ -71,6 +71,44 @@ string temp_token;
     return cstr;
 }*/
 
+char hexDigit(int value) {
+    if (value >= 0 && value <= 9) {
+        return '0' + value;
+    } else {
+        return 'A' + (value - 10);
+    }
+}
+
+void intToHex(int num, char *hex) {
+    hex[0] = hexDigit((num >> 4) & 0xF);
+    hex[1] = hexDigit(num & 0xF);
+    hex[2] = '\0'; // Null-terminate the string
+}
+
+string convertToHex(const vector<int>& input, int x_share, int t) {
+    string result;
+    
+    char hex[3];
+
+    intToHex(x_share, hex);
+    result += hex[0];
+    result += hex[1];
+
+    intToHex(t, hex);
+    result += hex[0];
+    result += hex[1];
+
+    result += "AA";
+
+    for (int i = 0; i < input.size(); i++) {
+        intToHex(input[i], hex);
+        result += hex[0];
+        result += hex[1];
+    }
+
+    return result;
+}
+
 void copyString(std::string source, char* destination) {
     for (std::size_t i = 0; i < source.length(); ++i) {
         destination[i] = source[i];
@@ -281,7 +319,6 @@ void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char
 void ecall_add_lost_keys(char keys_with_last_share_owner[]){
 
     if(strcmp(keys_with_last_share_owner,"null\n")!=0){
-        string token;
         string line;
         
         while (*keys_with_last_share_owner != '\0') {
@@ -317,7 +354,6 @@ vector<string> splitString(const string& input, char delimiter) {
 
 Token init_token(string& key, vector<int> path, int len_cumul){
     Token token_message;
-    Token token;
 
     // Fill in the fields
     token_message.set_initiator_id(node_id);  // Replace 123 with your desired value
@@ -329,17 +365,17 @@ Token init_token(string& key, vector<int> path, int len_cumul){
     }
     
 
-    token_message.set_passes(2);          // Set the 'passes' field to your desired value
+    token_message.set_passes(0);          // Set the 'passes' field to your desired value
 
     for(const int s_up_id: path){
         token_message.add_path(s_up_id);
     }
 
-    std::string serialized_message;
-    token_message.SerializeToString(&serialized_message);
+    //std::string serialized_message;
+    //token_message.SerializeToString(&serialized_message);
     //local_print_token(serialized_message.c_str());
 
-    ocall_print_token(serialized_message.c_str());
+    //ocall_print_token(serialized_message.c_str());
 
     return token_message;
 }
@@ -404,6 +440,38 @@ void distributed_polynomial_interpolation(Token token){
     }
 }
 
+void store_share(const char *serialized_token){
+    Token token;
+    
+    token.ParseFromString(serialized_token);
+    vector<int> got_share;
+    int value;
+    
+
+    //printf("size of cumul: %d\n", token.cumul_size());
+    for(int i = 0; i < token.cumul_size(); i++){
+        value = token.cumul(i);
+        if(value==1){
+            break;
+        }
+        got_share.push_back((value-1)%257);
+    }
+    string hex_share = convertToHex(got_share, node_id, t);
+
+    char token_key_char[100];
+
+    //copyString(std::string source, char* destination);
+    char key[100];
+    char share[410];
+    copyString(token.key(), key);
+    copyString(hex_share, share);
+
+    printf("\nRecreated share: %s\n", share);
+
+    ecall_put(key, share);
+
+}
+
 void ecall_distributed_PI(const char *serialized_token){
     Token token;
     token.ParseFromString(serialized_token);
@@ -413,8 +481,27 @@ void ecall_distributed_PI(const char *serialized_token){
 void recover_lost_share(string& key, vector<int> t_share_owners){
     int len_cumul = 410;
     Token token = init_token(key,t_share_owners, len_cumul);
+    
+    /*string serialized_token__;
+    token.SerializeToString(&serialized_token__);
+    ocall_print_token(serialized_token__.c_str());*/
+    
     distributed_polynomial_interpolation(token);
-    //delete share from potential last owner
+    //printf("Success of distributed polynomial interpolation\n");
+    int token_owner_id = t_share_owners.back();
+    //printf("token_owner_id: %d\n",token_owner_id);
+
+    //get token from its last owner
+    char serialized_token[1000];
+    memset(serialized_token, 'A', 999);
+    ocall_get_tokens(&token_owner_id, serialized_token);
+
+    //store share
+    store_share(serialized_token);
+}
+
+void delete_last_share(int potential_last_share_owner, string key){
+    ocall_delete_last_share(&potential_last_share_owner, key.c_str());
 }
 
 
@@ -424,24 +511,34 @@ void ecall_recover_lost_shares(){
     string key;
     string potential_last_share_owner;
     vector<int> t_shares_owners;
+    
     for(string lost_key_with_potential_last_share_owner_and_t_shares_owners: lost_keys_with_potential_last_share_owner_and_t_shares_owners){
         //printf("%s\n",lost_key_with_potential_last_share_owner_and_t_shares_owners);
         splitted_key_potential_last_share_owner_t_shares_owners = splitString(lost_key_with_potential_last_share_owner_and_t_shares_owners, '|');
         
         key = splitted_key_potential_last_share_owner_t_shares_owners[0];
+        
         potential_last_share_owner = splitted_key_potential_last_share_owner_t_shares_owners[1];
         
         t_shares_owners.clear();
         for (string& share_owner: splitString(splitted_key_potential_last_share_owner_t_shares_owners[2], ',')){
             t_shares_owners.push_back(stoi(share_owner));
         }
+
         recover_lost_share(key, t_shares_owners);
+
+        if(potential_last_share_owner != "null"){
+             delete_last_share(stoi(potential_last_share_owner), key);
+        }
+
         //break; //just for example
+        
         /*printf("Key: %s\n",key.c_str());
         printf("potential last share owner: %s\n", potential_last_share_owner.c_str());
         printf("t_shares_owners: %s\n", t_shares_owners.c_str()); */
     }
     //flush lost_keys_with_potential_last_share_owner_and_t_shares_owners
+    lost_keys_with_potential_last_share_owner_and_t_shares_owners.clear();
     
 }
 
