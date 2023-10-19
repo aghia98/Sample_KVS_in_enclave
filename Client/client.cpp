@@ -37,6 +37,7 @@ using namespace std;
 
 
 map<int, std::string> id_to_port_map;
+//grpc::CompletionQueue cq;
 
 
 ABSL_FLAG(std::string, target, "localhost:50001", "Server address");
@@ -53,9 +54,9 @@ class KVSClient {
 
     keyvaluestore::Value reply;
 
-    ClientContext context;
+    grpc::ClientContext context;
 
-    Status status = stub_->Get(&context, key, &reply);
+    grpc::Status status = stub_->Get(&context, key, &reply);
 
     // Act upon its status.
     if (status.ok()) {
@@ -157,6 +158,39 @@ void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_ad
   string reply;
   KVSClient* kvs;
   int i=0;
+  
+  /*grpc::CompletionQueue cq;
+  unique_ptr<keyvaluestore::KVS::Stub> stub;
+  vector<ClientContext> contexts(x_shares.size());
+  std::unique_ptr<grpc::ClientAsyncResponseReader<keyvaluestore::Value>> rpc;
+  keyvaluestore::KV_pair request;
+  vector<keyvaluestore::Value> responses(x_shares.size());
+  vector<Status> statuses(x_shares.size());
+  for (int i = 0; i < x_shares.size(); i++){
+    request.set_key(k);
+    request.set_value(shares[i]);
+    stub = keyvaluestore::KVS::NewStub(grpc::CreateChannel(fixed+id_to_port_map[x_shares[i]] , grpc::InsecureChannelCredentials()));
+    rpc = stub->AsyncPut(&contexts[i], request, &cq);
+    rpc->Finish(&responses[i], &statuses[i], (void*)(i+1));
+  }
+  int num_responses_received = 0;
+  while (num_responses_received < x_shares.size()){
+    void* got_tag;
+    bool ok = false;
+    cq.Next(&got_tag, &ok);
+    if (ok){
+      int response_index = reinterpret_cast<intptr_t>(got_tag) - 1;
+      if (statuses[response_index].ok()) {
+        cout << "Share transmitted to node id = " << x_shares[response_index] << ": " << endl;
+        cout << shares[response_index] << endl;
+        printf("\n");
+      } else {
+
+      }
+      num_responses_received++;
+    }
+  }*/
+
 
   for(int x_share : x_shares){
     kvs = new KVSClient(grpc::CreateChannel(fixed+id_to_port_map[x_share] , grpc::InsecureChannelCredentials()));
@@ -219,6 +253,7 @@ void display_vector(const vector<T>& vec) {
 int main(int argc, char** argv) { // ./client -t x -n y --address localhost < secrets.txt
 
 	seed_random();
+
 
   id_to_port_map = parse_json("network.json");
   
@@ -317,18 +352,6 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
           }
       }
 
-      //***********************************************************************************************
-      //string* got_shares;
-      //if (number_of_open_ports_among_n(port, n) >= t){
-        //got_shares = get_shares("Secret_1", n, t, ip_address, port);
-        //for(int i=0; i<t; i++){
-          //cout << got_shares[i] << endl;
-        //}
-        //delete[] got_shares;
-      //} else{
-        //cout << "less than t=" << t << " SMS nodes are available. Please retry later." << endl;
-      //}
-      
   } else {
       cerr << "No input provided through redirection." << endl;
       return 1;

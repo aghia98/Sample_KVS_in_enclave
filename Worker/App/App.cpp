@@ -297,7 +297,6 @@ vector<int> get_ids_of_N_active(map<int,string>& id_to_port_map){
 }
 
 string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_address, int t){
-    int port;
     int node_id;
     //int got_shares=0;
     KVSClient* kvs;
@@ -307,6 +306,42 @@ string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_addre
     vector<string> strings_with_id_of_N_active = convert_ids_to_strings_with_id(ids_of_N_active, "server");
     vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,secret_id); //Order according to HRW
     pair<string, uint32_t> pair; 
+
+
+    /*grpc::CompletionQueue cq;
+    unique_ptr<keyvaluestore::KVS::Stub> stub;
+    vector<ClientContext> contexts(t);
+    std::unique_ptr<grpc::ClientAsyncResponseReader<keyvaluestore::Value>> rpc;
+    keyvaluestore::Key request;
+    request.set_key(secret_id);
+    vector<keyvaluestore::Value> responses(t);
+    vector<Status> statuses(t);
+    for (int i = 0; i < t; i++){
+        pair = ordered_strings_with_id_to_hash[i];
+        node_id = extractNumber(pair.first);
+        stub = keyvaluestore::KVS::NewStub(grpc::CreateChannel(fixed+id_to_port_map[node_id] , grpc::InsecureChannelCredentials()));
+        rpc = stub->AsyncGet(&contexts[i], request, &cq);
+        rpc->Finish(&responses[i], &statuses[i], (void*)(i+1));
+    }
+    int num_responses_received = 0;
+    while (num_responses_received < t){
+        void* got_tag;
+        bool ok = false;
+        cq.Next(&got_tag, &ok);
+        if (ok){
+            int response_index = reinterpret_cast<intptr_t>(got_tag) - 1;
+            if (statuses[response_index].ok()) {
+                share = responses[response_index].value();
+                cout << "Got share from node id = " << extractNumber(ordered_strings_with_id_to_hash[response_index].first) <<" : " << share << endl;
+                shares += share+'\n'; 
+            } else {
+                 std::cout << statuses[response_index].error_code() << ": " << statuses[response_index].error_message()
+                << std::endl;
+            }
+        } else {
+        }
+        num_responses_received++;
+    }*/
 
     for(int i=0; i<t; i++){
         pair = ordered_strings_with_id_to_hash[i];
@@ -319,10 +354,8 @@ string get_shares(vector<int> ids_of_N_active, string secret_id, string ip_addre
         delete kvs;
     }
 
-  return shares;
+    return shares;
 }
-
-
 
 
 ABSL_FLAG(uint16_t, port, 50001, "Server port for the service");

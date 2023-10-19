@@ -89,6 +89,16 @@
         "any": "cpp",
         "forward_list": "cpp",
         "valarray": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "test": "cpp",
+        "complex": "cpp",
+        "csignal": "cpp",
+        "list": "cpp",
+        "regex": "cpp",
+        "span": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp",
+        "cfenv": "cpp",
+        "filesystem": "cpp"
     }
 }

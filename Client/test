@@ -1,0 +1,56 @@
+KVSClient(std::shared_ptr<Channel> channel): stub_(keyvaluestore::KVS::NewStub(channel)) {}
+
+  string Put(const string k, const string v) {
+    // Follows the same pattern as SayHello.
+    keyvaluestore::KV_pair request;
+    request.set_key(k);
+    request.set_value(v);
+    keyvaluestore::Value reply;
+    ClientContext context;
+
+    // Here we can use the stub's newly available method we just added.
+    Status status = stub_->Put(&context, request, &reply);
+    if (status.ok()) {
+      return reply.value();
+    } else {
+      cout << status.error_code() << ": " << status.error_message()
+                << endl;
+      return "RPC failed";
+    }
+  }
+
+
+  TokenClient(std::shared_ptr<Channel> channel): stub_(tokengrpc::Token::NewStub(channel)) {}
+
+         string Partial_Polynomial_interpolation(token::Token token) {
+
+            tokengrpc::Value reply;
+            ClientContext context;
+
+            CompletionQueue cq;
+            Status status;
+
+
+            std::unique_ptr<ClientAsyncResponseReader<tokengrpc::Value> > rpc(
+                stub_->AsyncPartial_Polynomial_interpolation(&context, token, &cq));
+            
+            rpc->Finish(&reply, &status, (void*)1);
+            
+            void* got_tag;
+            bool ok = false;
+            cq.Next(&got_tag, &ok);
+            if (ok && got_tag == (void*)1) {
+                if (status.ok()) {
+                    return reply.value();
+                } else {
+                    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+                    return "RPC failed";
+                }
+            }
+            
+
+            /*status = stub_->Partial_Polynomial_interpolation(&context, token, &reply);
+            if (status.ok()) return reply.value();
+            std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+            return "RPC failed"; */
+        }

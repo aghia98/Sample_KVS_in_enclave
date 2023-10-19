@@ -630,7 +630,7 @@ ABSL_FLAG(uint16_t, n, 5, "number of all shares");
 ABSL_FLAG(uint16_t, recovery, 0, "start node without shares recovery");
 
 /* Application entry */
-int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001
+int SGX_CDECL main(int argc, char *argv[]) // ./app --port 50001 --t 3 --n 5
 {
     id_to_port_map = parse_json("network.json");
 
