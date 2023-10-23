@@ -63,6 +63,9 @@ int n_global;
 int offset = 50000;
 map<int, string> id_to_port_map;
 
+int cpt=0;
+map<string, string> myMap;
+
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
 
@@ -194,6 +197,8 @@ class KVSServiceImpl final : public keyvaluestore::KVS::Service {
 
     Status Put(ServerContext* context, const keyvaluestore::KV_pair* request, keyvaluestore::Value* response) override {
         put(request->key(), request->value());
+
+        //myMap[request->key()] = request->value();
         response->set_value("PUT_SUCCESS");
 
         cout << "Node received :" << endl;
