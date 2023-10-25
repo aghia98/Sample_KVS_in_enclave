@@ -298,9 +298,7 @@ vector<int> get_ids_of_N_active(){
 }
 
 string get_shares(vector<int> ids_of_N_active, string secret_id, int t){
-    int port;
     int node_id;
-    //int got_shares=0;
     KVSClient* kvs;
     string shares = "";
     string share = "";

@@ -173,7 +173,7 @@ void transmit_shares(string k, char** shares, vector<int> x_shares){ //the share
 }
 
 
-vector<int> get_ids_of_N_active(map<int,string>& id_to_address_map){
+vector<int> get_ids_of_N_active(){
   vector<int> result;
 
   for (const auto& entry : id_to_address_map) {
@@ -183,13 +183,6 @@ vector<int> get_ids_of_N_active(map<int,string>& id_to_address_map){
   return result;
 }
 
-/*template <typename T>
-void display_vector(const vector<T>& vec) {
-    for (auto& element : vec) {
-        std::cout << element << " ";
-    }
-    std::cout << std::endl;
-} */
 
 
 
@@ -229,8 +222,6 @@ int main(int argc, char** argv) { // ./client -t x -n y < secrets.txt
   vector<string> strings_with_id_of_N_active;
   vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
 
-  int debug=0;
-  int deg;
   string k;
   string v;
   char secret[200];
@@ -250,7 +241,7 @@ int main(int argc, char** argv) { // ./client -t x -n y < secrets.txt
       int secret_num = 1;
       while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
           
-          ids_of_N_active = get_ids_of_N_active(id_to_address_map);
+          ids_of_N_active = get_ids_of_N_active();
 
           if(ids_of_N_active.size() >= n){ // enough active SMS nodes
             k = "Secret_"+to_string(secret_num);
