@@ -64,7 +64,7 @@ int offset = 50000;
 map<int, string> id_to_port_map;
 
 int cpt=0;
-map<string, string> myMap;
+//map<string, string> myMap;
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;

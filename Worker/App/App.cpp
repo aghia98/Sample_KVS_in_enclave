@@ -286,7 +286,7 @@ bool isPortOpen(const std::string& ipAddress, int port) {
     return true;
 }
 
-vector<int> get_ids_of_N_active(map<int,string>& id_to_port_map){
+vector<int> get_ids_of_N_active(){
   vector<int> result;
 
   for (const auto& entry : id_to_port_map) {
@@ -404,7 +404,7 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --address <address> --secre
                 return 1;
         }
     }
-    ids_of_N_active = get_ids_of_N_active(id_to_port_map);
+    ids_of_N_active = get_ids_of_N_active();
     if(ids_of_N_active.size() >= t){
         string shares_string = get_shares(ids_of_N_active, secret_id, ip_address, t);
         //cout << shares_string << endl;

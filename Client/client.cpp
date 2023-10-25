@@ -37,7 +37,6 @@ using namespace std;
 
 
 map<int, std::string> id_to_port_map;
-//grpc::CompletionQueue cq;
 
 
 ABSL_FLAG(std::string, target, "localhost:50001", "Server address");
@@ -230,7 +229,7 @@ void transmit_shares(string k, char** shares, vector<int> x_shares, string ip_ad
   return shares;
 }*/
 
-vector<int> get_ids_of_N_active(map<int,string>& id_to_port_map){
+vector<int> get_ids_of_N_active(){
   vector<int> result;
 
   for (const auto& entry : id_to_port_map) {
@@ -291,8 +290,6 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
   vector<string> strings_with_id_of_N_active;
   vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
 
-  int debug=0;
-  int deg;
   string k;
   string v;
   char secret[200];
@@ -313,7 +310,7 @@ int main(int argc, char** argv) { // ./client -t x -n y --address localhost < se
       int secret_num = 1;
       while (cin.getline(secret, sizeof(secret))) { //read secrets one by one
           
-          ids_of_N_active = get_ids_of_N_active(id_to_port_map);
+          ids_of_N_active = get_ids_of_N_active();
 
           if(ids_of_N_active.size() >= n){ // enough active SMS nodes
             k = "Secret_"+to_string(secret_num);
