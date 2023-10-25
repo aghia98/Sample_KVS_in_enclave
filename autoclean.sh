@@ -8,11 +8,6 @@ cd Server
 source environment.sh
 make clean
 
-cd ..
-
-cd Spawned_node
-source environment.sh
-make clean
 
 cd ..
 
