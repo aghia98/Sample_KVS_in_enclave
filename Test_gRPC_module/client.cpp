@@ -161,14 +161,23 @@ int main(int argc, char** argv) { // ./client --target localhost:50001
   reply = kvs.Put(k,v);
   std::cout << "Put....Client received: " << reply << std::endl;
 
+  string k2("aghiles44");
+  string v2("0758908578");
+
+  reply = kvs.Put(k2,v2);
+  std::cout << "Put....Client received: " << reply << std::endl;
+
   reply = kvs.Get(k);
   std::cout << "Get....Client received: " << reply << std::endl;
 
-  reply = kvs.Delete(k);
+  reply = kvs.Get(k2);
+  std::cout << "Get....Client received: " << reply << std::endl;
+
+  /*reply = kvs.Delete(k);
   std::cout << "Delete ....Client received: " << reply << std::endl;
 
   reply = kvs.Get(k);
-  std::cout << "Get ....Client received: " << reply << std::endl;
+  std::cout << "Get ....Client received: " << reply << std::endl;*/
 
   //reply = kvs.Share_lost_keys(10);
 

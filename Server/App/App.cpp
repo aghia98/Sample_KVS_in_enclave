@@ -55,13 +55,17 @@ using json = nlohmann::json;
 
 
 #include "Enclave_u.h"
+#include <thread>
 
 //Global variables;
 int node_id_global;
 int t_global;
 int n_global;
 map<int, string> id_to_address_map;
+
 int default_sms_port = 50000;
+
+map<string, string> myMap;
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -182,57 +186,266 @@ map<int, string> parse_json(const string& file_location){
 
 }
 
-// Logic and data behind the server's behavior.
-class KVSServiceImpl final : public keyvaluestore::KVS::Service {
-
-    Status Get(ServerContext* context, const keyvaluestore::Key* key, keyvaluestore::Value* value) override {
-        value->set_value(get(key->key()));
+class KVSServiceImpl {
+    public:
+        KVSServiceImpl(){}
         
-        return Status::OK;
-    }
-
-
-    Status Put(ServerContext* context, const keyvaluestore::KV_pair* request, keyvaluestore::Value* response) override {
-        put(request->key(), request->value());
-        response->set_value("PUT_SUCCESS");
-
-        cout << "Node received :" << endl;
-        cout << "( " << request->key() << " , " << request->value() << " ) \n" << endl;
-        return Status::OK;
-  }
-
-    Status Delete(ServerContext* context, const keyvaluestore::Key* key, keyvaluestore::Value* response) override{
-        delete_(key->key());
-        response->set_value("DELETE_SUCCESS");
-        return Status::OK;
-  }
-
-  Status Share_lost_keys(ServerContext* context, const keyvaluestore::New_id_with_S_up_ids* request, keyvaluestore::Lost_keys* response) override {
-        //*************************4
-        vector<int> s_up_ids;
-
-        for (const auto& s_up_id : request->s_up_ids()) {
-            s_up_ids.push_back(s_up_id);
-        }
-        //int* s_up_ids_array = &s_up_ids[0];
-        
-        //**************************5
-        set<string> lost_keys = share_lost_keys(request->new_id(), s_up_ids);
-        
-        if(lost_keys.empty()){
-            keyvaluestore::Key* key = response->add_keys();
-            key->set_key("null");
-        }else{
-            for (set<string>::iterator it = lost_keys.begin(); it != lost_keys.end(); ++it) {
-                keyvaluestore::Key* key = response->add_keys();
-                key->set_key(*it);
-            }
+        template <typename T>
+        static void createNew(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq) {
+            new T(parent, service, cq);
         }
 
-        return Status::OK;
-    }
+        class RequestBase{
+            public:
+                RequestBase(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq)
+                    : parent_{parent}, service_{service}, cq_{cq} {}
 
+                virtual ~RequestBase() = default;
+
+                // The state-machine
+                virtual void proceed(bool ok) = 0;
+
+
+            protected:
+                static size_t getNewReqestId() noexcept {
+                    static size_t id = 0;
+                    return ++id;
+                }
+
+                // The state required for all requests
+                KVSServiceImpl& parent_;
+                keyvaluestore::KVS::AsyncService& service_;
+                ServerCompletionQueue& cq_;
+                ServerContext ctx_;
+                const size_t rpc_id_ = getNewReqestId();
+        };
+
+        class PutRequest : public RequestBase {
+            public:
+
+                PutRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBase(parent, service, cq) {
+
+
+                    service_.RequestPut(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                }
+
+                void proceed(bool ok) override {
+                    if (state_ == CREATE) {
+                        createNew<PutRequest>(parent_, service_, cq_);
+
+                        /*myMap[request_.key()] = request_.value();
+                        state_ = FINISH;
+                        responder_.Finish(reply_, Status::OK, this);*/
+                        
+
+                        std::thread([this]() {
+
+                            /*myMap[request_.key()] = request_.value();
+                            state_ = FINISH;
+                            responder_.Finish(reply_, Status::OK, this);*/
+
+                            put(request_.key(), request_.value());
+                            //reply_.set_value("PUT_SUCCESS");
+                            state_ = FINISH;
+                            responder_.Finish(reply_, Status::OK, this);
+                        }).detach();
+ 
+                    } else { //state == FINISH
+                        delete this; 
+                    } 
+                    
+                }
+
+            private:
+                keyvaluestore::KV_pair request_;
+                keyvaluestore::Value reply_;
+                grpc::ServerAsyncResponseWriter<keyvaluestore::Value> responder_{&ctx_};
+                enum CallStatus { CREATE, FINISH };
+                CallStatus state_ = CREATE;
+        };
+
+
+        class GetRequest : public RequestBase{
+            public:
+
+                GetRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBase(parent, service, cq) {
+
+
+                    service_.RequestGet(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                }
+
+                void proceed(bool ok) override {
+
+                    if (state_ == CREATE) {
+                        createNew<GetRequest>(parent_, service_, cq_);
+
+                        /*reply_.set_value(myMap[request_.key()]);
+                        state_ = FINISH;
+                        responder_.Finish(reply_, Status::OK, this);*/
+
+                        std::thread([this]() {
+
+                            /*reply_.set_value(myMap[request_.key()]);
+                            state_ = FINISH;
+                            responder_.Finish(reply_, Status::OK, this);*/
+
+                            reply_.set_value(get(request_.key()));
+                            state_ = FINISH;
+                            responder_.Finish(reply_, Status::OK, this);
+                        }).detach();
+
+                        
+                    } else  {
+                        delete this; 
+                    } 
+                }
+
+            private:
+                keyvaluestore::Key request_;
+                keyvaluestore::Value reply_;
+                grpc::ServerAsyncResponseWriter<keyvaluestore::Value> responder_{&ctx_};
+                enum CallStatus { CREATE, FINISH };
+                CallStatus state_ = CREATE;
+        };
+
+        class DeleteRequest : public RequestBase{
+            public:
+
+                DeleteRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBase(parent, service, cq) {
+
+
+                    service_.RequestDelete(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                }
+
+                void proceed(bool ok) override {
+
+                    if (state_ == CREATE) {
+                        createNew<DeleteRequest>(parent_, service_, cq_);
+
+
+                        std::thread([this]() {
+
+                            delete_(request_.key());
+                            reply_.set_value("DELETE_SUCCESS");
+                            
+                            state_ = FINISH;
+                            responder_.Finish(reply_, Status::OK, this);
+                        }).detach();
+
+                        
+                    } else {
+                        delete this;  
+                    } 
+                }
+
+            private:
+                keyvaluestore::Key request_;
+                keyvaluestore::Value reply_;
+                grpc::ServerAsyncResponseWriter<keyvaluestore::Value> responder_{&ctx_};
+                enum CallStatus { CREATE, FINISH };
+                CallStatus state_ = CREATE;
+        };
+
+        class Share_lost_keysRequest : public RequestBase{
+            public:
+
+                Share_lost_keysRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBase(parent, service, cq) {
+
+
+                    service_.RequestShare_lost_keys(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                }
+
+                void proceed(bool ok) override {
+
+                    if (state_ == CREATE) {
+                        createNew<Share_lost_keysRequest>(parent_, service_, cq_);
+
+                        vector<int> s_up_ids;
+
+                        for (const auto& s_up_id : request_.s_up_ids()) {
+                            s_up_ids.push_back(s_up_id);
+                        }
+                        //int* s_up_ids_array = &s_up_ids[0];
+                        
+                        //**************************5
+                        set<string> lost_keys = share_lost_keys(request_.new_id(), s_up_ids);
+                        
+                        if(lost_keys.empty()){
+                            keyvaluestore::Key* key = reply_.add_keys();
+                            key->set_key("null");
+                        }else{
+                            for (set<string>::iterator it = lost_keys.begin(); it != lost_keys.end(); ++it) {
+                                keyvaluestore::Key* key = reply_.add_keys();
+                                key->set_key(*it);
+                            }
+                        }
+
+
+                        state_ = FINISH;
+                        responder_.Finish(reply_, Status::OK, this);
+
+                    } else {
+                        delete this;  
+                    } 
+                }
+
+            private:
+                keyvaluestore::New_id_with_S_up_ids request_;
+                keyvaluestore::Lost_keys reply_;
+                grpc::ServerAsyncResponseWriter<keyvaluestore::Lost_keys> responder_{&ctx_};
+                enum CallStatus { CREATE, FINISH };
+                CallStatus state_ = CREATE;
+        };
+
+
+        void Run(uint16_t port) {
+            std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
+
+            grpc::ServerBuilder builder;
+            builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+            builder.RegisterService(&service_);
+
+            cq_ = builder.AddCompletionQueue();
+            server_ = builder.BuildAndStart();
+            std::cout << "Server listening on " << server_address << std::endl;
+
+            HandleRpcs();
+        }
+
+        void HandleRpcs() {
+            createNew<PutRequest>(*this, service_, *cq_);
+            createNew<GetRequest>(*this, service_, *cq_);
+            createNew<DeleteRequest>(*this, service_, *cq_);
+            createNew<Share_lost_keysRequest>(*this, service_, *cq_);
+
+            // The inner event-loop
+            while(true) {
+                bool ok = true;
+                void *tag = {};
+
+                const auto status = cq_->Next(&tag, &ok);
+
+                switch(status) {
+                    case grpc::CompletionQueue::NextStatus::GOT_EVENT:
+                        {
+                            auto request = static_cast<RequestBase *>(tag);
+                            request->proceed(ok);
+                        }
+                        break;
+
+                    case grpc::CompletionQueue::NextStatus::SHUTDOWN:
+                        return;
+                } // switch
+            } // loop
+        }
+
+    private:
+        keyvaluestore::KVS::AsyncService service_;
+        std::unique_ptr<grpc::ServerCompletionQueue> cq_;
+        std::unique_ptr<grpc::Server> server_;
 };
+
+
 
 class KVSClient {
  public:
@@ -601,41 +814,15 @@ void recover_lost_shares_wrapper(){
     recover_lost_shares();
 }
 
-void RunServer(uint16_t port) {
-
-    std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
-    KVSServiceImpl kvs_service;
-    TokenServiceImpl token_service;
-
-    grpc::EnableDefaultHealthCheckService(true);
-    grpc::reflection::InitProtoReflectionServerBuilderPlugin();
-    ServerBuilder builder;
-    // Listen on the given address without any authentication mechanism.
-    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    // Register "service" as the instance through which we'll communicate with
-    // clients. In this case it corresponds to an *synchronous* service.
-    builder.RegisterService(&kvs_service);
-    builder.RegisterService(&token_service);
-
-    
-    // Finally assemble the server.
-    std::unique_ptr<Server> server(builder.BuildAndStart());
-    std::cout << "SMS node listening on " << server_address << std::endl;
-    // Wait for the server to shutdown. Note that some other thread must be
-    // responsible for shutting down the server for this call to ever return.
-
-    server->Wait();
-}
-
 
 ABSL_FLAG(uint16_t, t, 3, "number of necessary shares");
 ABSL_FLAG(uint16_t, n, 5, "number of all shares");
 ABSL_FLAG(uint16_t, node_id, 1, "node id");
 ABSL_FLAG(uint16_t, recovery, 0, "recovery of shares");
 
-/* Application entry */
-int SGX_CDECL main(int argc, char *argv[]) // ./app --node_id 1 --t 3 --n 5 --recovery 0
-{
+
+int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 1 --t 3 --n 5 --recovery 0
+
     id_to_address_map = parse_json("network.json");
 
     if(initialize_enclave() < 0){
@@ -651,7 +838,7 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --node_id 1 --t 3 --n 5 --re
     n_global = absl::GetFlag(FLAGS_n);
     node_id_global = absl::GetFlag(FLAGS_node_id);
     int recovery = absl::GetFlag(FLAGS_recovery);
-    
+
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_send_params_to_enclave(global_eid, &node_id_global, &t_global, &n_global);
     if (ret != SGX_SUCCESS)
@@ -662,13 +849,15 @@ int SGX_CDECL main(int argc, char *argv[]) // ./app --node_id 1 --t 3 --n 5 --re
         recover_lost_shares_wrapper();
     }
 
-    RunServer(default_sms_port);
-    /* Destroy the enclave */
+    KVSServiceImpl server;
+    server.Run(default_sms_port);
+
     sgx_destroy_enclave(global_eid);
 
     printf("Server closed \n");
-    
 
     return 0;
 }
+
+
 

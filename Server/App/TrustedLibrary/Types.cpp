@@ -87,7 +87,7 @@ void delete_(string key){
 
 set<string> share_lost_keys(int node_id, vector<int> s_up_ids){
     char lost_keys_with_potential_last_share_owner[10000]; //*******************************************assuming there is max 100 lost keys per node*********************
-    memset(lost_keys_with_potential_last_share_owner, 'A', 999);
+    memset(lost_keys_with_potential_last_share_owner, 'A', 9999);
 
     int* s_up_ids_array = &s_up_ids[0];
 
@@ -97,7 +97,7 @@ set<string> share_lost_keys(int node_id, vector<int> s_up_ids){
     if (ret != SGX_SUCCESS)
         abort();
 
-    //cout << lost_keys_with_potential_last_share_owner << endl;
+    cout << lost_keys_with_potential_last_share_owner << endl;
     //*************************post-process************************
     
     set<string> keys;

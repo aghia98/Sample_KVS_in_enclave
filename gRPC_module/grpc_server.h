@@ -7,6 +7,8 @@
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
+using grpc::ServerCompletionQueue;
+using grpc::ServerAsyncResponseWriter;
 using grpc::Status;
 
 /*using keyvaluestore::KVS;
