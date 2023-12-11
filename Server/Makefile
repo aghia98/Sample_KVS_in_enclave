@@ -89,6 +89,7 @@ endif
 INCLUDE_grpc = $(HOME)/usr/local/include 
 LIBRARY_grpckvs = ../gRPC_module/
 LIBRARY_grpctoken = ../Token_module/
+LIBRARY_hrw = ../HRW_hashing_module/
 
 LDFLAGS_GRPC += `pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse`\
            -pthread\
@@ -114,7 +115,7 @@ else
 endif
 
 App_Cpp_Flags := $(App_C_Flags)
-App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs) -lgrpckvs -L$(LIBRARY_grpctoken) -lgrpctoken $(LDFLAGS_GRPC) -lpthread
+App_Link_Flags := -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L$(LIBRARY_grpckvs) -lgrpckvs -L$(LIBRARY_grpctoken) -lgrpctoken -L$(LIBRARY_hrw) -lhrw $(LDFLAGS_GRPC) -lpthread
 
 App_Cpp_Objects := $(App_Cpp_Files:.cpp=.o)
 

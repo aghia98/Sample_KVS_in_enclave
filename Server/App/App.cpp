@@ -38,7 +38,8 @@
 # include <unistd.h>
 # include <pwd.h>
 #include <arpa/inet.h> //check if the grpc server port is open
-# define MAX_PATH FILENAME_MAX
+#define MAX_PATH FILENAME_MAX
+#define BATCH_SIZE_KEY 20
 
 #include "sgx_urts.h"
 #include "App.h"
@@ -49,6 +50,8 @@
 #include "../../Token_module/grpc_server.h"
 #include "../../Token_module/grpc_client.h"
 
+#include "../../HRW_hashing_module/hrw.h"
+
 #include <fstream>
 #include "../../json/json.hpp"
 using json = nlohmann::json;
@@ -56,16 +59,23 @@ using json = nlohmann::json;
 
 #include "Enclave_u.h"
 #include <thread>
+#include <chrono>
+#include <csignal>
+
+
 
 //Global variables;
 int node_id_global;
 int t_global;
 int n_global;
 map<int, string> id_to_address_map;
+set<string> keys_set;
+
+int cpt = 0;
 
 int default_sms_port = 50000;
 
-map<string, string> myMap;
+
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -160,6 +170,8 @@ static sgx_errlist_t sgx_errlist[] = {
     },
 };
 
+
+
 map<int, string> parse_json(const string& file_location){
 
   ifstream file(file_location);
@@ -231,6 +243,10 @@ class KVSServiceImpl {
 
                 void proceed(bool ok) override {
                     if (state_ == CREATE) {
+
+                        //cpt++;
+                        //if(cpt==10100) sgx_destroy_enclave(global_eid);
+                        
                         createNew<PutRequest>(parent_, service_, cq_);
 
                         /*myMap[request_.key()] = request_.value();
@@ -240,14 +256,24 @@ class KVSServiceImpl {
 
                         std::thread([this]() {
 
+                            //auto start_time = std::chrono::high_resolution_clock::now();
                             /*myMap[request_.key()] = request_.value();
                             state_ = FINISH;
                             responder_.Finish(reply_, Status::OK, this);*/
+                            //auto end_time = std::chrono::high_resolution_clock::now();
+                            //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+                            //std::cout << "Latency Put: " << duration.count() << " ms" << std::endl;*/
 
+                            
+                            //auto start_time = std::chrono::high_resolution_clock::now();
+                            keys_set.insert(request_.key());
                             put(request_.key(), request_.value());
                             //reply_.set_value("PUT_SUCCESS");
                             state_ = FINISH;
                             responder_.Finish(reply_, Status::OK, this);
+                            //auto end_time = std::chrono::high_resolution_clock::now();
+                            //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+                            //std::cout << "Latency Put: " << duration.count() << " ms" << std::endl; 
                         }).detach();
  
                     } else { //state == FINISH
@@ -284,14 +310,24 @@ class KVSServiceImpl {
                         responder_.Finish(reply_, Status::OK, this);*/
 
                         std::thread([this]() {
-
+                            
+                            //auto start_time = std::chrono::high_resolution_clock::now();
                             /*reply_.set_value(myMap[request_.key()]);
                             state_ = FINISH;
                             responder_.Finish(reply_, Status::OK, this);*/
+                            //auto end_time = std::chrono::high_resolution_clock::now();
+                            //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+                            //std::cout << "Latency Get: " << duration.count() << " ms" << std::endl;*/
 
+
+                            //auto start_time = std::chrono::high_resolution_clock::now();
+                            //std::lock_guard<std::mutex> lock(getMutex);
                             reply_.set_value(get(request_.key()));
                             state_ = FINISH;
                             responder_.Finish(reply_, Status::OK, this);
+                            //auto end_time = std::chrono::high_resolution_clock::now();
+                            //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+                            //std::cout << "Latency Get: " << duration.count() << " ms" << std::endl;
                         }).detach();
 
                         
@@ -324,7 +360,7 @@ class KVSServiceImpl {
 
 
                         std::thread([this]() {
-
+                            keys_set.erase(request_.key());
                             delete_(request_.key());
                             reply_.set_value("DELETE_SUCCESS");
                             
@@ -346,7 +382,7 @@ class KVSServiceImpl {
                 CallStatus state_ = CREATE;
         };
 
-        class Share_lost_keysRequest : public RequestBase{
+        /*class Share_lost_keysRequest : public RequestBase{
             public:
 
                 Share_lost_keysRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBase(parent, service, cq) {
@@ -395,6 +431,122 @@ class KVSServiceImpl {
                 grpc::ServerAsyncResponseWriter<keyvaluestore::Lost_keys> responder_{&ctx_};
                 enum CallStatus { CREATE, FINISH };
                 CallStatus state_ = CREATE;
+        };*/
+
+        class Share_lost_keysRequest : public RequestBase {
+            public:
+
+                Share_lost_keysRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq)
+                    : RequestBase(parent, service, cq) {
+
+                    // Register this instance with the event-queue and the service.
+                    // The first event received over the queue is that we have a request.
+                    service_.RequestShare_lost_keys(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                }
+
+                void proceed(bool ok) override {
+                    if (state_ == CREATE){
+                        createNew<Share_lost_keysRequest>(parent_, service_, cq_);
+                        it = keys_set.begin();
+                        if(it == keys_set.end()){ //empty set
+                            state_ = FINISH;
+                            responder_.Finish(Status::OK, this);
+                        }else{ //1st write
+                            for (const auto& s_up_id : request_.s_up_ids()) {
+                                s_up_ids.push_back(s_up_id);
+                            } 
+                            keyvaluestore::Key* key;
+                            set<string> lost_keys = share_lost_keys(request_.new_id(), BATCH_SIZE_KEY);
+                            for(set<string>::iterator it_local = lost_keys.begin(); it_local != lost_keys.end(); ++it_local){
+                                key = reply_.add_keys();
+                                key->set_key(*it_local);
+                            }
+                            
+                            state_ = REPLYING;
+                            responder_.Write(reply_, this);
+                            reply_.Clear();
+                        }
+                    }else if (state_ == REPLYING){
+                        if(it == keys_set.end()){
+                            state_ = FINISH;
+                            responder_.Finish(Status::OK, this);
+                        }else{
+                             keyvaluestore::Key* key;
+                            set<string> lost_keys = share_lost_keys(request_.new_id(), BATCH_SIZE_KEY);
+                            for(set<string>::iterator it_local = lost_keys.begin(); it_local != lost_keys.end(); ++it_local){
+                                key = reply_.add_keys();
+                                key->set_key(*it_local);
+                            }
+                            responder_.Write(reply_, this);
+                            reply_.Clear();
+                        }
+
+                    }else { // state_ == FINISH 
+                        delete this;
+                    }
+                }
+        
+            private:
+                set<string>::iterator it;
+                enum CallStatus { CREATE, FINISH, REPLYING };
+                CallStatus state_ = CREATE;
+                ServerAsyncWriter<keyvaluestore::Lost_keys> responder_{&ctx_};
+                keyvaluestore::New_id_with_S_up_ids request_;
+                keyvaluestore::Lost_keys reply_;
+                vector<int> s_up_ids;
+
+                set<string> share_lost_keys(int node_id, int n_records){
+                    vector<string> strings_with_id_of_N_active;
+                    vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
+                    string word = "server";
+                    string keys="";
+                    strings_with_id_of_N_active = convert_ids_to_strings_with_id(s_up_ids, word);
+                    set<string> to_return;
+
+                    int cpt = 0;
+                    int cnt = s_up_ids.size();
+                    auto it_local = it;
+                    for (it_local = it; it_local != keys_set.end(); it_local++){
+                        string  k = *it_local; //Secret_n
+                        ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,k); //Order according to HRW
+                        string spawned_node_id = word+to_string(node_id); //serverX
+                        string spawned_node_to_hash = spawned_node_id+k; //ServerX+k
+                        uint32_t spawned_node_hash_wrt_k = jenkinsHash(spawned_node_to_hash);
+                        uint32_t n_th_node_hash;
+                        string potential_last_share_owner_id;
+                        if(cnt<n_global){
+                            n_th_node_hash = 0;
+                            potential_last_share_owner_id = "null"; // number of active nodes is smaller than n
+                        }else{
+                            n_th_node_hash = ordered_strings_with_id_to_hash[n_global-1].second;
+                            potential_last_share_owner_id = to_string(extractNumber(ordered_strings_with_id_to_hash[n_global-1].first));
+                        }
+
+                        if(spawned_node_hash_wrt_k > n_th_node_hash){ //spawned_node is a neighbour for k
+                            //gather at least t share owners
+                            string t_shares_owners = "";
+
+                            for(int i=0; i<t_global; i++){
+                                t_shares_owners += to_string(extractNumber(ordered_strings_with_id_to_hash[i].first));
+                                if(i<t_global-1){
+                                    t_shares_owners +=",";
+                                }
+                            }
+                            keys += k+"|"+potential_last_share_owner_id+"|"+t_shares_owners;
+                        }
+                        to_return.insert(keys);
+                        keys = "";
+
+                        cpt++;
+                        if(cpt == n_records) break;
+                    }
+                    if(cpt == n_records){
+                        it_local++;
+                        it = it_local;
+                    }
+                    
+                    return to_return;
+                }
         };
 
 
@@ -472,7 +624,6 @@ class KVSClient {
   }
 
     string Put(const string k, const string v) {
-        // Follows the same pattern as SayHello.
         keyvaluestore::KV_pair request;
         request.set_key(k);
         request.set_value(v);
@@ -517,10 +668,29 @@ class KVSClient {
         set<string> local_lost_keys_set;
 
         ClientContext context;
-        Status status = stub_->Share_lost_keys(&context, request, &response_local); //***************3
+        
+
+        std::unique_ptr<ClientReader<keyvaluestore::Lost_keys> > reader(stub_->Share_lost_keys(&context, request));
+        //Status status = stub_->Share_lost_keys(&context, request, &response_local); //***************3
+        //********************************heeeeeeeeeeeeeere*****************
+        
         string lost_key;
+        while (reader->Read(&response_local)) {
+            for (const auto& key : response_local.keys()) {
+                cout << "readddd" << endl;
+                lost_key = key.key();
+                cout << lost_key << endl;
+            }
+        }
+        Status status = reader->Finish();
 
         if (status.ok()) {
+            cout << "Keys' Recovery succeded" << endl;
+        }  else {
+            std::cerr << "RPC failed";
+        }
+
+        /*if (status.ok()) {
             for (const auto& key : response_local.keys()) {
                 lost_key=key.key();
                 local_lost_keys_set.insert(lost_key);
@@ -531,11 +701,8 @@ class KVSClient {
 
         } else {
             std::cerr << "RPC failed";
-        }
-
-        /*for (const auto& key : global_lost_keys_set) {
-                cout << key << endl;
         }*/
+
         return 0;
   }
 
@@ -849,8 +1016,10 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 1 --t 3 --n 5 --r
         recover_lost_shares_wrapper();
     }
 
+
     KVSServiceImpl server;
     server.Run(default_sms_port);
+
 
     sgx_destroy_enclave(global_eid);
 

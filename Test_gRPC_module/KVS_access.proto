@@ -22,7 +22,7 @@ service KVS {
   rpc Get (Key) returns (Value) {}
   rpc Put (KV_pair) returns (Value) {}
   rpc Delete (Key) returns (Value) {}
-  rpc Share_lost_keys (New_id_with_S_up_ids) returns (Lost_keys) {}
+  rpc Share_lost_keys (New_id_with_S_up_ids) returns (stream Lost_keys) {}
 }
 
 // The request message containing the key

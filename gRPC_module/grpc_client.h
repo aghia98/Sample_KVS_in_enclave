@@ -5,6 +5,7 @@ using grpc::ClientContext;
 using grpc::Status;
 using grpc::CompletionQueue;
 using grpc::ClientAsyncResponseReader;
+using grpc::ClientReader;
 
 /*using keyvaluestore::KVS;
 using keyvaluestore::Key;

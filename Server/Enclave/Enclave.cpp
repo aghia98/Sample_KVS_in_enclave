@@ -159,9 +159,8 @@ void ecall_get(char key[], char* val){
   }else{
     strncpy(val, "NOT_FOUND", strlen(val));
   } 
-  //delete key;
-
 }
+
 
 void ecall_delete(char key[]){
   string key_string(key);
@@ -511,25 +510,31 @@ void ecall_recover_lost_shares(){
     string key;
     string potential_last_share_owner;
     vector<int> t_shares_owners;
+    int i = 0;
     
     for(string lost_key_with_potential_last_share_owner_and_t_shares_owners: lost_keys_with_potential_last_share_owner_and_t_shares_owners){
         //printf("%s\n",lost_key_with_potential_last_share_owner_and_t_shares_owners);
+        i++;
+        printf("i= %d \n",i);
         splitted_key_potential_last_share_owner_t_shares_owners = splitString(lost_key_with_potential_last_share_owner_and_t_shares_owners, '|');
-        
+        printf("[0] = %s \n",splitted_key_potential_last_share_owner_t_shares_owners[0].c_str());
+        printf("[1] = %s \n",splitted_key_potential_last_share_owner_t_shares_owners[1].c_str());
+        printf("[2] = %s \n",splitted_key_potential_last_share_owner_t_shares_owners[2].c_str());
         key = splitted_key_potential_last_share_owner_t_shares_owners[0];
-        
         potential_last_share_owner = splitted_key_potential_last_share_owner_t_shares_owners[1];
-        
+        printf("jazet 3\n");
         t_shares_owners.clear();
         for (string& share_owner: splitString(splitted_key_potential_last_share_owner_t_shares_owners[2], ',')){
             t_shares_owners.push_back(stoi(share_owner));
         }
-
+        //printf("jazet 4\n");
         recover_lost_share(key, t_shares_owners);
+        //printf("recovered\n");
 
         if(potential_last_share_owner != "null"){
              delete_last_share(stoi(potential_last_share_owner), key);
         }
+        //printf("khlass\n");
 
         //break; //just for example
         
@@ -539,6 +544,7 @@ void ecall_recover_lost_shares(){
     }
     //flush lost_keys_with_potential_last_share_owner_and_t_shares_owners
     lost_keys_with_potential_last_share_owner_and_t_shares_owners.clear();
+    
     
 }
 

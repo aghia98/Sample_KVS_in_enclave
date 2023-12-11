@@ -155,18 +155,18 @@ const char descriptor_table_protodef_KVS_5faccess_2eproto[] PROTOBUF_SECTION_VAR
   "\007KV_pair\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"-\n\t"
   "Lost_keys\022 \n\004keys\030\001 \003(\0132\022.keyvaluestore."
   "Key\"8\n\024New_id_with_S_up_ids\022\016\n\006new_id\030\001 "
-  "\001(\005\022\020\n\010S_up_ids\030\002 \003(\0052\371\001\n\003KVS\0221\n\003Get\022\022.k"
+  "\001(\005\022\020\n\010S_up_ids\030\002 \003(\0052\373\001\n\003KVS\0221\n\003Get\022\022.k"
   "eyvaluestore.Key\032\024.keyvaluestore.Value\"\000"
   "\0225\n\003Put\022\026.keyvaluestore.KV_pair\032\024.keyval"
   "uestore.Value\"\000\0224\n\006Delete\022\022.keyvaluestor"
-  "e.Key\032\024.keyvaluestore.Value\"\000\022R\n\017Share_l"
+  "e.Key\032\024.keyvaluestore.Value\"\000\022T\n\017Share_l"
   "ost_keys\022#.keyvaluestore.New_id_with_S_u"
-  "p_ids\032\030.keyvaluestore.Lost_keys\"\000b\006proto"
-  "3"
+  "p_ids\032\030.keyvaluestore.Lost_keys\"\0000\001b\006pro"
+  "to3"
   ;
 static ::_pbi::once_flag descriptor_table_KVS_5faccess_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_KVS_5faccess_2eproto = {
-    false, false, 481, descriptor_table_protodef_KVS_5faccess_2eproto,
+    false, false, 483, descriptor_table_protodef_KVS_5faccess_2eproto,
     "KVS_access.proto",
     &descriptor_table_KVS_5faccess_2eproto_once, nullptr, 0, 5,
     schemas, file_default_instances, TableStruct_KVS_5faccess_2eproto::offsets,

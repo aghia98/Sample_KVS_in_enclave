@@ -9,6 +9,7 @@ using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerCompletionQueue;
 using grpc::ServerAsyncResponseWriter;
+using grpc::ServerAsyncWriter;
 using grpc::Status;
 
 /*using keyvaluestore::KVS;

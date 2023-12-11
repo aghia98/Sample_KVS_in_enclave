@@ -39,6 +39,8 @@
 
 #include <sstream>
 
+#include "sgx_urts.h"
+
 using namespace std;
 
 /* edger8r_type_attributes:
@@ -57,8 +59,11 @@ void put(string k, string v)
 {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_put(global_eid, convertCString(k), convertCString(v));
-    if (ret != SGX_SUCCESS)
+    if (ret != SGX_SUCCESS){
+        sgx_destroy_enclave(global_eid);
         abort();
+    }
+        
 
 }
 
@@ -96,8 +101,7 @@ set<string> share_lost_keys(int node_id, vector<int> s_up_ids){
     ret = ecall_share_lost_keys(global_eid, &node_id, s_up_ids_array, s_up_ids.size(), lost_keys_with_potential_last_share_owner); // add S_up as input parameter
     if (ret != SGX_SUCCESS)
         abort();
-
-    cout << lost_keys_with_potential_last_share_owner << endl;
+    //cout << lost_keys_with_potential_last_share_owner << endl;
     //*************************post-process************************
     
     set<string> keys;

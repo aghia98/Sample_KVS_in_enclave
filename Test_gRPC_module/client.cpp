@@ -38,6 +38,7 @@ using grpc::ClientContext;
 using grpc::Status;
 using grpc::CompletionQueue;
 using grpc::ClientAsyncResponseReader;
+using grpc::ClientReader;
 
 using keyvaluestore::KVS;
 using keyvaluestore::Key;
@@ -115,7 +116,7 @@ class KVSClient {
     }
   }
 
-  int Share_lost_keys(int id){
+  string Share_lost_keys(int id){
     New_id_with_S_up_ids request;
     request.set_new_id(id); 
     request.add_s_up_ids(33);
@@ -125,19 +126,26 @@ class KVSClient {
     Lost_keys response;
 
     ClientContext context;
-    Status status = stub_->Share_lost_keys(&context, request, &response);
 
-    if (status.ok()) {
-        std::cout << "Lost Keys: ";
-        for (const auto& key : response.keys()) {
-            std::cout << key.key() << " ";
-        }
-        std::cout << std::endl;
-    } else {
-        std::cerr << "RPC failed";
+    //Status status = stub_->Share_lost_keys(&context, request, &response);
+    std::unique_ptr<ClientReader<Lost_keys> > reader(stub_->Share_lost_keys(&context, request));
+    string lost_key;
+    while (reader->Read(&response)) {
+      //cout << "yess" << endl;
+      for (const auto& key : response.keys()) {
+          lost_key = key.key();
+          cout << lost_key << endl;
+      }
     }
-
-    return 0;
+    Status status = reader->Finish();
+    
+    
+    if (status.ok()) {
+        cout << "Keys' Recovery succeded" << endl;
+    } else {
+        
+    }
+    return "yesss";
 
   }
 
@@ -173,9 +181,10 @@ int main(int argc, char** argv) { // ./client --target localhost:50001
   reply = kvs.Get(k2);
   std::cout << "Get....Client received: " << reply << std::endl;
 
-  /*reply = kvs.Delete(k);
-  std::cout << "Delete ....Client received: " << reply << std::endl;
-
+  reply = kvs.Share_lost_keys(5);
+  cout << reply << endl;
+  std::cout << "Share_lost_keys ....Client received: " << reply << std::endl;
+  /*
   reply = kvs.Get(k);
   std::cout << "Get ....Client received: " << reply << std::endl;*/
 

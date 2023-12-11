@@ -22,6 +22,11 @@ server:
 	rm *.o
 
 server_async:
+	g++ -c KVS_access.pb.cc KVS_access.grpc.pb.cc server_async.cpp $(INCLUDES)
+	g++ *.o $(LDFLAGS) -o server
+	rm *.o
+
+server_async_full:
 	g++ -c KVS_access.pb.cc KVS_access.grpc.pb.cc server_async_full.cpp $(INCLUDES)
 	g++ *.o $(LDFLAGS) -o server
 	rm *.o

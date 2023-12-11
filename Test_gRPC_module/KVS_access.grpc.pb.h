@@ -73,12 +73,14 @@ class KVS final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>> PrepareAsyncDelete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>>(PrepareAsyncDeleteRaw(context, request, cq));
     }
-    virtual ::grpc::Status Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::keyvaluestore::Lost_keys* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Lost_keys>> AsyncShare_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Lost_keys>>(AsyncShare_lost_keysRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientReaderInterface< ::keyvaluestore::Lost_keys>> Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request) {
+      return std::unique_ptr< ::grpc::ClientReaderInterface< ::keyvaluestore::Lost_keys>>(Share_lost_keysRaw(context, request));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Lost_keys>> PrepareAsyncShare_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Lost_keys>>(PrepareAsyncShare_lost_keysRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::keyvaluestore::Lost_keys>> AsyncShare_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::keyvaluestore::Lost_keys>>(AsyncShare_lost_keysRaw(context, request, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::keyvaluestore::Lost_keys>> PrepareAsyncShare_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::keyvaluestore::Lost_keys>>(PrepareAsyncShare_lost_keysRaw(context, request, cq));
     }
     class async_interface {
      public:
@@ -90,8 +92,7 @@ class KVS final {
       virtual void Put(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)>) = 0;
       virtual void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Lost_keys* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Lost_keys* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ClientReadReactor< ::keyvaluestore::Lost_keys>* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -103,8 +104,9 @@ class KVS final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* PrepareAsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* AsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* PrepareAsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Lost_keys>* AsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Lost_keys>* PrepareAsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderInterface< ::keyvaluestore::Lost_keys>* Share_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::keyvaluestore::Lost_keys>* AsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::keyvaluestore::Lost_keys>* PrepareAsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -130,12 +132,14 @@ class KVS final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>> PrepareAsyncDelete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>>(PrepareAsyncDeleteRaw(context, request, cq));
     }
-    ::grpc::Status Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::keyvaluestore::Lost_keys* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>> AsyncShare_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>>(AsyncShare_lost_keysRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientReader< ::keyvaluestore::Lost_keys>> Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request) {
+      return std::unique_ptr< ::grpc::ClientReader< ::keyvaluestore::Lost_keys>>(Share_lost_keysRaw(context, request));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>> PrepareAsyncShare_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>>(PrepareAsyncShare_lost_keysRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::keyvaluestore::Lost_keys>> AsyncShare_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< ::keyvaluestore::Lost_keys>>(AsyncShare_lost_keysRaw(context, request, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::keyvaluestore::Lost_keys>> PrepareAsyncShare_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< ::keyvaluestore::Lost_keys>>(PrepareAsyncShare_lost_keysRaw(context, request, cq));
     }
     class async final :
       public StubInterface::async_interface {
@@ -146,8 +150,7 @@ class KVS final {
       void Put(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) override;
       void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)>) override;
       void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Lost_keys* response, std::function<void(::grpc::Status)>) override;
-      void Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Lost_keys* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ClientReadReactor< ::keyvaluestore::Lost_keys>* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -165,8 +168,9 @@ class KVS final {
     ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* PrepareAsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* AsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* PrepareAsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>* AsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Lost_keys>* PrepareAsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientReader< ::keyvaluestore::Lost_keys>* Share_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request) override;
+    ::grpc::ClientAsyncReader< ::keyvaluestore::Lost_keys>* AsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReader< ::keyvaluestore::Lost_keys>* PrepareAsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_Get_;
     const ::grpc::internal::RpcMethod rpcmethod_Put_;
     const ::grpc::internal::RpcMethod rpcmethod_Delete_;
@@ -182,7 +186,7 @@ class KVS final {
     virtual ::grpc::Status Get(::grpc::ServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response);
     virtual ::grpc::Status Put(::grpc::ServerContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response);
     virtual ::grpc::Status Delete(::grpc::ServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response);
-    virtual ::grpc::Status Share_lost_keys(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Lost_keys* response);
+    virtual ::grpc::Status Share_lost_keys(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ServerWriter< ::keyvaluestore::Lost_keys>* writer);
   };
   template <class BaseClass>
   class WithAsyncMethod_Get : public BaseClass {
@@ -256,12 +260,12 @@ class KVS final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Lost_keys* /*response*/) override {
+    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::grpc::ServerWriter< ::keyvaluestore::Lost_keys>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestShare_lost_keys(::grpc::ServerContext* context, ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::Lost_keys>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
+    void RequestShare_lost_keys(::grpc::ServerContext* context, ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ServerAsyncWriter< ::keyvaluestore::Lost_keys>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncServerStreaming(3, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   typedef WithAsyncMethod_Get<WithAsyncMethod_Put<WithAsyncMethod_Delete<WithAsyncMethod_Share_lost_keys<Service > > > > AsyncService;
@@ -353,25 +357,20 @@ class KVS final {
    public:
     WithCallbackMethod_Share_lost_keys() {
       ::grpc::Service::MarkMethodCallback(3,
-          new ::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys>(
+          new ::grpc::internal::CallbackServerStreamingHandler< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Lost_keys* response) { return this->Share_lost_keys(context, request, response); }));}
-    void SetMessageAllocatorFor_Share_lost_keys(
-        ::grpc::MessageAllocator< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(3);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys>*>(handler)
-              ->SetMessageAllocator(allocator);
+                   ::grpc::CallbackServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request) { return this->Share_lost_keys(context, request); }));
     }
     ~WithCallbackMethod_Share_lost_keys() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Lost_keys* /*response*/) override {
+    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::grpc::ServerWriter< ::keyvaluestore::Lost_keys>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* Share_lost_keys(
-      ::grpc::CallbackServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Lost_keys* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerWriteReactor< ::keyvaluestore::Lost_keys>* Share_lost_keys(
+      ::grpc::CallbackServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/)  { return nullptr; }
   };
   typedef WithCallbackMethod_Get<WithCallbackMethod_Put<WithCallbackMethod_Delete<WithCallbackMethod_Share_lost_keys<Service > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
@@ -438,7 +437,7 @@ class KVS final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Lost_keys* /*response*/) override {
+    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::grpc::ServerWriter< ::keyvaluestore::Lost_keys>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -515,12 +514,12 @@ class KVS final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Lost_keys* /*response*/) override {
+    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::grpc::ServerWriter< ::keyvaluestore::Lost_keys>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestShare_lost_keys(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
+    void RequestShare_lost_keys(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncServerStreaming(3, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -596,20 +595,20 @@ class KVS final {
    public:
     WithRawCallbackMethod_Share_lost_keys() {
       ::grpc::Service::MarkMethodRawCallback(3,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+          new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Share_lost_keys(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->Share_lost_keys(context, request); }));
     }
     ~WithRawCallbackMethod_Share_lost_keys() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Lost_keys* /*response*/) override {
+    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::grpc::ServerWriter< ::keyvaluestore::Lost_keys>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* Share_lost_keys(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerWriteReactor< ::grpc::ByteBuffer>* Share_lost_keys(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_Get : public BaseClass {
@@ -692,36 +691,36 @@ class KVS final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedDelete(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::Key,::keyvaluestore::Value>* server_unary_streamer) = 0;
   };
+  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<WithStreamedUnaryMethod_Delete<Service > > > StreamedUnaryService;
   template <class BaseClass>
-  class WithStreamedUnaryMethod_Share_lost_keys : public BaseClass {
+  class WithSplitStreamingMethod_Share_lost_keys : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_Share_lost_keys() {
+    WithSplitStreamingMethod_Share_lost_keys() {
       ::grpc::Service::MarkMethodStreamed(3,
-        new ::grpc::internal::StreamedUnaryHandler<
+        new ::grpc::internal::SplitServerStreamingHandler<
           ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys>(
             [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
+                   ::grpc::ServerSplitStreamer<
                      ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys>* streamer) {
                        return this->StreamedShare_lost_keys(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_Share_lost_keys() override {
+    ~WithSplitStreamingMethod_Share_lost_keys() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Lost_keys* /*response*/) override {
+    ::grpc::Status Share_lost_keys(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::grpc::ServerWriter< ::keyvaluestore::Lost_keys>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedShare_lost_keys(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::New_id_with_S_up_ids,::keyvaluestore::Lost_keys>* server_unary_streamer) = 0;
+    // replace default version of method with split streamed
+    virtual ::grpc::Status StreamedShare_lost_keys(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::keyvaluestore::New_id_with_S_up_ids,::keyvaluestore::Lost_keys>* server_split_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<WithStreamedUnaryMethod_Delete<WithStreamedUnaryMethod_Share_lost_keys<Service > > > > StreamedUnaryService;
-  typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<WithStreamedUnaryMethod_Delete<WithStreamedUnaryMethod_Share_lost_keys<Service > > > > StreamedService;
+  typedef WithSplitStreamingMethod_Share_lost_keys<Service > SplitStreamedService;
+  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<WithStreamedUnaryMethod_Delete<WithSplitStreamingMethod_Share_lost_keys<Service > > > > StreamedService;
 };
 
 }  // namespace keyvaluestore
