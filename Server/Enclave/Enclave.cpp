@@ -478,13 +478,16 @@ void ecall_distributed_PI(const char *serialized_token){
 }
 
 void recover_lost_share(string& key, vector<int> t_share_owners){
+
     int len_cumul = 410;
+    //printf("Enter init\n");
     Token token = init_token(key,t_share_owners, len_cumul);
     
-    /*string serialized_token__;
+    string serialized_token__;
     token.SerializeToString(&serialized_token__);
-    ocall_print_token(serialized_token__.c_str());*/
+    //ocall_print_token(serialized_token__.c_str());
     
+    //printf("Enter distributed pol\n");
     distributed_polynomial_interpolation(token);
     //printf("Success of distributed polynomial interpolation\n");
     int token_owner_id = t_share_owners.back();
@@ -515,21 +518,20 @@ void ecall_recover_lost_shares(){
     for(string lost_key_with_potential_last_share_owner_and_t_shares_owners: lost_keys_with_potential_last_share_owner_and_t_shares_owners){
         //printf("%s\n",lost_key_with_potential_last_share_owner_and_t_shares_owners);
         i++;
-        printf("i= %d \n",i);
+        //printf("i= %d \n",i);
         splitted_key_potential_last_share_owner_t_shares_owners = splitString(lost_key_with_potential_last_share_owner_and_t_shares_owners, '|');
-        printf("[0] = %s \n",splitted_key_potential_last_share_owner_t_shares_owners[0].c_str());
+        /*printf("[0] = %s \n",splitted_key_potential_last_share_owner_t_shares_owners[0].c_str());
         printf("[1] = %s \n",splitted_key_potential_last_share_owner_t_shares_owners[1].c_str());
-        printf("[2] = %s \n",splitted_key_potential_last_share_owner_t_shares_owners[2].c_str());
+        printf("[2] = %s \n",splitted_key_potential_last_share_owner_t_shares_owners[2].c_str());*/
         key = splitted_key_potential_last_share_owner_t_shares_owners[0];
         potential_last_share_owner = splitted_key_potential_last_share_owner_t_shares_owners[1];
-        printf("jazet 3\n");
+        //printf("jazet 3\n");
         t_shares_owners.clear();
         for (string& share_owner: splitString(splitted_key_potential_last_share_owner_t_shares_owners[2], ',')){
             t_shares_owners.push_back(stoi(share_owner));
         }
         //printf("jazet 4\n");
         recover_lost_share(key, t_shares_owners);
-        //printf("recovered\n");
 
         if(potential_last_share_owner != "null"){
              delete_last_share(stoi(potential_last_share_owner), key);

@@ -39,7 +39,7 @@
 # include <pwd.h>
 #include <arpa/inet.h> //check if the grpc server port is open
 #define MAX_PATH FILENAME_MAX
-#define BATCH_SIZE_KEY 20
+#define BATCH_SIZE_KEY 100
 
 #include "sgx_urts.h"
 #include "App.h"
@@ -207,10 +207,15 @@ class KVSServiceImpl {
             new T(parent, service, cq);
         }
 
+        template <typename T>
+        static void createNew2(KVSServiceImpl& parent, tokengrpc::Token::AsyncService& service, ServerCompletionQueue& cq) {
+            new T(parent, service, cq);
+        }
+
         class RequestBase{
             public:
-                RequestBase(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq)
-                    : parent_{parent}, service_{service}, cq_{cq} {}
+                RequestBase(KVSServiceImpl& parent, ServerCompletionQueue& cq)
+                    :parent_{parent}, cq_{cq} {}
 
                 virtual ~RequestBase() = default;
 
@@ -224,21 +229,55 @@ class KVSServiceImpl {
                     return ++id;
                 }
 
-                // The state required for all requests
+
                 KVSServiceImpl& parent_;
-                keyvaluestore::KVS::AsyncService& service_;
                 ServerCompletionQueue& cq_;
                 ServerContext ctx_;
                 const size_t rpc_id_ = getNewReqestId();
         };
 
-        class PutRequest : public RequestBase {
+
+        class RequestBaseKVS : public RequestBase{
+            public:
+                RequestBaseKVS(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq)
+                    : RequestBase(parent, cq), service_kvs{service} {}
+
+                virtual ~RequestBaseKVS() = default;
+
+                // The state-machine
+                virtual void proceed(bool ok) = 0;
+
+
+            protected:
+                //KVSServiceImpl& parent_;
+                keyvaluestore::KVS::AsyncService& service_kvs;
+                //ServerCompletionQueue& cq_;
+                //ServerContext ctx_;
+                //const size_t rpc_id_ = getNewReqestId();
+        };
+
+        class RequestBaseToken : public RequestBase{
+            public:
+                RequestBaseToken(KVSServiceImpl& parent, tokengrpc::Token::AsyncService& service, ServerCompletionQueue& cq)
+                    : RequestBase(parent, cq), service_token{service} {}
+
+                virtual ~RequestBaseToken() = default;
+
+                // The state-machine
+                virtual void proceed(bool ok) = 0;
+
+
+            protected:
+                tokengrpc::Token::AsyncService& service_token;
+        };
+
+
+        class PutRequest : public RequestBaseKVS {
             public:
 
-                PutRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBase(parent, service, cq) {
+                PutRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBaseKVS(parent, service, cq) {
 
-
-                    service_.RequestPut(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                    service_kvs.RequestPut(&ctx_, &request_, &responder_, &cq_, &cq_, this);
                 }
 
                 void proceed(bool ok) override {
@@ -247,15 +286,15 @@ class KVSServiceImpl {
                         //cpt++;
                         //if(cpt==10100) sgx_destroy_enclave(global_eid);
                         
-                        createNew<PutRequest>(parent_, service_, cq_);
+                        createNew<PutRequest>(parent_, service_kvs, cq_);
 
                         /*myMap[request_.key()] = request_.value();
                         state_ = FINISH;
                         responder_.Finish(reply_, Status::OK, this);*/
                         
-
+                        
+                        keys_set.insert(request_.key());
                         std::thread([this]() {
-
                             //auto start_time = std::chrono::high_resolution_clock::now();
                             /*myMap[request_.key()] = request_.value();
                             state_ = FINISH;
@@ -266,7 +305,7 @@ class KVSServiceImpl {
 
                             
                             //auto start_time = std::chrono::high_resolution_clock::now();
-                            keys_set.insert(request_.key());
+                            
                             put(request_.key(), request_.value());
                             //reply_.set_value("PUT_SUCCESS");
                             state_ = FINISH;
@@ -291,19 +330,19 @@ class KVSServiceImpl {
         };
 
 
-        class GetRequest : public RequestBase{
+        class GetRequest : public RequestBaseKVS{
             public:
 
-                GetRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBase(parent, service, cq) {
+                GetRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBaseKVS(parent, service, cq) {
 
 
-                    service_.RequestGet(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                    service_kvs.RequestGet(&ctx_, &request_, &responder_, &cq_, &cq_, this);
                 }
 
                 void proceed(bool ok) override {
 
                     if (state_ == CREATE) {
-                        createNew<GetRequest>(parent_, service_, cq_);
+                        createNew<GetRequest>(parent_, service_kvs, cq_);
 
                         /*reply_.set_value(myMap[request_.key()]);
                         state_ = FINISH;
@@ -344,19 +383,18 @@ class KVSServiceImpl {
                 CallStatus state_ = CREATE;
         };
 
-        class DeleteRequest : public RequestBase{
+        class DeleteRequest : public RequestBaseKVS{
             public:
 
-                DeleteRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBase(parent, service, cq) {
+                DeleteRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBaseKVS(parent, service, cq) {
 
-
-                    service_.RequestDelete(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                    service_kvs.RequestDelete(&ctx_, &request_, &responder_, &cq_, &cq_, this);
                 }
 
                 void proceed(bool ok) override {
 
                     if (state_ == CREATE) {
-                        createNew<DeleteRequest>(parent_, service_, cq_);
+                        createNew<DeleteRequest>(parent_, service_kvs, cq_);
 
 
                         std::thread([this]() {
@@ -382,19 +420,19 @@ class KVSServiceImpl {
                 CallStatus state_ = CREATE;
         };
 
-        /*class Share_lost_keysRequest : public RequestBase{
+        /*class Share_lost_keysRequest : public RequestBaseKVS{
             public:
 
-                Share_lost_keysRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBase(parent, service, cq) {
+                Share_lost_keysRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBaseKVS(parent, service, cq) {
 
 
-                    service_.RequestShare_lost_keys(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                    service_kvs.RequestShare_lost_keys(&ctx_, &request_, &responder_, &cq_, &cq_, this);
                 }
 
                 void proceed(bool ok) override {
 
                     if (state_ == CREATE) {
-                        createNew<Share_lost_keysRequest>(parent_, service_, cq_);
+                        createNew<Share_lost_keysRequest>(parent_, service_kvs, cq_);
 
                         vector<int> s_up_ids;
 
@@ -433,20 +471,23 @@ class KVSServiceImpl {
                 CallStatus state_ = CREATE;
         };*/
 
-        class Share_lost_keysRequest : public RequestBase {
+        class Share_lost_keysRequest : public RequestBaseKVS {
             public:
 
                 Share_lost_keysRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq)
-                    : RequestBase(parent, service, cq) {
+                    : RequestBaseKVS(parent, service, cq) {
 
                     // Register this instance with the event-queue and the service.
                     // The first event received over the queue is that we have a request.
-                    service_.RequestShare_lost_keys(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                    service_kvs.RequestShare_lost_keys(&ctx_, &request_, &responder_, &cq_, &cq_, this);
                 }
 
                 void proceed(bool ok) override {
                     if (state_ == CREATE){
-                        createNew<Share_lost_keysRequest>(parent_, service_, cq_);
+                        sum = 0;
+                        cout << "number of keys: " << keys_set.size() << endl;
+                        cout << "begin send" << endl;
+                        createNew<Share_lost_keysRequest>(parent_, service_kvs, cq_);
                         it = keys_set.begin();
                         if(it == keys_set.end()){ //empty set
                             state_ = FINISH;
@@ -457,12 +498,15 @@ class KVSServiceImpl {
                             } 
                             keyvaluestore::Key* key;
                             set<string> lost_keys = share_lost_keys(request_.new_id(), BATCH_SIZE_KEY);
-                            for(set<string>::iterator it_local = lost_keys.begin(); it_local != lost_keys.end(); ++it_local){
+                            for(set<string>::iterator it_local = lost_keys.begin(); it_local != lost_keys.end(); it_local++){
                                 key = reply_.add_keys();
                                 key->set_key(*it_local);
                             }
                             
                             state_ = REPLYING;
+                            sum += lost_keys.size();
+                            //cout << "Size of lost_keys stream: " << lost_keys.size() << endl;
+                            cout << "Sent: " << sum << "/" << keys_set.size() << endl;
                             responder_.Write(reply_, this);
                             reply_.Clear();
                         }
@@ -471,22 +515,27 @@ class KVSServiceImpl {
                             state_ = FINISH;
                             responder_.Finish(Status::OK, this);
                         }else{
-                             keyvaluestore::Key* key;
+                            keyvaluestore::Key* key;
                             set<string> lost_keys = share_lost_keys(request_.new_id(), BATCH_SIZE_KEY);
                             for(set<string>::iterator it_local = lost_keys.begin(); it_local != lost_keys.end(); ++it_local){
                                 key = reply_.add_keys();
                                 key->set_key(*it_local);
                             }
+                            sum += lost_keys.size();
+                            //cout << "Size of lost_keys stream: " << lost_keys.size() << endl;
+                            cout << "Sent: " << sum << "/" << keys_set.size() << endl;
                             responder_.Write(reply_, this);
                             reply_.Clear();
                         }
 
                     }else { // state_ == FINISH 
+                        cout << "end send" << endl;
                         delete this;
                     }
                 }
         
             private:
+                int sum;
                 set<string>::iterator it;
                 enum CallStatus { CREATE, FINISH, REPLYING };
                 CallStatus state_ = CREATE;
@@ -505,7 +554,8 @@ class KVSServiceImpl {
 
                     int cpt = 0;
                     int cnt = s_up_ids.size();
-                    auto it_local = it;
+                    set<string>::iterator it_local;
+
                     for (it_local = it; it_local != keys_set.end(); it_local++){
                         string  k = *it_local; //Secret_n
                         ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,k); //Order according to HRW
@@ -533,6 +583,8 @@ class KVSServiceImpl {
                                 }
                             }
                             keys += k+"|"+potential_last_share_owner_id+"|"+t_shares_owners;
+                        }else{
+                            cout << "NOT SENT!!! " << spawned_node_hash_wrt_k << endl;
                         }
                         to_return.insert(keys);
                         keys = "";
@@ -540,13 +592,95 @@ class KVSServiceImpl {
                         cpt++;
                         if(cpt == n_records) break;
                     }
-                    if(cpt == n_records){
+
+                    if(it_local != keys_set.end()){
                         it_local++;
-                        it = it_local;
                     }
+                    it = it_local;
                     
                     return to_return;
                 }
+        };
+
+        class Partial_Polynomial_interpolationRequest : public RequestBaseToken {
+            public:
+
+                Partial_Polynomial_interpolationRequest(KVSServiceImpl& parent, tokengrpc::Token::AsyncService& service, ServerCompletionQueue& cq): RequestBaseToken(parent, service, cq) {
+
+                    service_token.RequestPartial_Polynomial_interpolation(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                }
+
+                void proceed(bool ok) override {
+
+                    if (state_ == CREATE) {
+                        createNew2<Partial_Polynomial_interpolationRequest>(parent_, service_token, cq_);
+                        
+                        string serialized_token;
+                        request_.SerializeToString(&serialized_token);
+                    
+                        sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+                        ret = ecall_distributed_PI(global_eid, serialized_token.c_str());
+                        if (ret != SGX_SUCCESS)
+                            abort();
+                        
+                        reply_.set_value("PARTIAL_INTERPOLATION_SUCCESS");
+                        state_ = FINISH;
+                        responder_.Finish(reply_, Status::OK, this);
+
+                    } else {
+                        delete this;  
+                    } 
+                }
+
+            private:
+                token::Token request_;
+                tokengrpc::Value reply_;
+                grpc::ServerAsyncResponseWriter<tokengrpc::Value> responder_{&ctx_};
+                enum CallStatus { CREATE, FINISH };
+                CallStatus state_ = CREATE;
+        };
+
+        class Get_tokensRequest : public RequestBaseToken {
+            public:
+
+                Get_tokensRequest(KVSServiceImpl& parent, tokengrpc::Token::AsyncService& service, ServerCompletionQueue& cq): RequestBaseToken(parent, service, cq) {
+
+                    service_token.RequestGet_tokens(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                }
+
+                void proceed(bool ok) override {
+
+                    if (state_ == CREATE) {
+                        createNew2<Get_tokensRequest>(parent_, service_token, cq_);
+
+                        char serialized_token[1000];
+                        memset(serialized_token, 'A', 999);
+
+                        sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+                        int source_ = request_.id();
+                        ret = ecall_get_tokens(global_eid, &source_, serialized_token);
+                        if (ret != SGX_SUCCESS)
+                            abort();
+                        token::Token token;
+                        token.ParseFromString(serialized_token);
+
+                        *(reply_.add_tokens()) = token;
+
+                        state_ = FINISH;
+                        responder_.Finish(reply_, Status::OK, this);
+
+                        
+                    } else {
+                        delete this;  
+                    } 
+                }
+
+            private:
+                tokengrpc::Node_id request_;
+                tokengrpc::List_tokens reply_;
+                grpc::ServerAsyncResponseWriter<tokengrpc::List_tokens> responder_{&ctx_};
+                enum CallStatus { CREATE, FINISH };
+                CallStatus state_ = CREATE;
         };
 
 
@@ -555,7 +689,8 @@ class KVSServiceImpl {
 
             grpc::ServerBuilder builder;
             builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-            builder.RegisterService(&service_);
+            builder.RegisterService(&service_kvs);
+            builder.RegisterService(&service_token);
 
             cq_ = builder.AddCompletionQueue();
             server_ = builder.BuildAndStart();
@@ -565,10 +700,12 @@ class KVSServiceImpl {
         }
 
         void HandleRpcs() {
-            createNew<PutRequest>(*this, service_, *cq_);
-            createNew<GetRequest>(*this, service_, *cq_);
-            createNew<DeleteRequest>(*this, service_, *cq_);
-            createNew<Share_lost_keysRequest>(*this, service_, *cq_);
+            createNew<PutRequest>(*this, service_kvs, *cq_);
+            createNew<GetRequest>(*this, service_kvs, *cq_);
+            createNew<DeleteRequest>(*this, service_kvs, *cq_);
+            createNew<Share_lost_keysRequest>(*this, service_kvs, *cq_);
+            createNew2<Partial_Polynomial_interpolationRequest>(*this, service_token, *cq_);
+            createNew2<Get_tokensRequest>(*this, service_token, *cq_);
 
             // The inner event-loop
             while(true) {
@@ -592,7 +729,8 @@ class KVSServiceImpl {
         }
 
     private:
-        keyvaluestore::KVS::AsyncService service_;
+        keyvaluestore::KVS::AsyncService service_kvs;
+        tokengrpc::Token::AsyncService service_token;
         std::unique_ptr<grpc::ServerCompletionQueue> cq_;
         std::unique_ptr<grpc::Server> server_;
 };
@@ -657,7 +795,7 @@ class KVSClient {
         }
     }
      
-    int Share_lost_keys(int id, vector<int> s_up_ids){
+     int Share_lost_keys(int id, vector<int> s_up_ids){
         keyvaluestore::New_id_with_S_up_ids request;
         request.set_new_id(id); // Replace with the desired ID value
         for(auto& s_up_id : s_up_ids) request.add_s_up_ids(s_up_id);
@@ -666,6 +804,7 @@ class KVSClient {
         // Create a Lost_keys response
         keyvaluestore::Lost_keys response_local;
         set<string> local_lost_keys_set;
+        set<string> global_lost_keys_set;
 
         ClientContext context;
         
@@ -675,14 +814,21 @@ class KVSClient {
         //********************************heeeeeeeeeeeeeere*****************
         
         string lost_key;
+        int cpt= 0;
+        cout << "begin read" << endl;
         while (reader->Read(&response_local)) {
             for (const auto& key : response_local.keys()) {
-                cout << "readddd" << endl;
                 lost_key = key.key();
-                cout << lost_key << endl;
+                //cout << lost_key << endl;
+                local_lost_keys_set.insert(lost_key);
+                cpt++;
             }
+            add_lost_keys_in_enclave(local_lost_keys_set);
+            local_lost_keys_set.clear();
         }
         Status status = reader->Finish();
+        cout << "Recieved: " << cpt << " keys"<< endl;
+        
 
         if (status.ok()) {
             cout << "Keys' Recovery succeded" << endl;
@@ -918,7 +1064,7 @@ void ocall_send_token(const char *serialized_token, int* next_node_id){
     //printf("next node id: %d\n", *next_node_id);
     TokenClient* token_client;
     token::Token token; 
-    
+    //printf("Enter Ocall send to next_node_id: %d\n", *next_node_id);
 
     token.ParseFromString(serialized_token);
     token_client = new TokenClient(grpc::CreateChannel(id_to_address_map[*next_node_id]+":"+to_string(default_sms_port) , grpc::InsecureChannelCredentials()));
@@ -951,6 +1097,41 @@ void ocall_delete_last_share(int* node_id, const char* key){
     delete kvs;
 }
 
+/*void test_share_lost_keys(){
+    KVSClient* kvs;
+
+    vector<int> S_up_ids;
+    keyvaluestore::New_id_with_S_up_ids request;
+    for(const auto& pair : id_to_address_map){
+        if(pair.first != node_id_global){
+            if(isPortOpen(pair.second, default_sms_port)) {
+                S_up_ids.push_back(pair.first);
+                request.add_s_up_ids(pair.first);
+            }
+        }
+    }
+    int N_active_size = S_up_ids.size();
+    CompletionQueue cq;
+    unique_ptr<keyvaluestore::KVS::Stub> stub;
+    vector<ClientContext> contexts(N_active_size);
+    std::unique_ptr<ClientReader<keyvaluestore::Lost_keys>> reader;
+    keyvaluestore::New_id_with_S_up_ids request; 
+    request.set_new_id(node_id_global);
+    vector<keyvaluestore::Lost_keys> responses(N_active_size);
+    vector<Status> statuses(N_active_size);
+    int i=0;
+    for (int s_up_id : S_up_ids){
+        stub = keyvaluestore::KVS::NewStub(grpc::CreateChannel(id_to_address_map[s_up_id]+":"+to_string(default_sms_port) , grpc::InsecureChannelCredentials()));
+        reader = stub->AsyncShare_lost_keys(&contexts[i], request, &cq);
+        reader->Finish(&responses[i], &statuses[i], (void*)(i+1));
+        i++:
+    }
+    while(true){
+
+    }
+
+}*/
+
 
 void test_share_lost_keys(){
     KVSClient* kvs;
@@ -961,6 +1142,7 @@ void test_share_lost_keys(){
         if(pair.first != node_id_global){
             if(isPortOpen(pair.second, default_sms_port)) {
                 S_up_ids.push_back(pair.first);
+                std::cout << pair.first << std::endl;
             }
         }
     }
@@ -970,11 +1152,6 @@ void test_share_lost_keys(){
         kvs->Share_lost_keys(node_id_global, S_up_ids); //******************************2
         delete kvs;
     }
-    
-
-    /*for (const auto& key : global_lost_keys_set) {
-        cout << key << endl;
-    }*/
 }
 
 void recover_lost_shares_wrapper(){
