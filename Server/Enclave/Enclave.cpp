@@ -64,6 +64,8 @@ string temp_token;
 
 #define ULP 2
 
+#define MAX_SIZE_VALUE 264
+#define MAX_SIZE_SERIALIZED_TOKEN 764
 
 /*char* convertCString(std::string str) {
     char* cstr = new char[str.length() + 1];  // +1 for null-terminator
@@ -388,9 +390,9 @@ void distributed_polynomial_interpolation(Token token){
     if(node_id!=token.initiator_id()){
         //TBD: compute the partial sum
         //get value
-        char share[410];
-        memset(share, 'A', 409);
-        char token_key_char[410];
+        char share[MAX_SIZE_VALUE];
+        memset(share, 'A', MAX_SIZE_VALUE-1);
+        char token_key_char[100];
         copyString(token.key(), token_key_char); 
         ecall_get(token_key_char, share);
         
@@ -457,15 +459,14 @@ void store_share(const char *serialized_token){
     }
     string hex_share = convertToHex(got_share, node_id, t);
 
-    char token_key_char[100];
 
     //copyString(std::string source, char* destination);
     char key[100];
-    char share[410];
+    char share[MAX_SIZE_VALUE];
     copyString(token.key(), key);
     copyString(hex_share, share);
 
-    printf("\nRecreated share: %s\n", share);
+    //printf("\nRecreated share: %s\n", share);
 
     ecall_put(key, share);
 
@@ -479,7 +480,7 @@ void ecall_distributed_PI(const char *serialized_token){
 
 void recover_lost_share(string& key, vector<int> t_share_owners){
 
-    int len_cumul = 410;
+    int len_cumul = MAX_SIZE_VALUE;
     //printf("Enter init\n");
     Token token = init_token(key,t_share_owners, len_cumul);
     
@@ -494,8 +495,8 @@ void recover_lost_share(string& key, vector<int> t_share_owners){
     //printf("token_owner_id: %d\n",token_owner_id);
 
     //get token from its last owner
-    char serialized_token[1000];
-    memset(serialized_token, 'A', 999);
+    char serialized_token[MAX_SIZE_SERIALIZED_TOKEN];
+    memset(serialized_token, 'A', MAX_SIZE_SERIALIZED_TOKEN-1);
     ocall_get_tokens(&token_owner_id, serialized_token);
 
     //store share
@@ -513,12 +514,25 @@ void ecall_recover_lost_shares(){
     string key;
     string potential_last_share_owner;
     vector<int> t_shares_owners;
-    int i = 0;
-    
-    for(string lost_key_with_potential_last_share_owner_and_t_shares_owners: lost_keys_with_potential_last_share_owner_and_t_shares_owners){
-        //printf("%s\n",lost_key_with_potential_last_share_owner_and_t_shares_owners);
-        i++;
-        //printf("i= %d \n",i);
+
+    int size_keys;
+    ocall_get_size_keys(&size_keys);
+
+    char lost_key[100];
+    string lost_key_with_potential_last_share_owner_and_t_shares_owners;
+    /*for(int i=0; i<size_keys; i++){        
+        memset(lost_key, 'A', 99);
+        ocall_get_lost_key(lost_key);
+        lost_key_string = lost_key;
+        printf("lost key: %s\n", lost_key_string.c_str());
+    }*/
+
+    for(int i=0; i<size_keys; i++){
+    //for(string lost_key_with_potential_last_share_owner_and_t_shares_owners: lost_keys_with_potential_last_share_owner_and_t_shares_owners){
+        memset(lost_key, 'A', 99);
+        ocall_get_lost_key(lost_key);
+        lost_key_with_potential_last_share_owner_and_t_shares_owners = lost_key;
+
         splitted_key_potential_last_share_owner_t_shares_owners = splitString(lost_key_with_potential_last_share_owner_and_t_shares_owners, '|');
         /*printf("[0] = %s \n",splitted_key_potential_last_share_owner_t_shares_owners[0].c_str());
         printf("[1] = %s \n",splitted_key_potential_last_share_owner_t_shares_owners[1].c_str());
@@ -544,9 +558,8 @@ void ecall_recover_lost_shares(){
         printf("potential last share owner: %s\n", potential_last_share_owner.c_str());
         printf("t_shares_owners: %s\n", t_shares_owners.c_str()); */
     }
-    //flush lost_keys_with_potential_last_share_owner_and_t_shares_owners
-    lost_keys_with_potential_last_share_owner_and_t_shares_owners.clear();
-    
+    //lost_keys_with_potential_last_share_owner_and_t_shares_owners.clear(); //commented because of not using add_lost_keys();
+    ocall_flush_lost_keys_list();
     
 }
 

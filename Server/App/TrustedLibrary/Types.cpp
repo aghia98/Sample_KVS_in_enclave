@@ -43,6 +43,10 @@
 
 using namespace std;
 
+#define MAX_SIZE_VALUE 1032
+#define MAX_SIZE_SERIALIZED_TOKEN 1532
+
+
 /* edger8r_type_attributes:
  *   Invokes ECALLs declared with basic types.
 
@@ -69,8 +73,8 @@ void put(string k, string v)
 
 string get(string k){
     //char* value;
-    char value[410];
-    memset(value, 'A', 409);
+    char value[MAX_SIZE_VALUE];
+    memset(value, 'A', MAX_SIZE_VALUE-1);
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     char* cstring_k = convertCString(k);
     ret = ecall_get(global_eid, cstring_k, value);
@@ -131,7 +135,6 @@ void add_lost_keys_in_enclave(const set<string>& local_lost_keys_set){
         lost_keys_string += key_with_last_share_owner+"\n";
     } 
 
-    //cout << lost_keys_string << endl;
 
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_add_lost_keys(global_eid, convertCString(lost_keys_string)); 

@@ -34,12 +34,19 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <chrono>
+#include <mutex>
 
 # include <unistd.h>
 # include <pwd.h>
 #include <arpa/inet.h> //check if the grpc server port is open
 #define MAX_PATH FILENAME_MAX
 #define BATCH_SIZE_KEY 100
+
+#define MAX_SIZE_VALUE 1032
+#define MAX_SIZE_SERIALIZED_TOKEN 1532
+#define NUM_THREADS 16
+
 
 #include "sgx_urts.h"
 #include "App.h"
@@ -69,12 +76,15 @@ int node_id_global;
 int t_global;
 int n_global;
 map<int, string> id_to_address_map;
+map<string, string> myMap;
+
 set<string> keys_set;
+set<string> lost_keys_with_potential_last_share_owner_and_t_shares_owners; set<string>::iterator it_lost_keys;
 
 int cpt = 0;
 
 int default_sms_port = 50000;
-
+std::mutex putMutex_;
 
 
 /* Global EID shared by multiple threads */
@@ -294,26 +304,28 @@ class KVSServiceImpl {
                         
                         
                         keys_set.insert(request_.key());
-                        std::thread([this]() {
+                        //std::thread([this]() {
                             //auto start_time = std::chrono::high_resolution_clock::now();
-                            /*myMap[request_.key()] = request_.value();
+                            myMap[request_.key()] = request_.value();
                             state_ = FINISH;
-                            responder_.Finish(reply_, Status::OK, this);*/
+                            responder_.Finish(reply_, Status::OK, this);
                             //auto end_time = std::chrono::high_resolution_clock::now();
                             //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
                             //std::cout << "Latency Put: " << duration.count() << " ms" << std::endl;*/
 
                             
                             //auto start_time = std::chrono::high_resolution_clock::now();
-                            
-                            put(request_.key(), request_.value());
+                            /*{
+                                std::lock_guard<std::mutex> lock(putMutex_);
+                                put(request_.key(), request_.value());
+                            }
                             //reply_.set_value("PUT_SUCCESS");
                             state_ = FINISH;
-                            responder_.Finish(reply_, Status::OK, this);
+                            responder_.Finish(reply_, Status::OK, this);*/
                             //auto end_time = std::chrono::high_resolution_clock::now();
                             //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
                             //std::cout << "Latency Put: " << duration.count() << " ms" << std::endl; 
-                        }).detach();
+                        //}).detach();
  
                     } else { //state == FINISH
                         delete this; 
@@ -348,12 +360,12 @@ class KVSServiceImpl {
                         state_ = FINISH;
                         responder_.Finish(reply_, Status::OK, this);*/
 
-                        std::thread([this]() {
+                        //std::thread([this]() {
                             
                             //auto start_time = std::chrono::high_resolution_clock::now();
-                            /*reply_.set_value(myMap[request_.key()]);
+                            reply_.set_value(myMap[request_.key()]);
                             state_ = FINISH;
-                            responder_.Finish(reply_, Status::OK, this);*/
+                            responder_.Finish(reply_, Status::OK, this);
                             //auto end_time = std::chrono::high_resolution_clock::now();
                             //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
                             //std::cout << "Latency Get: " << duration.count() << " ms" << std::endl;*/
@@ -361,13 +373,13 @@ class KVSServiceImpl {
 
                             //auto start_time = std::chrono::high_resolution_clock::now();
                             //std::lock_guard<std::mutex> lock(getMutex);
-                            reply_.set_value(get(request_.key()));
+                            /*reply_.set_value(get(request_.key()));
                             state_ = FINISH;
-                            responder_.Finish(reply_, Status::OK, this);
+                            responder_.Finish(reply_, Status::OK, this);*/
                             //auto end_time = std::chrono::high_resolution_clock::now();
                             //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
                             //std::cout << "Latency Get: " << duration.count() << " ms" << std::endl;
-                        }).detach();
+                        //}).detach();
 
                         
                     } else  {
@@ -653,8 +665,8 @@ class KVSServiceImpl {
                     if (state_ == CREATE) {
                         createNew2<Get_tokensRequest>(parent_, service_token, cq_);
 
-                        char serialized_token[1000];
-                        memset(serialized_token, 'A', 999);
+                        char serialized_token[MAX_SIZE_SERIALIZED_TOKEN];
+                        memset(serialized_token, 'A', MAX_SIZE_SERIALIZED_TOKEN-1);
 
                         sgx_status_t ret = SGX_ERROR_UNEXPECTED;
                         int source_ = request_.id();
@@ -692,14 +704,18 @@ class KVSServiceImpl {
             builder.RegisterService(&service_kvs);
             builder.RegisterService(&service_token);
 
-            cq_ = builder.AddCompletionQueue();
+            //cq_ = builder.AddCompletionQueue();
+            for (int i = 0; i < NUM_THREADS; ++i){
+                cq_[i] = builder.AddCompletionQueue();
+            }
             server_ = builder.BuildAndStart();
             std::cout << "Server listening on " << server_address << std::endl;
 
-            HandleRpcs();
+            //HandleRpcs();
+            HandleRpcsMultiThreadsMultiQueues();
         }
 
-        void HandleRpcs() {
+        /*void HandleRpcs() {
             createNew<PutRequest>(*this, service_kvs, *cq_);
             createNew<GetRequest>(*this, service_kvs, *cq_);
             createNew<DeleteRequest>(*this, service_kvs, *cq_);
@@ -726,12 +742,51 @@ class KVSServiceImpl {
                         return;
                 } // switch
             } // loop
+        }*/
+
+        void HandleRpcsMultiThreadsMultiQueues() {
+            std::vector<std::thread> threads;
+            for (int i = 0; i < NUM_THREADS ; ++i){
+                std::cout << "Thread " << i+1 << " created " << std::endl;
+                threads.emplace_back([this,i]() {
+
+                    createNew<PutRequest>(*this, service_kvs, *cq_[i]);
+                    createNew<GetRequest>(*this, service_kvs, *cq_[i]);
+                    createNew<DeleteRequest>(*this, service_kvs, *cq_[i]);
+                    createNew<Share_lost_keysRequest>(*this, service_kvs, *cq_[i]);
+                    createNew2<Partial_Polynomial_interpolationRequest>(*this, service_token, *cq_[i]);
+                    createNew2<Get_tokensRequest>(*this, service_token, *cq_[i]);
+
+                    while (true) {
+                        bool ok = true;
+                        void *tag = {};
+                        bool status;
+                        status = cq_[i]->Next(&tag, &ok);
+                        
+                        switch (status) {
+                            case grpc::CompletionQueue::NextStatus::GOT_EVENT: {
+                                auto request = static_cast<RequestBase *>(tag);
+                                request->proceed(ok);
+                            } break;
+
+                            case grpc::CompletionQueue::NextStatus::SHUTDOWN:
+                                return;
+                        }  // switch
+                    }  // loop
+                });
+
+            }
+
+            for (auto &thread : threads) {
+                thread.join();
+            }
         }
 
     private:
         keyvaluestore::KVS::AsyncService service_kvs;
         tokengrpc::Token::AsyncService service_token;
-        std::unique_ptr<grpc::ServerCompletionQueue> cq_;
+        //std::unique_ptr<grpc::ServerCompletionQueue> cq_;
+        std::unique_ptr<grpc::ServerCompletionQueue> cq_[NUM_THREADS];
         std::unique_ptr<grpc::Server> server_;
 };
 
@@ -803,16 +858,10 @@ class KVSClient {
 
         // Create a Lost_keys response
         keyvaluestore::Lost_keys response_local;
-        set<string> local_lost_keys_set;
-        set<string> global_lost_keys_set;
+        //set<string> local_lost_keys_set;
 
         ClientContext context;
-        
-
         std::unique_ptr<ClientReader<keyvaluestore::Lost_keys> > reader(stub_->Share_lost_keys(&context, request));
-        //Status status = stub_->Share_lost_keys(&context, request, &response_local); //***************3
-        //********************************heeeeeeeeeeeeeere*****************
-        
         string lost_key;
         int cpt= 0;
         cout << "begin read" << endl;
@@ -820,13 +869,16 @@ class KVSClient {
             for (const auto& key : response_local.keys()) {
                 lost_key = key.key();
                 //cout << lost_key << endl;
-                local_lost_keys_set.insert(lost_key);
+                //local_lost_keys_set.insert(lost_key);
+                lost_keys_with_potential_last_share_owner_and_t_shares_owners.insert(lost_key);
                 cpt++;
             }
-            add_lost_keys_in_enclave(local_lost_keys_set);
-            local_lost_keys_set.clear();
+            //add_lost_keys_in_enclave(local_lost_keys_set);
+            //printf("%d\n",cpt);
+            //local_lost_keys_set.clear();
         }
         Status status = reader->Finish();
+        it_lost_keys = lost_keys_with_potential_last_share_owner_and_t_shares_owners.begin();
         cout << "Recieved: " << cpt << " keys"<< endl;
         
 
@@ -836,18 +888,6 @@ class KVSClient {
             std::cerr << "RPC failed";
         }
 
-        /*if (status.ok()) {
-            for (const auto& key : response_local.keys()) {
-                lost_key=key.key();
-                local_lost_keys_set.insert(lost_key);
-                //global_lost_keys_set.insert(lost_key);
-            }
-            //send lost keys to enclave
-            add_lost_keys_in_enclave(local_lost_keys_set);
-
-        } else {
-            std::cerr << "RPC failed";
-        }*/
 
         return 0;
   }
@@ -875,8 +915,8 @@ class TokenServiceImpl final : public tokengrpc::Token::Service {
 
     Status Get_tokens(ServerContext* context, const tokengrpc::Node_id* source, tokengrpc::List_tokens* list_tokens){
         //printf("Helllllopooooo\n");
-        char serialized_token[1000];
-        memset(serialized_token, 'A', 999);
+        char serialized_token[MAX_SIZE_SERIALIZED_TOKEN];
+        memset(serialized_token, 'A', MAX_SIZE_SERIALIZED_TOKEN-1);
         
         sgx_status_t ret = SGX_ERROR_UNEXPECTED;
         
@@ -1027,6 +1067,23 @@ int initialize_enclave(void)
 }
 
 /* OCall functions */
+
+void ocall_get_size_keys(int* size_keys){
+    *size_keys = lost_keys_with_potential_last_share_owner_and_t_shares_owners.size();
+}
+
+void ocall_get_lost_key(char* lost_key){
+    string lost_key_ = *it_lost_keys;
+    it_lost_keys++;
+    strncpy(lost_key, lost_key_.c_str(), strlen(lost_key));
+}
+
+void ocall_flush_lost_keys_list(){
+    lost_keys_with_potential_last_share_owner_and_t_shares_owners.clear();
+}
+
+
+
 void ocall_print_string(const char *str)
 {
     /* Proxy/Bridge will check the length and null-terminate 
@@ -1097,6 +1154,7 @@ void ocall_delete_last_share(int* node_id, const char* key){
     delete kvs;
 }
 
+
 /*void test_share_lost_keys(){
     KVSClient* kvs;
 
@@ -1142,7 +1200,7 @@ void test_share_lost_keys(){
         if(pair.first != node_id_global){
             if(isPortOpen(pair.second, default_sms_port)) {
                 S_up_ids.push_back(pair.first);
-                std::cout << pair.first << std::endl;
+                //std::cout << pair.first << std::endl;
             }
         }
     }
@@ -1165,7 +1223,7 @@ ABSL_FLAG(uint16_t, node_id, 1, "node id");
 ABSL_FLAG(uint16_t, recovery, 0, "recovery of shares");
 
 
-int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 1 --t 3 --n 5 --recovery 0
+int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 3 --t 3 --n 5 --recovery 1
 
     id_to_address_map = parse_json("network.json");
 
@@ -1189,8 +1247,13 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 1 --t 3 --n 5 --r
         abort();
 
     if(recovery){
+        auto start_time = std::chrono::high_resolution_clock::now();
         test_share_lost_keys();//****************1
+        cout << "Starting shares recovery... " << endl;
         recover_lost_shares_wrapper();
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time);
+        cout << "Share recovery latency: " << duration.count() << " s" << endl;
     }
 
 
