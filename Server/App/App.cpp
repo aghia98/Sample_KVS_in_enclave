@@ -35,7 +35,7 @@
 #include <string.h>
 #include <assert.h>
 #include <chrono>
-#include <mutex>
+
 
 # include <unistd.h>
 # include <pwd.h>
@@ -84,7 +84,7 @@ set<string> lost_keys_with_potential_last_share_owner_and_t_shares_owners; set<s
 int cpt = 0;
 
 int default_sms_port = 50000;
-std::mutex putMutex_;
+
 
 
 /* Global EID shared by multiple threads */
@@ -302,29 +302,20 @@ class KVSServiceImpl {
                 void proceed(bool ok) override {
                     if (state_ == CREATE) {
 
-                        //cpt++;
-                        //if(cpt==10100) sgx_destroy_enclave(global_eid);
                         
                         createNew<PutRequest>(parent_, service_kvs, cq_);
 
-                        /*myMap[request_.key()] = request_.value();
-                        state_ = FINISH;
-                        responder_.Finish(reply_, Status::OK, this);*/
                         
-                        
-                        //keys_set.insert(request_.key());
-                        //std::thread([this]() {
-                           
                             /*myMap[request_.key()] = request_.value();
                             state_ = FINISH;
                             responder_.Finish(reply_, Status::OK, this);*/
                             
                             
                            
-                            {
-                                std::lock_guard<std::mutex> lock(putMutex_);
-                                put(request_.key(), request_.value());
-                            }
+                            
+                            
+                            put(request_.key(), request_.value());
+                            
                             //reply_.set_value("PUT_SUCCESS");
                             state_ = FINISH;
                             responder_.Finish(reply_, Status::OK, this);

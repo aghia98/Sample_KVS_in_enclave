@@ -38,6 +38,7 @@
 #include <vector>
 
 #include <sstream>
+#include <mutex>
 
 #include "sgx_urts.h"
 
@@ -53,6 +54,8 @@ using namespace std;
  
  */
 
+ std::mutex putMutex_;
+
 char* convertCString(std::string str) {
     char* cstr = new char[str.length() + 1];  // +1 for null-terminator
     strcpy(cstr, str.c_str());
@@ -62,7 +65,10 @@ char* convertCString(std::string str) {
 void put(string k, string v)
 {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_put(global_eid, convertCString(k), convertCString(v));
+    {
+        std::lock_guard<std::mutex> lock(putMutex_);
+        ret = ecall_put(global_eid, convertCString(k), convertCString(v));
+    }
     if (ret != SGX_SUCCESS){
         sgx_destroy_enclave(global_eid);
         abort();
