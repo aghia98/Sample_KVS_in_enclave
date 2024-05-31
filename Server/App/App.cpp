@@ -180,7 +180,16 @@ static sgx_errlist_t sgx_errlist[] = {
     },
 };
 
-
+string readFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file) {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return "";
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
 
 map<int, string> parse_json(const string& file_location){
 
@@ -303,29 +312,22 @@ class KVSServiceImpl {
                         responder_.Finish(reply_, Status::OK, this);*/
                         
                         
-                        keys_set.insert(request_.key());
+                        //keys_set.insert(request_.key());
                         //std::thread([this]() {
-                            //auto start_time = std::chrono::high_resolution_clock::now();
+                           
                             myMap[request_.key()] = request_.value();
                             state_ = FINISH;
                             responder_.Finish(reply_, Status::OK, this);
-                            //auto end_time = std::chrono::high_resolution_clock::now();
-                            //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-                            //std::cout << "Latency Put: " << duration.count() << " ms" << std::endl;*/
-
                             
-                            //auto start_time = std::chrono::high_resolution_clock::now();
-                            /*{
+                            
+                           
+                            {
                                 std::lock_guard<std::mutex> lock(putMutex_);
                                 put(request_.key(), request_.value());
                             }
                             //reply_.set_value("PUT_SUCCESS");
                             state_ = FINISH;
-                            responder_.Finish(reply_, Status::OK, this);*/
-                            //auto end_time = std::chrono::high_resolution_clock::now();
-                            //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-                            //std::cout << "Latency Put: " << duration.count() << " ms" << std::endl; 
-                        //}).detach();
+                            responder_.Finish(reply_, Status::OK, this);
  
                     } else { //state == FINISH
                         delete this; 
@@ -356,30 +358,15 @@ class KVSServiceImpl {
                     if (state_ == CREATE) {
                         createNew<GetRequest>(parent_, service_kvs, cq_);
 
-                        /*reply_.set_value(myMap[request_.key()]);
-                        state_ = FINISH;
-                        responder_.Finish(reply_, Status::OK, this);*/
-
-                        //std::thread([this]() {
-                            
-                            //auto start_time = std::chrono::high_resolution_clock::now();
-                            reply_.set_value(myMap[request_.key()]);
-                            state_ = FINISH;
-                            responder_.Finish(reply_, Status::OK, this);
-                            //auto end_time = std::chrono::high_resolution_clock::now();
-                            //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-                            //std::cout << "Latency Get: " << duration.count() << " ms" << std::endl;*/
-
-
-                            //auto start_time = std::chrono::high_resolution_clock::now();
-                            //std::lock_guard<std::mutex> lock(getMutex);
-                            /*reply_.set_value(get(request_.key()));
+                            /*reply_.set_value(myMap[request_.key()]);
                             state_ = FINISH;
                             responder_.Finish(reply_, Status::OK, this);*/
-                            //auto end_time = std::chrono::high_resolution_clock::now();
-                            //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-                            //std::cout << "Latency Get: " << duration.count() << " ms" << std::endl;
-                        //}).detach();
+                           
+
+                           
+                            reply_.set_value(get(request_.key()));
+                            state_ = FINISH;
+                            responder_.Finish(reply_, Status::OK, this);
 
                         
                     } else  {
@@ -697,10 +684,23 @@ class KVSServiceImpl {
 
 
         void Run(uint16_t port) {
-            std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
+            std::string server_address = absl::StrFormat("10.0.0.15:%d", port);
 
             grpc::ServerBuilder builder;
-            builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+            //*************************Special TLS****************************************************
+            std::string server_key = "server.key"; // Path to server's private key
+            std::string server_cert = "server.crt"; // Path to server's certificate
+            
+            grpc::SslServerCredentialsOptions::PemKeyCertPair keycert = {
+                readFile(server_key),
+                readFile(server_cert)
+            };
+            grpc::SslServerCredentialsOptions ssl_opts;
+            ssl_opts.pem_key_cert_pairs.push_back(keycert);
+
+            //************************End TLS********************************************************
+            //builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+            builder.AddListeningPort(server_address, grpc::SslServerCredentials(ssl_opts));
             builder.RegisterService(&service_kvs);
             builder.RegisterService(&service_token);
 
