@@ -315,9 +315,9 @@ class KVSServiceImpl {
                         //keys_set.insert(request_.key());
                         //std::thread([this]() {
                            
-                            myMap[request_.key()] = request_.value();
+                            /*myMap[request_.key()] = request_.value();
                             state_ = FINISH;
-                            responder_.Finish(reply_, Status::OK, this);
+                            responder_.Finish(reply_, Status::OK, this);*/
                             
                             
                            
