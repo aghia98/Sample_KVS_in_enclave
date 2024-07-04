@@ -3,14 +3,17 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/home/aghia/sgx_workspace/sgxsdk/include/**"
+                "${workspaceFolder}/eRPC_module/**",
+                "${HOME}/erpc/erpc_c/**",
+                "${HOME}/sgx_workspace/sgxsdk/include/**",
+                "${workspaceFolder}/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],
     "version": 4

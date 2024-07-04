@@ -1,0 +1,66 @@
+/*
+ * Copyright (C) 2011-2021 Intel Corporation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in
+ *     the documentation and/or other materials provided with the
+ *     distribution.
+ *   * Neither the name of Intel Corporation nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+/* Enclave.edl - Top EDL file. */
+
+enclave {
+
+
+    from "sgx_tstdc.edl" import *;
+
+   trusted {
+
+        include "../../SS_no_gmp_module/ss-worker.h"
+  
+        public void ecall_put([in] char key[100], [in] char share[1032]);
+        public void ecall_get([in] char key[100], [in, out, string] char* share);
+        public void ecall_delete([in] char key[100]);
+        public void ecall_share_lost_keys([in] int* node_id, [in, count=cnt] int* s_up_ids_array, unsigned cnt, [in, out, string] char* lost_keys);  
+        public void ecall_add_lost_keys([in] char keys_with_last_share_owner[10000]); 
+        public void ecall_recover_lost_shares();
+        public void ecall_send_params_to_enclave([in] int* node_id, [in] int* t, [in] int* n);
+        public void ecall_distributed_PI([in, string] const char *serialized_token);
+        public void ecall_get_tokens([in] int* token_initiator_id, [in, out, string] char* serialized_token);
+    };
+    
+
+    untrusted {
+        void ocall_print_string([in, string] const char *str);
+        void ocall_print_token([in, string] const char *serialized_token);
+        void ocall_send_token([in, string] const char *serialized_token, [in] int* next_node_id);
+        void ocall_get_tokens([in] int* node_id, [in, out, string] char* serial);
+        void ocall_delete_last_share([in] int* node_id, [in, string] const char* key);
+        void ocall_get_size_keys([out] int* size_keys);
+        void ocall_get_lost_key([in, out, string] char* lost_key);
+        void ocall_flush_lost_keys_list();
+    };
+
+};
