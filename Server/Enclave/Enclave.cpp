@@ -570,3 +570,17 @@ void ecall_get_tokens(int* token_initiator_id, char* serialized_token){
     
 }
 
+void ecall_get_batch_keys_shares(int* node_id, 
+                                 int* s_up_ids_array, unsigned cnt, 
+                                 int* batch_size_key, 
+                                 char* lost_keys_shares, 
+                                 int* n_records){
+   printf("hellooo");                                 
+    
+}
+
+void ecall_get_number_of_keys(int* number_of_keys){
+
+    *number_of_keys = myMap.size();
+}
+

@@ -49,6 +49,8 @@ enclave {
         public void ecall_send_params_to_enclave([in] int* node_id, [in] int* t, [in] int* n);
         public void ecall_distributed_PI([in, string] const char *serialized_token);
         public void ecall_get_tokens([in] int* token_initiator_id, [in, out, string] char* serialized_token);
+        public void ecall_get_batch_keys_shares([in] int* node_id, [in, count=cnt] int* s_up_ids_array, unsigned cnt, [in] int* batch_size_key, [in, out, string] char* lost_keys_shares, [out] int* n_records);
+        public void ecall_get_number_of_keys([out] int* number_of_keys);
     };
     
 

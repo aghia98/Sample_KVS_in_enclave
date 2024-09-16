@@ -311,11 +311,7 @@ class KVSServiceImpl {
                             responder_.Finish(reply_, Status::OK, this);*/
                             
                             
-                           
-                            
-                            
                             put(request_.key(), request_.value());
-                            
                             //reply_.set_value("PUT_SUCCESS");
                             state_ = FINISH;
                             responder_.Finish(reply_, Status::OK, this);
@@ -410,57 +406,153 @@ class KVSServiceImpl {
                 CallStatus state_ = CREATE;
         };
 
-        /*class Share_lost_keysRequest : public RequestBaseKVS{
+        class get_keys_sharesRequest : public RequestBaseKVS {
             public:
 
-                Share_lost_keysRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBaseKVS(parent, service, cq) {
+                get_keys_sharesRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq)
+                    : RequestBaseKVS(parent, service, cq) {
 
-
-                    service_kvs.RequestShare_lost_keys(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                    // Register this instance with the event-queue and the service.
+                    // The first event received over the queue is that we have a request.
+                    service_kvs.Requestget_keys_shares(&ctx_, &request_, &responder_, &cq_, &cq_, this);
                 }
 
                 void proceed(bool ok) override {
-
-                    if (state_ == CREATE) {
-                        createNew<Share_lost_keysRequest>(parent_, service_kvs, cq_);
-
-                        vector<int> s_up_ids;
-
-                        for (const auto& s_up_id : request_.s_up_ids()) {
-                            s_up_ids.push_back(s_up_id);
-                        }
-                        //int* s_up_ids_array = &s_up_ids[0];
+                    if (state_ == CREATE){
+                        sum = 0;
+                        //get s_up_ids************HARDCODED*********************
                         
-                        //**************************5
-                        set<string> lost_keys = share_lost_keys(request_.new_id(), s_up_ids);
-                        
-                        if(lost_keys.empty()){
-                            keyvaluestore::Key* key = reply_.add_keys();
-                            key->set_key("null");
-                        }else{
-                            for (set<string>::iterator it = lost_keys.begin(); it != lost_keys.end(); ++it) {
-                                keyvaluestore::Key* key = reply_.add_keys();
-                                key->set_key(*it);
+                        //get number of keys
+                        sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+                        ret = ecall_get_number_of_keys(global_eid, &number_of_keys);
+                        printf("number of keys: %d\n", number_of_keys);
+                        if (ret != SGX_SUCCESS) abort();
+
+                        cout << "begin processed" << endl;
+                        createNew<get_keys_sharesRequest>(parent_, service_kvs, cq_);
+                        //it = keys_set.begin();
+                        if(number_of_keys==0){
+                            state_ = FINISH;
+                            responder_.Finish(Status::OK, this);
+                        } else{ //1st write
+                            int n_processed_records;
+                            set<string> lost_keys = get_batch_keys_shares(request_.new_id(), &n_processed_records);
+                            //keyvaluestore::Keys_and_shares* key_and_share;
+                            for(const string& key_and_share : lost_keys){
+                                reply_.add_keys_and_shares(key_and_share);
                             }
+                            
+                            state_ = REPLYING;
+                            sum += n_processed_records;
+                            //cout << "Size of lost_keys stream: " << lost_keys.size() << endl;
+                            cout << "Sent: " << sum << "/" << number_of_keys << endl;
+                            responder_.Write(reply_, this);
+                            reply_.Clear();
                         }
+                        
+                    }else if (state_ == REPLYING){
+                        if(sum==number_of_keys){
+                            state_ = FINISH;
+                            responder_.Finish(Status::OK, this);
+                        }else{
+                            int n_processed_records;
+                            set<string> lost_keys = get_batch_keys_shares(request_.new_id(), &n_processed_records);
+                            //keyvaluestore::Keys_and_shares* key_and_share;
+                            for(const string& key_and_share : lost_keys){
+                                reply_.add_keys_and_shares(key_and_share);
+                            }
+                            sum+=n_processed_records;
+                            cout << "Sent: " << sum << "/" << number_of_keys << endl;
+                            responder_.Write(reply_, this);
+                            reply_.Clear();
+                        }
+                    }else { // state_ == FINISH 
+                        cout << "end processed" << endl;
+                        delete this;
+                    }
+                }
+        
+            private:
+                int sum;
+                int number_of_keys;
+                vector<int> s_up_ids = {1,2,3,4,5};
+                enum CallStatus { CREATE, FINISH, REPLYING };
+                CallStatus state_ = CREATE;
+                ServerAsyncWriter<keyvaluestore::Keys_and_shares> responder_{&ctx_};
+                keyvaluestore::New_id_with_polynomial request_;
+                keyvaluestore::Keys_and_shares reply_;
+                
 
-
-                        state_ = FINISH;
-                        responder_.Finish(reply_, Status::OK, this);
-
-                    } else {
-                        delete this;  
-                    } 
+                set<string> get_batch_keys_shares(int node_id, int* n_records){
+                    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+                    int* s_up_ids_array = &s_up_ids[0];
+                    char lost_keys_with_potential_last_share_owner[12800]; //*******************************************assuming there is max 100 lost keys per node*********************
+                    memset(lost_keys_with_potential_last_share_owner, 'A', 12799);
+                    lost_keys_with_potential_last_share_owner[12799] = '\0';
+                    int batch_size_key = BATCH_SIZE_KEY;
+                    ret = ecall_get_batch_keys_shares(global_eid, &node_id, s_up_ids_array, s_up_ids.size(), &batch_size_key, lost_keys_with_potential_last_share_owner, n_records);
+                    if (ret != SGX_SUCCESS) abort();
+                    
                 }
 
-            private:
-                keyvaluestore::New_id_with_S_up_ids request_;
-                keyvaluestore::Lost_keys reply_;
-                grpc::ServerAsyncResponseWriter<keyvaluestore::Lost_keys> responder_{&ctx_};
-                enum CallStatus { CREATE, FINISH };
-                CallStatus state_ = CREATE;
-        };*/
+                /*set<string> share_lost_keys(int node_id, int n_records){
+                    vector<string> strings_with_id_of_N_active;
+                    vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
+                    string word = "server";
+                    string keys="";
+                    strings_with_id_of_N_active = convert_ids_to_strings_with_id(s_up_ids, word);
+                    set<string> to_return;
 
+                    int cpt = 0;
+                    int cnt = s_up_ids.size();
+                    set<string>::iterator it_local;
+
+                    for (it_local = it; it_local != keys_set.end(); it_local++){
+                        string  k = *it_local; //Secret_n
+                        ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,k); //Order according to HRW
+                        string spawned_node_id = word+to_string(node_id); //serverX
+                        string spawned_node_to_hash = spawned_node_id+k; //ServerX+k
+                        uint32_t spawned_node_hash_wrt_k = jenkinsHash(spawned_node_to_hash);
+                        uint32_t n_th_node_hash;
+                        string potential_last_share_owner_id;
+                        if(cnt<n_global){
+                            n_th_node_hash = 0;
+                            potential_last_share_owner_id = "null"; // number of active nodes is smaller than n
+                        }else{
+                            n_th_node_hash = ordered_strings_with_id_to_hash[n_global-1].second;
+                            potential_last_share_owner_id = to_string(extractNumber(ordered_strings_with_id_to_hash[n_global-1].first));
+                        }
+
+                        if(spawned_node_hash_wrt_k > n_th_node_hash){ //spawned_node is a neighbour for k
+                            //gather at least t share owners
+                            string t_shares_owners = "";
+
+                            for(int i=0; i<t_global; i++){
+                                t_shares_owners += to_string(extractNumber(ordered_strings_with_id_to_hash[i].first));
+                                if(i<t_global-1){
+                                    t_shares_owners +=",";
+                                }
+                            }
+                            keys += k+"|"+potential_last_share_owner_id+"|"+t_shares_owners;
+                        }else{
+                            cout << "NOT SENT!!! " << spawned_node_hash_wrt_k << endl;
+                        }
+                        to_return.insert(keys);
+                        keys = "";
+
+                        cpt++;
+                        if(cpt == n_records) break;
+                    }
+
+                    if(it_local != keys_set.end()){
+                        it_local++;
+                    }
+                    it = it_local;
+                    
+                    return to_return;
+                }*/
+        };
+        
         class Share_lost_keysRequest : public RequestBaseKVS {
             public:
 
@@ -745,6 +837,7 @@ class KVSServiceImpl {
                     createNew<GetRequest>(*this, service_kvs, *cq_[i]);
                     createNew<DeleteRequest>(*this, service_kvs, *cq_[i]);
                     createNew<Share_lost_keysRequest>(*this, service_kvs, *cq_[i]);
+                    createNew<get_keys_sharesRequest>(*this, service_kvs, *cq_[i]);
                     createNew2<Partial_Polynomial_interpolationRequest>(*this, service_token, *cq_[i]);
                     createNew2<Get_tokensRequest>(*this, service_token, *cq_[i]);
 
@@ -780,8 +873,6 @@ class KVSServiceImpl {
         std::unique_ptr<grpc::ServerCompletionQueue> cq_[NUM_THREADS];
         std::unique_ptr<grpc::Server> server_;
 };
-
-
 
 class KVSClient {
  public:
@@ -879,6 +970,37 @@ class KVSClient {
             std::cerr << "RPC failed";
         }
 
+
+        return 0;
+  }
+
+    int get_keys_shares(int id, int polynomial){
+        keyvaluestore::New_id_with_polynomial request;
+        request.set_new_id(id); // Replace with the desired ID value
+        request.set_polynomial(polynomial);
+        
+        // Create a Lost_keys response
+        keyvaluestore::Keys_and_shares response_local;
+
+        ClientContext context;
+        std::unique_ptr<ClientReader<keyvaluestore::Keys_and_shares> > reader(stub_->get_keys_shares(&context, request));
+        int cpt = 0;
+        cout << "begin read" << endl;
+        while (reader->Read(&response_local)) {
+            for (const string& key_and_share : response_local.keys_and_shares()) {
+                cout << key_and_share << endl;
+                cpt++;
+            }
+        }
+        Status status = reader->Finish();
+        cout << "Recieved: " << cpt << " keys"<< endl;
+        
+
+        if (status.ok()) {
+            cout << "Keys' Recovery succeded" << endl;
+        }  else {
+            std::cerr << "RPC failed";
+        }
 
         return 0;
   }
@@ -1214,7 +1336,7 @@ ABSL_FLAG(uint16_t, node_id, 1, "node id");
 ABSL_FLAG(uint16_t, recovery, 0, "recovery of shares");
 
 
-int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 3 --t 3 --n 5 --recovery 1
+int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 1 --t 3 --n 5 --recovery 0
 
     id_to_address_map = parse_json("network.json");
 
