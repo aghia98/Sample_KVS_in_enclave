@@ -26,6 +26,7 @@ static const char* KVS_method_names[] = {
   "/keyvaluestore.KVS/Put",
   "/keyvaluestore.KVS/Delete",
   "/keyvaluestore.KVS/Share_lost_keys",
+  "/keyvaluestore.KVS/get_keys_shares",
 };
 
 std::unique_ptr< KVS::Stub> KVS::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -39,6 +40,7 @@ KVS::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const
   , rpcmethod_Put_(KVS_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Delete_(KVS_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Share_lost_keys_(KVS_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
+  , rpcmethod_get_keys_shares_(KVS_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
   {}
 
 ::grpc::Status KVS::Stub::Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response) {
@@ -126,6 +128,22 @@ void KVS::Stub::async::Share_lost_keys(::grpc::ClientContext* context, const ::k
   return ::grpc::internal::ClientAsyncReaderFactory< ::keyvaluestore::Lost_keys>::Create(channel_.get(), cq, rpcmethod_Share_lost_keys_, context, request, false, nullptr);
 }
 
+::grpc::ClientReader< ::keyvaluestore::Keys_and_shares>* KVS::Stub::get_keys_sharesRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial& request) {
+  return ::grpc::internal::ClientReaderFactory< ::keyvaluestore::Keys_and_shares>::Create(channel_.get(), rpcmethod_get_keys_shares_, context, request);
+}
+
+void KVS::Stub::async::get_keys_shares(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial* request, ::grpc::ClientReadReactor< ::keyvaluestore::Keys_and_shares>* reactor) {
+  ::grpc::internal::ClientCallbackReaderFactory< ::keyvaluestore::Keys_and_shares>::Create(stub_->channel_.get(), stub_->rpcmethod_get_keys_shares_, context, request, reactor);
+}
+
+::grpc::ClientAsyncReader< ::keyvaluestore::Keys_and_shares>* KVS::Stub::Asyncget_keys_sharesRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial& request, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncReaderFactory< ::keyvaluestore::Keys_and_shares>::Create(channel_.get(), cq, rpcmethod_get_keys_shares_, context, request, true, tag);
+}
+
+::grpc::ClientAsyncReader< ::keyvaluestore::Keys_and_shares>* KVS::Stub::PrepareAsyncget_keys_sharesRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncReaderFactory< ::keyvaluestore::Keys_and_shares>::Create(channel_.get(), cq, rpcmethod_get_keys_shares_, context, request, false, nullptr);
+}
+
 KVS::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KVS_method_names[0],
@@ -167,6 +185,16 @@ KVS::Service::Service() {
              ::grpc::ServerWriter<::keyvaluestore::Lost_keys>* writer) {
                return service->Share_lost_keys(ctx, req, writer);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      KVS_method_names[4],
+      ::grpc::internal::RpcMethod::SERVER_STREAMING,
+      new ::grpc::internal::ServerStreamingHandler< KVS::Service, ::keyvaluestore::New_id_with_polynomial, ::keyvaluestore::Keys_and_shares>(
+          [](KVS::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::keyvaluestore::New_id_with_polynomial* req,
+             ::grpc::ServerWriter<::keyvaluestore::Keys_and_shares>* writer) {
+               return service->get_keys_shares(ctx, req, writer);
+             }, this)));
 }
 
 KVS::Service::~Service() {
@@ -194,6 +222,13 @@ KVS::Service::~Service() {
 }
 
 ::grpc::Status KVS::Service::Share_lost_keys(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ServerWriter< ::keyvaluestore::Lost_keys>* writer) {
+  (void) context;
+  (void) request;
+  (void) writer;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status KVS::Service::get_keys_shares(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_polynomial* request, ::grpc::ServerWriter< ::keyvaluestore::Keys_and_shares>* writer) {
   (void) context;
   (void) request;
   (void) writer;

@@ -23,6 +23,7 @@ service KVS {
   rpc Put (KV_pair) returns (Value) {}
   rpc Delete (Key) returns (Value) {}
   rpc Share_lost_keys (New_id_with_S_up_ids) returns (stream Lost_keys) {}
+  rpc get_keys_shares (New_id_with_polynomial) returns (stream Keys_and_shares) {}
 }
 
 // The request message containing the key
@@ -47,5 +48,14 @@ message Lost_keys {
 message New_id_with_S_up_ids {
   int32 new_id = 1;
   repeated int32 S_up_ids = 2; 
+}
+
+message New_id_with_polynomial {
+  int32 new_id = 1;
+  int32 polynomial = 2; 
+}
+
+message Keys_and_shares {
+  repeated string keys_and_shares = 1;
 }
 

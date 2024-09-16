@@ -51,12 +51,18 @@ extern KV_pairDefaultTypeInternal _KV_pair_default_instance_;
 class Key;
 struct KeyDefaultTypeInternal;
 extern KeyDefaultTypeInternal _Key_default_instance_;
+class Keys_and_shares;
+struct Keys_and_sharesDefaultTypeInternal;
+extern Keys_and_sharesDefaultTypeInternal _Keys_and_shares_default_instance_;
 class Lost_keys;
 struct Lost_keysDefaultTypeInternal;
 extern Lost_keysDefaultTypeInternal _Lost_keys_default_instance_;
 class New_id_with_S_up_ids;
 struct New_id_with_S_up_idsDefaultTypeInternal;
 extern New_id_with_S_up_idsDefaultTypeInternal _New_id_with_S_up_ids_default_instance_;
+class New_id_with_polynomial;
+struct New_id_with_polynomialDefaultTypeInternal;
+extern New_id_with_polynomialDefaultTypeInternal _New_id_with_polynomial_default_instance_;
 class Value;
 struct ValueDefaultTypeInternal;
 extern ValueDefaultTypeInternal _Value_default_instance_;
@@ -64,8 +70,10 @@ extern ValueDefaultTypeInternal _Value_default_instance_;
 PROTOBUF_NAMESPACE_OPEN
 template<> ::keyvaluestore::KV_pair* Arena::CreateMaybeMessage<::keyvaluestore::KV_pair>(Arena*);
 template<> ::keyvaluestore::Key* Arena::CreateMaybeMessage<::keyvaluestore::Key>(Arena*);
+template<> ::keyvaluestore::Keys_and_shares* Arena::CreateMaybeMessage<::keyvaluestore::Keys_and_shares>(Arena*);
 template<> ::keyvaluestore::Lost_keys* Arena::CreateMaybeMessage<::keyvaluestore::Lost_keys>(Arena*);
 template<> ::keyvaluestore::New_id_with_S_up_ids* Arena::CreateMaybeMessage<::keyvaluestore::New_id_with_S_up_ids>(Arena*);
+template<> ::keyvaluestore::New_id_with_polynomial* Arena::CreateMaybeMessage<::keyvaluestore::New_id_with_polynomial>(Arena*);
 template<> ::keyvaluestore::Value* Arena::CreateMaybeMessage<::keyvaluestore::Value>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace keyvaluestore {
@@ -875,6 +883,328 @@ class New_id_with_S_up_ids final :
   union { Impl_ _impl_; };
   friend struct ::TableStruct_KVS_5faccess_2eproto;
 };
+// -------------------------------------------------------------------
+
+class New_id_with_polynomial final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:keyvaluestore.New_id_with_polynomial) */ {
+ public:
+  inline New_id_with_polynomial() : New_id_with_polynomial(nullptr) {}
+  ~New_id_with_polynomial() override;
+  explicit PROTOBUF_CONSTEXPR New_id_with_polynomial(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  New_id_with_polynomial(const New_id_with_polynomial& from);
+  New_id_with_polynomial(New_id_with_polynomial&& from) noexcept
+    : New_id_with_polynomial() {
+    *this = ::std::move(from);
+  }
+
+  inline New_id_with_polynomial& operator=(const New_id_with_polynomial& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline New_id_with_polynomial& operator=(New_id_with_polynomial&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const New_id_with_polynomial& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const New_id_with_polynomial* internal_default_instance() {
+    return reinterpret_cast<const New_id_with_polynomial*>(
+               &_New_id_with_polynomial_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    5;
+
+  friend void swap(New_id_with_polynomial& a, New_id_with_polynomial& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(New_id_with_polynomial* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(New_id_with_polynomial* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  New_id_with_polynomial* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<New_id_with_polynomial>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const New_id_with_polynomial& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const New_id_with_polynomial& from) {
+    New_id_with_polynomial::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(New_id_with_polynomial* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "keyvaluestore.New_id_with_polynomial";
+  }
+  protected:
+  explicit New_id_with_polynomial(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kNewIdFieldNumber = 1,
+    kPolynomialFieldNumber = 2,
+  };
+  // int32 new_id = 1;
+  void clear_new_id();
+  int32_t new_id() const;
+  void set_new_id(int32_t value);
+  private:
+  int32_t _internal_new_id() const;
+  void _internal_set_new_id(int32_t value);
+  public:
+
+  // int32 polynomial = 2;
+  void clear_polynomial();
+  int32_t polynomial() const;
+  void set_polynomial(int32_t value);
+  private:
+  int32_t _internal_polynomial() const;
+  void _internal_set_polynomial(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:keyvaluestore.New_id_with_polynomial)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t new_id_;
+    int32_t polynomial_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_KVS_5faccess_2eproto;
+};
+// -------------------------------------------------------------------
+
+class Keys_and_shares final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:keyvaluestore.Keys_and_shares) */ {
+ public:
+  inline Keys_and_shares() : Keys_and_shares(nullptr) {}
+  ~Keys_and_shares() override;
+  explicit PROTOBUF_CONSTEXPR Keys_and_shares(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Keys_and_shares(const Keys_and_shares& from);
+  Keys_and_shares(Keys_and_shares&& from) noexcept
+    : Keys_and_shares() {
+    *this = ::std::move(from);
+  }
+
+  inline Keys_and_shares& operator=(const Keys_and_shares& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Keys_and_shares& operator=(Keys_and_shares&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Keys_and_shares& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Keys_and_shares* internal_default_instance() {
+    return reinterpret_cast<const Keys_and_shares*>(
+               &_Keys_and_shares_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    6;
+
+  friend void swap(Keys_and_shares& a, Keys_and_shares& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Keys_and_shares* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Keys_and_shares* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Keys_and_shares* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Keys_and_shares>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Keys_and_shares& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const Keys_and_shares& from) {
+    Keys_and_shares::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Keys_and_shares* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "keyvaluestore.Keys_and_shares";
+  }
+  protected:
+  explicit Keys_and_shares(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kKeysAndSharesFieldNumber = 1,
+  };
+  // repeated string keys_and_shares = 1;
+  int keys_and_shares_size() const;
+  private:
+  int _internal_keys_and_shares_size() const;
+  public:
+  void clear_keys_and_shares();
+  const std::string& keys_and_shares(int index) const;
+  std::string* mutable_keys_and_shares(int index);
+  void set_keys_and_shares(int index, const std::string& value);
+  void set_keys_and_shares(int index, std::string&& value);
+  void set_keys_and_shares(int index, const char* value);
+  void set_keys_and_shares(int index, const char* value, size_t size);
+  std::string* add_keys_and_shares();
+  void add_keys_and_shares(const std::string& value);
+  void add_keys_and_shares(std::string&& value);
+  void add_keys_and_shares(const char* value);
+  void add_keys_and_shares(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& keys_and_shares() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_keys_and_shares();
+  private:
+  const std::string& _internal_keys_and_shares(int index) const;
+  std::string* _internal_add_keys_and_shares();
+  public:
+
+  // @@protoc_insertion_point(class_scope:keyvaluestore.Keys_and_shares)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> keys_and_shares_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_KVS_5faccess_2eproto;
+};
 // ===================================================================
 
 
@@ -1209,9 +1539,136 @@ New_id_with_S_up_ids::mutable_s_up_ids() {
   return _internal_mutable_s_up_ids();
 }
 
+// -------------------------------------------------------------------
+
+// New_id_with_polynomial
+
+// int32 new_id = 1;
+inline void New_id_with_polynomial::clear_new_id() {
+  _impl_.new_id_ = 0;
+}
+inline int32_t New_id_with_polynomial::_internal_new_id() const {
+  return _impl_.new_id_;
+}
+inline int32_t New_id_with_polynomial::new_id() const {
+  // @@protoc_insertion_point(field_get:keyvaluestore.New_id_with_polynomial.new_id)
+  return _internal_new_id();
+}
+inline void New_id_with_polynomial::_internal_set_new_id(int32_t value) {
+  
+  _impl_.new_id_ = value;
+}
+inline void New_id_with_polynomial::set_new_id(int32_t value) {
+  _internal_set_new_id(value);
+  // @@protoc_insertion_point(field_set:keyvaluestore.New_id_with_polynomial.new_id)
+}
+
+// int32 polynomial = 2;
+inline void New_id_with_polynomial::clear_polynomial() {
+  _impl_.polynomial_ = 0;
+}
+inline int32_t New_id_with_polynomial::_internal_polynomial() const {
+  return _impl_.polynomial_;
+}
+inline int32_t New_id_with_polynomial::polynomial() const {
+  // @@protoc_insertion_point(field_get:keyvaluestore.New_id_with_polynomial.polynomial)
+  return _internal_polynomial();
+}
+inline void New_id_with_polynomial::_internal_set_polynomial(int32_t value) {
+  
+  _impl_.polynomial_ = value;
+}
+inline void New_id_with_polynomial::set_polynomial(int32_t value) {
+  _internal_set_polynomial(value);
+  // @@protoc_insertion_point(field_set:keyvaluestore.New_id_with_polynomial.polynomial)
+}
+
+// -------------------------------------------------------------------
+
+// Keys_and_shares
+
+// repeated string keys_and_shares = 1;
+inline int Keys_and_shares::_internal_keys_and_shares_size() const {
+  return _impl_.keys_and_shares_.size();
+}
+inline int Keys_and_shares::keys_and_shares_size() const {
+  return _internal_keys_and_shares_size();
+}
+inline void Keys_and_shares::clear_keys_and_shares() {
+  _impl_.keys_and_shares_.Clear();
+}
+inline std::string* Keys_and_shares::add_keys_and_shares() {
+  std::string* _s = _internal_add_keys_and_shares();
+  // @@protoc_insertion_point(field_add_mutable:keyvaluestore.Keys_and_shares.keys_and_shares)
+  return _s;
+}
+inline const std::string& Keys_and_shares::_internal_keys_and_shares(int index) const {
+  return _impl_.keys_and_shares_.Get(index);
+}
+inline const std::string& Keys_and_shares::keys_and_shares(int index) const {
+  // @@protoc_insertion_point(field_get:keyvaluestore.Keys_and_shares.keys_and_shares)
+  return _internal_keys_and_shares(index);
+}
+inline std::string* Keys_and_shares::mutable_keys_and_shares(int index) {
+  // @@protoc_insertion_point(field_mutable:keyvaluestore.Keys_and_shares.keys_and_shares)
+  return _impl_.keys_and_shares_.Mutable(index);
+}
+inline void Keys_and_shares::set_keys_and_shares(int index, const std::string& value) {
+  _impl_.keys_and_shares_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:keyvaluestore.Keys_and_shares.keys_and_shares)
+}
+inline void Keys_and_shares::set_keys_and_shares(int index, std::string&& value) {
+  _impl_.keys_and_shares_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:keyvaluestore.Keys_and_shares.keys_and_shares)
+}
+inline void Keys_and_shares::set_keys_and_shares(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.keys_and_shares_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:keyvaluestore.Keys_and_shares.keys_and_shares)
+}
+inline void Keys_and_shares::set_keys_and_shares(int index, const char* value, size_t size) {
+  _impl_.keys_and_shares_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:keyvaluestore.Keys_and_shares.keys_and_shares)
+}
+inline std::string* Keys_and_shares::_internal_add_keys_and_shares() {
+  return _impl_.keys_and_shares_.Add();
+}
+inline void Keys_and_shares::add_keys_and_shares(const std::string& value) {
+  _impl_.keys_and_shares_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:keyvaluestore.Keys_and_shares.keys_and_shares)
+}
+inline void Keys_and_shares::add_keys_and_shares(std::string&& value) {
+  _impl_.keys_and_shares_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:keyvaluestore.Keys_and_shares.keys_and_shares)
+}
+inline void Keys_and_shares::add_keys_and_shares(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.keys_and_shares_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:keyvaluestore.Keys_and_shares.keys_and_shares)
+}
+inline void Keys_and_shares::add_keys_and_shares(const char* value, size_t size) {
+  _impl_.keys_and_shares_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:keyvaluestore.Keys_and_shares.keys_and_shares)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+Keys_and_shares::keys_and_shares() const {
+  // @@protoc_insertion_point(field_list:keyvaluestore.Keys_and_shares.keys_and_shares)
+  return _impl_.keys_and_shares_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+Keys_and_shares::mutable_keys_and_shares() {
+  // @@protoc_insertion_point(field_mutable_list:keyvaluestore.Keys_and_shares.keys_and_shares)
+  return &_impl_.keys_and_shares_;
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------
