@@ -877,9 +877,10 @@ class KVSServiceImpl {
                     createNew<GetRequest>(*this, service_kvs, *cq_[i]);
                     createNew<DeleteRequest>(*this, service_kvs, *cq_[i]);
                     createNew<Share_lost_keysRequest>(*this, service_kvs, *cq_[i]);
-                    createNew<get_keys_sharesRequest>(*this, service_kvs, *cq_[i]);
-                    createNew2<Partial_Polynomial_interpolationRequest>(*this, service_token, *cq_[i]);
-                    createNew2<Get_tokensRequest>(*this, service_token, *cq_[i]);
+                    createNew<Generate_polynomial_and_broadcastRequest>(*this, service_kvs, *cq_[i]);
+                    //createNew<get_keys_sharesRequest>(*this, service_kvs, *cq_[i]);
+                    //createNew2<Partial_Polynomial_interpolationRequest>(*this, service_token, *cq_[i]);
+                    //createNew2<Get_tokensRequest>(*this, service_token, *cq_[i]);
 
                     while (true) {
                         bool ok = true;
