@@ -315,6 +315,7 @@ class KVSServiceImpl {
                             
                             
                             put(request_.key(), request_.value());
+                            keys_set.insert(request_.key());
                             //reply_.set_value("PUT_SUCCESS");
                             state_ = FINISH;
                             responder_.Finish(reply_, Status::OK, this);
