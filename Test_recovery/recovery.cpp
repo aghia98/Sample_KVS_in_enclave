@@ -62,6 +62,49 @@
 
 static int prime = 257;
 
+char * custom_strcpy(char * dest, const char * src) {
+    if (dest == nullptr || src == nullptr) {
+        return nullptr;  // Return nullptr if either input is null
+    }
+
+    char * original_dest = dest;  // Save the original pointer to return later
+
+    // Copy each character from source to destination
+    while (*src != '\0') {
+        *dest = *src;
+        dest++;
+        src++;
+    }
+
+    // Null-terminate the destination string
+    *dest = '\0';
+
+    return original_dest;
+}
+
+// Custom strdup implementation
+char * custom_strdup(const char * string) {
+    if (string == nullptr) {
+        return nullptr;
+    }
+
+    // Allocate memory for the new string
+    size_t len = 0;
+    while (string[len] != '\0') {  // Get the length of the string manually
+        len++;
+    }
+    len++;  // Add 1 for the null terminator
+
+    char * temp_string = (char *) malloc(len);
+
+    // Check if allocation succeeded
+    if (temp_string != nullptr) {
+        custom_strcpy(temp_string, string);  // Copy the original string using the custom strcpy
+    }
+
+    return temp_string;
+}
+
 char * strtok_rr(
 	char * str,
 	const char * delim,
@@ -387,7 +430,6 @@ int join_shares_at_point(int * xy_pairs, int n, int point) {
 	}
 
 
-	/* Sometimes we're getting negative numbers, and need to fix that */
 	secret = (secret + prime) % prime;
 	//printf("%02X\n",secret);
 
@@ -480,6 +522,89 @@ char * join_strings_at_point(char ** shares, int n, int point, int t) {
 	int len_result = (strlen(shares[0]));
 
 	char * result = static_cast<char*>(malloc(len_result + 1));
+	//sprintf(result, "%02X%02XAA", point,t);
+    //I cannot use sprintf...
+    char hex[3];
+    intToHex(point, hex);
+    result[0] = hex[0];
+    result[1] = hex[1];
+    intToHex(t, hex);
+    result[2] = hex[0];
+    result[3] = hex[1];
+    result[4] = 'A';
+    result[5] = 'A';
+
+	char codon[3];
+	codon[2] = '\0';	// Must terminate the string!
+
+	int x[n];		// Integer value array
+	int i;			// Counter
+	int j;			// Counter
+
+	// Determine x value for each share
+
+	
+	for (i = 0; i < n; ++i) {
+		if (shares[i] == NULL) {
+			free(result);
+			return NULL;
+		}
+		codon[0] = shares[i][0];
+		codon[1] = shares[i][1];
+
+		x[i] = strtol(codon, NULL, 16);
+	}
+	// Iterate through characters and calculate original secret
+	for (i = 0; i < (len_result-6)/2; ++i) {
+		
+		int * chunks = (int*)malloc(sizeof(int) * n  * 2);
+
+		// Collect all shares for character i
+		for (j = 0; j < n; ++j) {
+			// Store x value for share
+			chunks[j * 2] = x[j];
+
+			codon[0] = shares[j][6 + i * 2];
+			codon[1] = shares[j][6 + i * 2 + 1];
+
+			// Store y value for share
+			if (memcmp(codon, "G0", 2) == 0) {
+				chunks[j * 2 + 1] = 256;
+			} else {
+				chunks[j * 2 + 1] = strtol(codon, NULL, 16);
+			}
+		}
+
+		int letter = join_shares_at_point(chunks, n, point);
+		free(chunks);
+		
+        intToHex(letter, hex);
+        result[6+2*i] = hex[0];
+        result[7+2*i] = hex[1];
+
+		/*if(letter==256){
+			sprintf(result + 6+2*i, "%s", "G0");
+		}else{
+			sprintf(result + 6+2*i, "%02X", letter);
+		}*/
+	}
+
+	result[len_result] = '\0';
+	
+
+	return result;
+}
+
+/*char * join_strings_at_point(char ** shares, int n, int point, int t) {
+
+	if ((n == 0) || (shares == NULL) || (shares[0] == NULL)) {
+		return NULL;
+	}
+	
+	// `len` = number of hex pair values in shares
+	int len_result = (strlen(shares[0]));
+
+	char * result = static_cast<char*>(malloc(len_result + 1));
 	sprintf(result, "%02X%02XAA", point,t);
 	char codon[3];
 	codon[2] = '\0';	// Must terminate the string!
@@ -535,7 +660,7 @@ char * join_strings_at_point(char ** shares, int n, int point, int t) {
 	
 
 	return result;
-}
+}*/
 
 
 
@@ -613,18 +738,18 @@ char * recover_share_from_share_strings(const char * string, int point, int t) {
 	int i = 0;
 
 	/* strtok_rr modifies the string we are looking at, so make a temp copy */
-	char * temp_string = strdup(string);
+	char * temp_string = custom_strdup(string);
 
 	/* Parse the string by line, remove trailing whitespace */
 	share = strtok_rr(temp_string, "\n", &saveptr);
 
-	shares[i] = strdup(share);
+	shares[i] = custom_strdup(share);
 	trim_trailing_whitespace(shares[i]);
 
 	while ( (share = strtok_rr(NULL, "\n", &saveptr))) {
 		i++;
 
-		shares[i] = strdup(share);
+		shares[i] = custom_strdup(share);
 
 		trim_trailing_whitespace(shares[i]);
 

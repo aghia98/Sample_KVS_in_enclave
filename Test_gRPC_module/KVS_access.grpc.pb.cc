@@ -25,6 +25,7 @@ static const char* KVS_method_names[] = {
   "/keyvaluestore.KVS/Get",
   "/keyvaluestore.KVS/Put",
   "/keyvaluestore.KVS/Delete",
+  "/keyvaluestore.KVS/Generate_polynomial_and_broadcast",
   "/keyvaluestore.KVS/Share_lost_keys",
   "/keyvaluestore.KVS/get_keys_shares",
 };
@@ -39,8 +40,9 @@ KVS::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const
   : channel_(channel), rpcmethod_Get_(KVS_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Put_(KVS_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Delete_(KVS_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Share_lost_keys_(KVS_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
-  , rpcmethod_get_keys_shares_(KVS_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
+  , rpcmethod_Generate_polynomial_and_broadcast_(KVS_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Share_lost_keys_(KVS_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
+  , rpcmethod_get_keys_shares_(KVS_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
   {}
 
 ::grpc::Status KVS::Stub::Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response) {
@@ -112,6 +114,29 @@ void KVS::Stub::async::Delete(::grpc::ClientContext* context, const ::keyvaluest
   return result;
 }
 
+::grpc::Status KVS::Stub::Generate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::keyvaluestore::Value* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Generate_polynomial_and_broadcast_, context, request, response);
+}
+
+void KVS::Stub::async::Generate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Generate_polynomial_and_broadcast_, context, request, response, std::move(f));
+}
+
+void KVS::Stub::async::Generate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Generate_polynomial_and_broadcast_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::PrepareAsyncGenerate_polynomial_and_broadcastRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::Value, ::keyvaluestore::New_id_with_S_up_ids, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Generate_polynomial_and_broadcast_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::AsyncGenerate_polynomial_and_broadcastRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGenerate_polynomial_and_broadcastRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 ::grpc::ClientReader< ::keyvaluestore::Lost_keys>* KVS::Stub::Share_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request) {
   return ::grpc::internal::ClientReaderFactory< ::keyvaluestore::Lost_keys>::Create(channel_.get(), rpcmethod_Share_lost_keys_, context, request);
 }
@@ -177,6 +202,16 @@ KVS::Service::Service() {
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KVS_method_names[3],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< KVS::Service, ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](KVS::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::keyvaluestore::New_id_with_S_up_ids* req,
+             ::keyvaluestore::Value* resp) {
+               return service->Generate_polynomial_and_broadcast(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      KVS_method_names[4],
       ::grpc::internal::RpcMethod::SERVER_STREAMING,
       new ::grpc::internal::ServerStreamingHandler< KVS::Service, ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys>(
           [](KVS::Service* service,
@@ -186,7 +221,7 @@ KVS::Service::Service() {
                return service->Share_lost_keys(ctx, req, writer);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      KVS_method_names[4],
+      KVS_method_names[5],
       ::grpc::internal::RpcMethod::SERVER_STREAMING,
       new ::grpc::internal::ServerStreamingHandler< KVS::Service, ::keyvaluestore::New_id_with_polynomial, ::keyvaluestore::Keys_and_shares>(
           [](KVS::Service* service,
@@ -215,6 +250,13 @@ KVS::Service::~Service() {
 }
 
 ::grpc::Status KVS::Service::Delete(::grpc::ServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status KVS::Service::Generate_polynomial_and_broadcast(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Value* response) {
   (void) context;
   (void) request;
   (void) response;

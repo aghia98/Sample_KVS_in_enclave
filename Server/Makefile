@@ -159,11 +159,11 @@ Enclave_Security_Link_Flags := -Wl,-z,relro,-z,now,-z,noexecstack
 #LIBRARY_HRW = ../HRW_hashing_module/
 
 LIBRARY_shamir_combine = ../SS_no_gmp_module/
+LIBRARY_recovery = ../recovery_module/
 Enclave_Link_Flags := $(MITIGATION_LDFLAGS) $(Enclave_Security_Link_Flags) \
     -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_TRUSTED_LIBRARY_PATH) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
 	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -lsgx_protobuf -l$(Crypto_Library_Name) -l$(Service_Library_Name) \
-	-L$(LIBRARY_shamir_combine) -lshamir_combine \
 	-Wl,--end-group \
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \

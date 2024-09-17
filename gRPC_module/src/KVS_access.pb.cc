@@ -204,20 +204,22 @@ const char descriptor_table_protodef_KVS_5faccess_2eproto[] PROTOBUF_SECTION_VAR
   "\001(\005\022\020\n\010S_up_ids\030\002 \003(\005\"<\n\026New_id_with_pol"
   "ynomial\022\016\n\006new_id\030\001 \001(\005\022\022\n\npolynomial\030\002 "
   "\001(\005\"*\n\017Keys_and_shares\022\027\n\017keys_and_share"
-  "s\030\001 \003(\t2\331\002\n\003KVS\0221\n\003Get\022\022.keyvaluestore.K"
+  "s\030\001 \003(\t2\273\003\n\003KVS\0221\n\003Get\022\022.keyvaluestore.K"
   "ey\032\024.keyvaluestore.Value\"\000\0225\n\003Put\022\026.keyv"
   "aluestore.KV_pair\032\024.keyvaluestore.Value\""
   "\000\0224\n\006Delete\022\022.keyvaluestore.Key\032\024.keyval"
-  "uestore.Value\"\000\022T\n\017Share_lost_keys\022#.key"
-  "valuestore.New_id_with_S_up_ids\032\030.keyval"
-  "uestore.Lost_keys\"\0000\001\022\\\n\017get_keys_shares"
-  "\022%.keyvaluestore.New_id_with_polynomial\032"
-  "\036.keyvaluestore.Keys_and_shares\"\0000\001b\006pro"
-  "to3"
+  "uestore.Value\"\000\022`\n!Generate_polynomial_a"
+  "nd_broadcast\022#.keyvaluestore.New_id_with"
+  "_S_up_ids\032\024.keyvaluestore.Value\"\000\022T\n\017Sha"
+  "re_lost_keys\022#.keyvaluestore.New_id_with"
+  "_S_up_ids\032\030.keyvaluestore.Lost_keys\"\0000\001\022"
+  "\\\n\017get_keys_shares\022%.keyvaluestore.New_i"
+  "d_with_polynomial\032\036.keyvaluestore.Keys_a"
+  "nd_shares\"\0000\001b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_KVS_5faccess_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_KVS_5faccess_2eproto = {
-    false, false, 683, descriptor_table_protodef_KVS_5faccess_2eproto,
+    false, false, 781, descriptor_table_protodef_KVS_5faccess_2eproto,
     "KVS_access.proto",
     &descriptor_table_KVS_5faccess_2eproto_once, nullptr, 0, 7,
     schemas, file_default_instances, TableStruct_KVS_5faccess_2eproto::offsets,

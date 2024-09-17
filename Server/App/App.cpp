@@ -75,7 +75,10 @@ using json = nlohmann::json;
 int node_id_global;
 int t_global;
 int n_global;
+vector<int> S_up_ids; 
+
 map<int, string> id_to_address_map;
+map<int , unique_ptr<keyvaluestore::KVS::Stub> >  stubs;
 map<string, string> myMap;
 
 set<string> keys_set;
@@ -404,6 +407,43 @@ class KVSServiceImpl {
                 grpc::ServerAsyncResponseWriter<keyvaluestore::Value> responder_{&ctx_};
                 enum CallStatus { CREATE, FINISH };
                 CallStatus state_ = CREATE;
+        };
+
+        class Generate_polynomial_and_broadcastRequest : public RequestBaseKVS{
+            public:
+                Generate_polynomial_and_broadcastRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBaseKVS(parent, service, cq) {
+
+                    service_kvs.RequestGenerate_polynomial_and_broadcast(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                }
+
+                void proceed(bool ok) override {
+
+                    if (state_ == CREATE) {
+                        createNew<Generate_polynomial_and_broadcastRequest>(parent_, service_kvs, cq_);
+                        
+                        sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+                        int s_new = request_.new_id();
+                        ret = ecall_generate_polynomial(global_eid, &s_new);
+                        if (ret != SGX_SUCCESS) abort();
+
+                        reply_.set_value("POLYNOMIAL_GENERATION_SUCCESS");
+                        
+                        state_ = FINISH;
+                        responder_.Finish(reply_, Status::OK, this);
+                       
+                        
+                    } else {
+                        delete this;  
+                    } 
+                }
+
+            private:
+                keyvaluestore::New_id_with_S_up_ids request_;
+                keyvaluestore::Value reply_;
+                grpc::ServerAsyncResponseWriter<keyvaluestore::Value> responder_{&ctx_};
+                enum CallStatus { CREATE, FINISH };
+                CallStatus state_ = CREATE;
+
         };
 
         class get_keys_sharesRequest : public RequestBaseKVS {
@@ -932,7 +972,7 @@ class KVSClient {
         }
     }
      
-     int Share_lost_keys(int id, vector<int> s_up_ids){
+     /*int Share_lost_keys(int id, vector<int> s_up_ids){
         keyvaluestore::New_id_with_S_up_ids request;
         request.set_new_id(id); // Replace with the desired ID value
         for(auto& s_up_id : s_up_ids) request.add_s_up_ids(s_up_id);
@@ -972,7 +1012,7 @@ class KVSClient {
 
 
         return 0;
-  }
+  }*/
 
     int get_keys_shares(int id, int polynomial){
         keyvaluestore::New_id_with_polynomial request;
@@ -1267,50 +1307,11 @@ void ocall_delete_last_share(int* node_id, const char* key){
     delete kvs;
 }
 
+void create_channels(){
 
-/*void test_share_lost_keys(){
-    KVSClient* kvs;
-
-    vector<int> S_up_ids;
-    keyvaluestore::New_id_with_S_up_ids request;
+    //Check active nodes
     for(const auto& pair : id_to_address_map){
-        if(pair.first != node_id_global){
-            if(isPortOpen(pair.second, default_sms_port)) {
-                S_up_ids.push_back(pair.first);
-                request.add_s_up_ids(pair.first);
-            }
-        }
-    }
-    int N_active_size = S_up_ids.size();
-    CompletionQueue cq;
-    unique_ptr<keyvaluestore::KVS::Stub> stub;
-    vector<ClientContext> contexts(N_active_size);
-    std::unique_ptr<ClientReader<keyvaluestore::Lost_keys>> reader;
-    keyvaluestore::New_id_with_S_up_ids request; 
-    request.set_new_id(node_id_global);
-    vector<keyvaluestore::Lost_keys> responses(N_active_size);
-    vector<Status> statuses(N_active_size);
-    int i=0;
-    for (int s_up_id : S_up_ids){
-        stub = keyvaluestore::KVS::NewStub(grpc::CreateChannel(id_to_address_map[s_up_id]+":"+to_string(default_sms_port) , grpc::InsecureChannelCredentials()));
-        reader = stub->AsyncShare_lost_keys(&contexts[i], request, &cq);
-        reader->Finish(&responses[i], &statuses[i], (void*)(i+1));
-        i++:
-    }
-    while(true){
-
-    }
-
-}*/
-
-
-void test_share_lost_keys(){
-    KVSClient* kvs;
-
-    vector<int> S_up_ids;
-
-    for(const auto& pair : id_to_address_map){
-        if(pair.first != node_id_global){
+        if(pair.first != node_id_global){ //Excluding current node...Not responding node means crashed node here
             if(isPortOpen(pair.second, default_sms_port)) {
                 S_up_ids.push_back(pair.first);
                 //std::cout << pair.first << std::endl;
@@ -1318,11 +1319,94 @@ void test_share_lost_keys(){
         }
     }
 
+    grpc::SslCredentialsOptions ssl_opts_;
+    std::string server_cert = "server.crt";
+    ssl_opts_.pem_root_certs = readFile(server_cert);
+    int cpt = 0;
+
     for(int s_up_id : S_up_ids){
-        kvs = new KVSClient(grpc::CreateChannel(id_to_address_map[s_up_id]+":"+to_string(default_sms_port) , grpc::InsecureChannelCredentials()));
-        kvs->Share_lost_keys(node_id_global, S_up_ids); //******************************2
-        delete kvs;
+        cpt++;
+        grpc::ChannelArguments channel_args;
+        auto channel_creds = grpc::SslCredentials(ssl_opts_);
+        channel_args.SetInt("channel_number", cpt);
+        channel_args.SetSslTargetNameOverride("server");
+        stubs[s_up_id] = keyvaluestore::KVS::NewStub(grpc::CreateCustomChannel(id_to_address_map[s_up_id]+":"+to_string(default_sms_port), channel_creds, channel_args));
     }
+
+}
+
+
+void share_lost_keys(){
+
+    keyvaluestore::New_id_with_S_up_ids request;
+    
+
+    request.set_new_id(node_id_global);
+    for(auto& s_up_id : S_up_ids) request.add_s_up_ids(s_up_id);
+    
+    for(int s_up_id : S_up_ids){
+        keyvaluestore::Lost_keys response_local;
+        ClientContext context;
+        std::unique_ptr<ClientReader<keyvaluestore::Lost_keys> > reader(stubs[s_up_id]->Share_lost_keys(&context, request));
+        string lost_key;
+        int cpt= 0;
+        cout << "begin read" << endl;
+        while (reader->Read(&response_local)){
+            for (const auto& key : response_local.keys()) {
+                lost_key = key.key();
+
+                lost_keys_with_potential_last_share_owner_and_t_shares_owners.insert(lost_key);
+                cpt++;
+            }
+        }
+        Status status = reader->Finish();
+        it_lost_keys = lost_keys_with_potential_last_share_owner_and_t_shares_owners.begin();
+        cout << "Recieved: " << cpt << " keys"<< endl;
+        
+
+        if (status.ok()) {
+            cout << "Keys' discovery succeded from node " << s_up_id << endl;
+        }  else {
+            std::cerr << "RPC failed";
+        }
+
+        break; //*********************HARDCODED*****************************
+    }
+}
+
+void generate_polynomial_and_broadcast(){
+
+    int sent = 0;
+    CompletionQueue cq;
+    keyvaluestore::New_id_with_S_up_ids request;
+    vector<keyvaluestore::Value> responses(S_up_ids.size());
+    vector<ClientContext> contexts(S_up_ids.size());
+    vector<Status> statuses(S_up_ids.size());
+    std::unique_ptr<grpc::ClientAsyncResponseReader<keyvaluestore::Value>> rpc;
+
+    request.set_new_id(node_id_global);
+    for(int s_up_id : S_up_ids) request.add_s_up_ids(s_up_id);
+
+    for(int s_up_id : S_up_ids){
+        rpc = stubs[s_up_id]->AsyncGenerate_polynomial_and_broadcast(&contexts[sent], request, &cq);
+        rpc->Finish(&responses[sent], &statuses[sent], (void*)(sent+1));
+        sent++;
+    }
+
+    int num_responses_received = 0;
+    while (num_responses_received < S_up_ids.size()){
+        void* got_tag;
+        bool ok = false;
+        cq.Next(&got_tag, &ok);
+        if (ok){
+        int response_index = reinterpret_cast<intptr_t>(got_tag) - 1;
+        if (statuses[response_index].ok()) {
+            cout << "node :" << responses[response_index].value() << endl;
+        }
+      }
+    }
+    
+
 }
 
 void recover_lost_shares_wrapper(){
@@ -1361,12 +1445,14 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 1 --t 3 --n 5 --r
 
     if(recovery){
         auto start_time = std::chrono::high_resolution_clock::now();
-        test_share_lost_keys();//****************1
-        cout << "Starting shares recovery... " << endl;
+        create_channels();
+        share_lost_keys();
+        generate_polynomial_and_broadcast();
+        /*cout << "Starting shares recovery... " << endl;
         recover_lost_shares_wrapper();
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time);
-        cout << "Share recovery latency: " << duration.count() << " s" << endl;
+        cout << "Share recovery latency: " << duration.count() << " s" << endl;*/
     }
 
 

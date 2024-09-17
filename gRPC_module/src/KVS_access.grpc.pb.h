@@ -73,6 +73,13 @@ class KVS final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>> PrepareAsyncDelete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>>(PrepareAsyncDeleteRaw(context, request, cq));
     }
+    virtual ::grpc::Status Generate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::keyvaluestore::Value* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>> AsyncGenerate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>>(AsyncGenerate_polynomial_and_broadcastRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>> PrepareAsyncGenerate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>>(PrepareAsyncGenerate_polynomial_and_broadcastRaw(context, request, cq));
+    }
     std::unique_ptr< ::grpc::ClientReaderInterface< ::keyvaluestore::Lost_keys>> Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request) {
       return std::unique_ptr< ::grpc::ClientReaderInterface< ::keyvaluestore::Lost_keys>>(Share_lost_keysRaw(context, request));
     }
@@ -101,6 +108,8 @@ class KVS final {
       virtual void Put(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)>) = 0;
       virtual void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void Generate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void Generate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ClientReadReactor< ::keyvaluestore::Lost_keys>* reactor) = 0;
       virtual void get_keys_shares(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial* request, ::grpc::ClientReadReactor< ::keyvaluestore::Keys_and_shares>* reactor) = 0;
     };
@@ -114,6 +123,8 @@ class KVS final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* PrepareAsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* AsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* PrepareAsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* AsyncGenerate_polynomial_and_broadcastRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::keyvaluestore::Value>* PrepareAsyncGenerate_polynomial_and_broadcastRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientReaderInterface< ::keyvaluestore::Lost_keys>* Share_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request) = 0;
     virtual ::grpc::ClientAsyncReaderInterface< ::keyvaluestore::Lost_keys>* AsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
     virtual ::grpc::ClientAsyncReaderInterface< ::keyvaluestore::Lost_keys>* PrepareAsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) = 0;
@@ -145,6 +156,13 @@ class KVS final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>> PrepareAsyncDelete(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>>(PrepareAsyncDeleteRaw(context, request, cq));
     }
+    ::grpc::Status Generate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::keyvaluestore::Value* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>> AsyncGenerate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>>(AsyncGenerate_polynomial_and_broadcastRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>> PrepareAsyncGenerate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>>(PrepareAsyncGenerate_polynomial_and_broadcastRaw(context, request, cq));
+    }
     std::unique_ptr< ::grpc::ClientReader< ::keyvaluestore::Lost_keys>> Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request) {
       return std::unique_ptr< ::grpc::ClientReader< ::keyvaluestore::Lost_keys>>(Share_lost_keysRaw(context, request));
     }
@@ -172,6 +190,8 @@ class KVS final {
       void Put(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) override;
       void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)>) override;
       void Delete(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void Generate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)>) override;
+      void Generate_polynomial_and_broadcast(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) override;
       void Share_lost_keys(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ClientReadReactor< ::keyvaluestore::Lost_keys>* reactor) override;
       void get_keys_shares(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial* request, ::grpc::ClientReadReactor< ::keyvaluestore::Keys_and_shares>* reactor) override;
      private:
@@ -191,6 +211,8 @@ class KVS final {
     ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* PrepareAsyncPutRaw(::grpc::ClientContext* context, const ::keyvaluestore::KV_pair& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* AsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* PrepareAsyncDeleteRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* AsyncGenerate_polynomial_and_broadcastRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* PrepareAsyncGenerate_polynomial_and_broadcastRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientReader< ::keyvaluestore::Lost_keys>* Share_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request) override;
     ::grpc::ClientAsyncReader< ::keyvaluestore::Lost_keys>* AsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq, void* tag) override;
     ::grpc::ClientAsyncReader< ::keyvaluestore::Lost_keys>* PrepareAsyncShare_lost_keysRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_S_up_ids& request, ::grpc::CompletionQueue* cq) override;
@@ -200,6 +222,7 @@ class KVS final {
     const ::grpc::internal::RpcMethod rpcmethod_Get_;
     const ::grpc::internal::RpcMethod rpcmethod_Put_;
     const ::grpc::internal::RpcMethod rpcmethod_Delete_;
+    const ::grpc::internal::RpcMethod rpcmethod_Generate_polynomial_and_broadcast_;
     const ::grpc::internal::RpcMethod rpcmethod_Share_lost_keys_;
     const ::grpc::internal::RpcMethod rpcmethod_get_keys_shares_;
   };
@@ -213,6 +236,7 @@ class KVS final {
     virtual ::grpc::Status Get(::grpc::ServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response);
     virtual ::grpc::Status Put(::grpc::ServerContext* context, const ::keyvaluestore::KV_pair* request, ::keyvaluestore::Value* response);
     virtual ::grpc::Status Delete(::grpc::ServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response);
+    virtual ::grpc::Status Generate_polynomial_and_broadcast(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Value* response);
     virtual ::grpc::Status Share_lost_keys(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ServerWriter< ::keyvaluestore::Lost_keys>* writer);
     virtual ::grpc::Status get_keys_shares(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_polynomial* request, ::grpc::ServerWriter< ::keyvaluestore::Keys_and_shares>* writer);
   };
@@ -277,12 +301,32 @@ class KVS final {
     }
   };
   template <class BaseClass>
+  class WithAsyncMethod_Generate_polynomial_and_broadcast : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_Generate_polynomial_and_broadcast() {
+      ::grpc::Service::MarkMethodAsync(3);
+    }
+    ~WithAsyncMethod_Generate_polynomial_and_broadcast() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Generate_polynomial_and_broadcast(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGenerate_polynomial_and_broadcast(::grpc::ServerContext* context, ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ServerAsyncResponseWriter< ::keyvaluestore::Value>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithAsyncMethod_Share_lost_keys : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_Share_lost_keys() {
-      ::grpc::Service::MarkMethodAsync(3);
+      ::grpc::Service::MarkMethodAsync(4);
     }
     ~WithAsyncMethod_Share_lost_keys() override {
       BaseClassMustBeDerivedFromService(this);
@@ -293,7 +337,7 @@ class KVS final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestShare_lost_keys(::grpc::ServerContext* context, ::keyvaluestore::New_id_with_S_up_ids* request, ::grpc::ServerAsyncWriter< ::keyvaluestore::Lost_keys>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(3, context, request, writer, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncServerStreaming(4, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -302,7 +346,7 @@ class KVS final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_get_keys_shares() {
-      ::grpc::Service::MarkMethodAsync(4);
+      ::grpc::Service::MarkMethodAsync(5);
     }
     ~WithAsyncMethod_get_keys_shares() override {
       BaseClassMustBeDerivedFromService(this);
@@ -313,10 +357,10 @@ class KVS final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void Requestget_keys_shares(::grpc::ServerContext* context, ::keyvaluestore::New_id_with_polynomial* request, ::grpc::ServerAsyncWriter< ::keyvaluestore::Keys_and_shares>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(4, context, request, writer, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncServerStreaming(5, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Get<WithAsyncMethod_Put<WithAsyncMethod_Delete<WithAsyncMethod_Share_lost_keys<WithAsyncMethod_get_keys_shares<Service > > > > > AsyncService;
+  typedef WithAsyncMethod_Get<WithAsyncMethod_Put<WithAsyncMethod_Delete<WithAsyncMethod_Generate_polynomial_and_broadcast<WithAsyncMethod_Share_lost_keys<WithAsyncMethod_get_keys_shares<Service > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_Get : public BaseClass {
    private:
@@ -399,12 +443,39 @@ class KVS final {
       ::grpc::CallbackServerContext* /*context*/, const ::keyvaluestore::Key* /*request*/, ::keyvaluestore::Value* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
+  class WithCallbackMethod_Generate_polynomial_and_broadcast : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_Generate_polynomial_and_broadcast() {
+      ::grpc::Service::MarkMethodCallback(3,
+          new ::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Value>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request, ::keyvaluestore::Value* response) { return this->Generate_polynomial_and_broadcast(context, request, response); }));}
+    void SetMessageAllocatorFor_Generate_polynomial_and_broadcast(
+        ::grpc::MessageAllocator< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Value>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(3);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Value>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_Generate_polynomial_and_broadcast() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Generate_polynomial_and_broadcast(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* Generate_polynomial_and_broadcast(
+      ::grpc::CallbackServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Value* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
   class WithCallbackMethod_Share_lost_keys : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_Share_lost_keys() {
-      ::grpc::Service::MarkMethodCallback(3,
+      ::grpc::Service::MarkMethodCallback(4,
           new ::grpc::internal::CallbackServerStreamingHandler< ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::keyvaluestore::New_id_with_S_up_ids* request) { return this->Share_lost_keys(context, request); }));
@@ -426,7 +497,7 @@ class KVS final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_get_keys_shares() {
-      ::grpc::Service::MarkMethodCallback(4,
+      ::grpc::Service::MarkMethodCallback(5,
           new ::grpc::internal::CallbackServerStreamingHandler< ::keyvaluestore::New_id_with_polynomial, ::keyvaluestore::Keys_and_shares>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::keyvaluestore::New_id_with_polynomial* request) { return this->get_keys_shares(context, request); }));
@@ -442,7 +513,7 @@ class KVS final {
     virtual ::grpc::ServerWriteReactor< ::keyvaluestore::Keys_and_shares>* get_keys_shares(
       ::grpc::CallbackServerContext* /*context*/, const ::keyvaluestore::New_id_with_polynomial* /*request*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_Get<WithCallbackMethod_Put<WithCallbackMethod_Delete<WithCallbackMethod_Share_lost_keys<WithCallbackMethod_get_keys_shares<Service > > > > > CallbackService;
+  typedef WithCallbackMethod_Get<WithCallbackMethod_Put<WithCallbackMethod_Delete<WithCallbackMethod_Generate_polynomial_and_broadcast<WithCallbackMethod_Share_lost_keys<WithCallbackMethod_get_keys_shares<Service > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_Get : public BaseClass {
@@ -496,12 +567,29 @@ class KVS final {
     }
   };
   template <class BaseClass>
+  class WithGenericMethod_Generate_polynomial_and_broadcast : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_Generate_polynomial_and_broadcast() {
+      ::grpc::Service::MarkMethodGeneric(3);
+    }
+    ~WithGenericMethod_Generate_polynomial_and_broadcast() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Generate_polynomial_and_broadcast(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
   class WithGenericMethod_Share_lost_keys : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_Share_lost_keys() {
-      ::grpc::Service::MarkMethodGeneric(3);
+      ::grpc::Service::MarkMethodGeneric(4);
     }
     ~WithGenericMethod_Share_lost_keys() override {
       BaseClassMustBeDerivedFromService(this);
@@ -518,7 +606,7 @@ class KVS final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_get_keys_shares() {
-      ::grpc::Service::MarkMethodGeneric(4);
+      ::grpc::Service::MarkMethodGeneric(5);
     }
     ~WithGenericMethod_get_keys_shares() override {
       BaseClassMustBeDerivedFromService(this);
@@ -590,12 +678,32 @@ class KVS final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_Generate_polynomial_and_broadcast : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_Generate_polynomial_and_broadcast() {
+      ::grpc::Service::MarkMethodRaw(3);
+    }
+    ~WithRawMethod_Generate_polynomial_and_broadcast() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Generate_polynomial_and_broadcast(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGenerate_polynomial_and_broadcast(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawMethod_Share_lost_keys : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_Share_lost_keys() {
-      ::grpc::Service::MarkMethodRaw(3);
+      ::grpc::Service::MarkMethodRaw(4);
     }
     ~WithRawMethod_Share_lost_keys() override {
       BaseClassMustBeDerivedFromService(this);
@@ -606,7 +714,7 @@ class KVS final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestShare_lost_keys(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(3, context, request, writer, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncServerStreaming(4, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -615,7 +723,7 @@ class KVS final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_get_keys_shares() {
-      ::grpc::Service::MarkMethodRaw(4);
+      ::grpc::Service::MarkMethodRaw(5);
     }
     ~WithRawMethod_get_keys_shares() override {
       BaseClassMustBeDerivedFromService(this);
@@ -626,7 +734,7 @@ class KVS final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void Requestget_keys_shares(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(4, context, request, writer, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncServerStreaming(5, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -696,12 +804,34 @@ class KVS final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
+  class WithRawCallbackMethod_Generate_polynomial_and_broadcast : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_Generate_polynomial_and_broadcast() {
+      ::grpc::Service::MarkMethodRawCallback(3,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Generate_polynomial_and_broadcast(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_Generate_polynomial_and_broadcast() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Generate_polynomial_and_broadcast(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* Generate_polynomial_and_broadcast(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
   class WithRawCallbackMethod_Share_lost_keys : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_Share_lost_keys() {
-      ::grpc::Service::MarkMethodRawCallback(3,
+      ::grpc::Service::MarkMethodRawCallback(4,
           new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->Share_lost_keys(context, request); }));
@@ -723,7 +853,7 @@ class KVS final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_get_keys_shares() {
-      ::grpc::Service::MarkMethodRawCallback(4,
+      ::grpc::Service::MarkMethodRawCallback(5,
           new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->get_keys_shares(context, request); }));
@@ -820,14 +950,41 @@ class KVS final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedDelete(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::Key,::keyvaluestore::Value>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<WithStreamedUnaryMethod_Delete<Service > > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_Generate_polynomial_and_broadcast : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_Generate_polynomial_and_broadcast() {
+      ::grpc::Service::MarkMethodStreamed(3,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Value>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Value>* streamer) {
+                       return this->StreamedGenerate_polynomial_and_broadcast(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_Generate_polynomial_and_broadcast() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status Generate_polynomial_and_broadcast(::grpc::ServerContext* /*context*/, const ::keyvaluestore::New_id_with_S_up_ids* /*request*/, ::keyvaluestore::Value* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedGenerate_polynomial_and_broadcast(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::keyvaluestore::New_id_with_S_up_ids,::keyvaluestore::Value>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<WithStreamedUnaryMethod_Delete<WithStreamedUnaryMethod_Generate_polynomial_and_broadcast<Service > > > > StreamedUnaryService;
   template <class BaseClass>
   class WithSplitStreamingMethod_Share_lost_keys : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithSplitStreamingMethod_Share_lost_keys() {
-      ::grpc::Service::MarkMethodStreamed(3,
+      ::grpc::Service::MarkMethodStreamed(4,
         new ::grpc::internal::SplitServerStreamingHandler<
           ::keyvaluestore::New_id_with_S_up_ids, ::keyvaluestore::Lost_keys>(
             [this](::grpc::ServerContext* context,
@@ -854,7 +1011,7 @@ class KVS final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithSplitStreamingMethod_get_keys_shares() {
-      ::grpc::Service::MarkMethodStreamed(4,
+      ::grpc::Service::MarkMethodStreamed(5,
         new ::grpc::internal::SplitServerStreamingHandler<
           ::keyvaluestore::New_id_with_polynomial, ::keyvaluestore::Keys_and_shares>(
             [this](::grpc::ServerContext* context,
@@ -876,7 +1033,7 @@ class KVS final {
     virtual ::grpc::Status Streamedget_keys_shares(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::keyvaluestore::New_id_with_polynomial,::keyvaluestore::Keys_and_shares>* server_split_streamer) = 0;
   };
   typedef WithSplitStreamingMethod_Share_lost_keys<WithSplitStreamingMethod_get_keys_shares<Service > > SplitStreamedService;
-  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<WithStreamedUnaryMethod_Delete<WithSplitStreamingMethod_Share_lost_keys<WithSplitStreamingMethod_get_keys_shares<Service > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_Get<WithStreamedUnaryMethod_Put<WithStreamedUnaryMethod_Delete<WithStreamedUnaryMethod_Generate_polynomial_and_broadcast<WithSplitStreamingMethod_Share_lost_keys<WithSplitStreamingMethod_get_keys_shares<Service > > > > > > StreamedService;
 };
 
 }  // namespace keyvaluestore
