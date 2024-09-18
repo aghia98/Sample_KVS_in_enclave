@@ -57,6 +57,7 @@ int t;
 int n;
 int node_id;
 int* poly_R;
+map<int, int> stored_polynomial_shares;
 
 string temp_token;
 int prime = 257;
@@ -1037,4 +1038,12 @@ void ecall_get_number_of_keys(int* number_of_keys){
 void ecall_generate_polynomial(int* s_new){
     poly_R = static_cast<int*>(malloc(sizeof(int) * t));
     gener_R(t, *s_new, poly_R);
+    printf("Generated polynomial coefs: %d %d %d\n", poly_R[0], poly_R[1], poly_R[2]);
+    
+    stored_polynomial_shares[node_id] = R(poly_R ,t, node_id);
+    printf("Own polynomial share (%d , %d)\n", node_id, stored_polynomial_shares[node_id]);
+}
+
+void ecall_store_polynomial_share(int* source_node, int* value){
+    stored_polynomial_shares[*source_node] = *value;
 }

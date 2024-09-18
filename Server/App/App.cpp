@@ -447,6 +447,44 @@ class KVSServiceImpl {
 
         };
 
+        class Store_polynomial_shareRequest : public RequestBaseKVS{
+            public:
+                Store_polynomial_shareRequest(KVSServiceImpl& parent, keyvaluestore::KVS::AsyncService& service, ServerCompletionQueue& cq): RequestBaseKVS(parent, service, cq) {
+
+                    service_kvs.RequestStore_polynomial_share(&ctx_, &request_, &responder_, &cq_, &cq_, this);
+                }
+
+                void proceed(bool ok) override {
+
+                    if (state_ == CREATE) {
+                        createNew<Store_polynomial_shareRequest>(parent_, service_kvs, cq_);
+                        
+                        sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+                        int s_new = request_.new_id();
+                        int value = request_.polynomial();
+                        ret = ecall_store_polynomial_share(global_eid, &s_new, &value);
+                        if (ret != SGX_SUCCESS) abort();
+
+                        reply_.set_value("POLYNOMIAL_SHARE_STORAGE_SUCCESS");
+                        
+                        state_ = FINISH;
+                        responder_.Finish(reply_, Status::OK, this);
+                       
+                        
+                    } else {
+                        delete this;  
+                    } 
+                }
+
+            private:
+                keyvaluestore::New_id_with_polynomial request_;
+                keyvaluestore::Value reply_;
+                grpc::ServerAsyncResponseWriter<keyvaluestore::Value> responder_{&ctx_};
+                enum CallStatus { CREATE, FINISH };
+                CallStatus state_ = CREATE;
+
+        };
+
         class get_keys_sharesRequest : public RequestBaseKVS {
             public:
 
