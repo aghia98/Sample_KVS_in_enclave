@@ -423,9 +423,26 @@ class KVSServiceImpl {
                         createNew<Generate_polynomial_and_broadcastRequest>(parent_, service_kvs, cq_);
                         
                         sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+                        //parse request
                         int s_new = request_.new_id();
-                        ret = ecall_generate_polynomial(global_eid, &s_new);
+                        int size_s_up_ids = request_.s_up_ids_size()-1; //remove current node_id
+                        int* s_up_ids = (int*) malloc(size_s_up_ids * sizeof(int));
+                        int i=0;
+                        for (auto& s_up_id: request_.s_up_ids()){
+                            if(s_up_id != node_id_global){
+                                s_up_ids[i] = s_up_id;
+                                i++;
+                            }
+                        }
+                        //prepare answer of ecall
+                        int* values = (int*) malloc(size_s_up_ids * sizeof(int));
+
+                        //ecall_generate_polynomial([in] int* s_new, [in, count=cnt] int* s_up_ids_array, [out, count=cnt] int* values, unsigned cnt);
+                        ret = ecall_generate_polynomial(global_eid, &s_new, s_up_ids, values, size_s_up_ids);
                         if (ret != SGX_SUCCESS) abort();
+
+
+                        broadcast_polynomial_shares(s_up_ids, values, size_s_up_ids);
 
                         reply_.set_value("POLYNOMIAL_GENERATION_SUCCESS");
                         
@@ -444,6 +461,49 @@ class KVSServiceImpl {
                 grpc::ServerAsyncResponseWriter<keyvaluestore::Value> responder_{&ctx_};
                 enum CallStatus { CREATE, FINISH };
                 CallStatus state_ = CREATE;
+
+                void broadcast_polynomial_shares(int* s_up_ids, int* values, int size){
+                    //int sent = 0;
+                    CompletionQueue cq;
+                    vector<keyvaluestore::Value> responses(size);
+                    vector<ClientContext> contexts(size);
+                    vector<Status> statuses(size);
+                    std::unique_ptr<grpc::ClientAsyncResponseReader<keyvaluestore::Value>> rpc;
+                    
+                    keyvaluestore::New_id_with_polynomial request;
+                    request.set_new_id(node_id_global); //current node
+
+                    grpc::SslCredentialsOptions ssl_opts_;
+                    std::string server_cert = "server.crt";
+                    ssl_opts_.pem_root_certs = readFile(server_cert);
+
+                    for(int i=0; i<size; i++){
+                        grpc::ChannelArguments channel_args;
+                        auto channel_creds = grpc::SslCredentials(ssl_opts_);
+                        channel_args.SetInt("channel_number", i);
+                        channel_args.SetSslTargetNameOverride("server");
+
+                        request.set_polynomial(values[i]);
+                        unique_ptr<keyvaluestore::KVS::Stub> stub(keyvaluestore::KVS::NewStub(grpc::CreateCustomChannel(id_to_address_map[s_up_ids[i]]+":"+to_string(default_sms_port), channel_creds, channel_args)));
+                        rpc = stub->AsyncStore_polynomial_share(&contexts[i], request, &cq);
+                        rpc->Finish(&responses[i], &statuses[i], (void*)(i));
+                    }
+
+                    int num_responses_received = 0;
+                    while (num_responses_received < size){
+                        void* got_tag;
+                        bool ok = false;
+                        cq.Next(&got_tag, &ok);
+                        if (ok){
+                            int response_index = reinterpret_cast<intptr_t>(got_tag);
+                            if (statuses[response_index].ok()) {
+                                cout << "polynomial_share successfully sent to node :" << s_up_ids[response_index] << endl;
+                            }
+                        }
+                        num_responses_received++;
+                    }
+
+                }
 
         };
 
@@ -917,6 +977,7 @@ class KVSServiceImpl {
                     createNew<DeleteRequest>(*this, service_kvs, *cq_[i]);
                     createNew<Share_lost_keysRequest>(*this, service_kvs, *cq_[i]);
                     createNew<Generate_polynomial_and_broadcastRequest>(*this, service_kvs, *cq_[i]);
+                    createNew<Store_polynomial_shareRequest>(*this, service_kvs, *cq_[i]);
                     //createNew<get_keys_sharesRequest>(*this, service_kvs, *cq_[i]);
                     //createNew2<Partial_Polynomial_interpolationRequest>(*this, service_token, *cq_[i]);
                     //createNew2<Get_tokensRequest>(*this, service_token, *cq_[i]);
@@ -1444,7 +1505,10 @@ void generate_polynomial_and_broadcast(){
             cout << "node :" << responses[response_index].value() << endl;
         }
       }
+      num_responses_received++;
     }
+    printf("End of\n");
+    
     
 
 }
