@@ -79,7 +79,6 @@ vector<int> S_up_ids;
 
 grpc::SslCredentialsOptions ssl_opts_;
 std::string server_cert = "server.crt";
-std::shared_ptr<grpc::ChannelCredentials> channel_creds;
 
 map<int, string> id_to_address_map;
 map<int , unique_ptr<keyvaluestore::KVS::Stub> >  stubs;
@@ -446,6 +445,7 @@ class KVSServiceImpl {
 
 
                         broadcast_polynomial_shares(s_up_ids, values, size_s_up_ids);
+                        //boradcast_sync(s_up_ids, values, size_s_up_ids);
 
                         reply_.set_value("POLYNOMIAL_GENERATION_AND_BROADCAST_SUCCESS");
                         
@@ -467,6 +467,7 @@ class KVSServiceImpl {
 
                 void broadcast_polynomial_shares(int* s_up_ids, int* values, int size){
                     //int sent = 0;
+                    printf("size: %d\n", size);
                     CompletionQueue cq;
                     vector<keyvaluestore::Value> responses(size);
                     vector<ClientContext> contexts(size);
@@ -475,11 +476,14 @@ class KVSServiceImpl {
                     
                     keyvaluestore::New_id_with_polynomial request;
                     request.set_new_id(node_id_global); //current node
-
                     
-
+                    std::string server_cert = "server.crt";
+                    //grpc::SslCredentialsOptions ssl_opts_;
+                    //ssl_opts_.pem_root_certs = readFile(server_cert);
+                    
                     for(int i=0; i<size; i++){
                         grpc::ChannelArguments channel_args;
+                        auto channel_creds = grpc::SslCredentials(ssl_opts_);
                         channel_args.SetInt("channel_number", i);
                         channel_args.SetSslTargetNameOverride("server");
 
@@ -494,10 +498,14 @@ class KVSServiceImpl {
                         void* got_tag;
                         bool ok = false;
                         cq.Next(&got_tag, &ok);
-                        if (ok){
+                        if (ok){ //request received with success
+                            
                             int response_index = reinterpret_cast<intptr_t>(got_tag);
-                            if (statuses[response_index].ok()) {
+                            
+                            if (statuses[response_index].ok()) { //request processed with success
                                 cout << "polynomial_share successfully sent to node :" << s_up_ids[response_index] << endl;
+                                //cout << "response " << responses[response_index].value() << endl;
+                                //printf("response from s_up_id %d\n", s_up_ids[response_index]);
                             }
                         }
                         num_responses_received++;
@@ -1412,7 +1420,7 @@ void ocall_delete_last_share(int* node_id, const char* key){
 
 void set_up_ssl(){
     ssl_opts_.pem_root_certs = readFile(server_cert);
-    channel_creds = grpc::SslCredentials(ssl_opts_);
+    //channel_creds = grpc::SslCredentials(ssl_opts_);
 }
 
 void create_channels(){
@@ -1431,9 +1439,14 @@ void create_channels(){
     
     int cpt = 0;
 
+    //std::string server_cert = "server.crt";
+    //grpc::SslCredentialsOptions ssl_opts_;
+    //ssl_opts_.pem_root_certs = readFile(server_cert);
+
     for(int s_up_id : S_up_ids){
         cpt++;
         grpc::ChannelArguments channel_args;
+        auto channel_creds = grpc::SslCredentials(ssl_opts_);
         channel_args.SetInt("channel_number", cpt);
         channel_args.SetSslTargetNameOverride("server");
         stubs[s_up_id] = keyvaluestore::KVS::NewStub(grpc::CreateCustomChannel(id_to_address_map[s_up_id]+":"+to_string(default_sms_port), channel_creds, channel_args));
@@ -1554,9 +1567,9 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 1 --t 3 --n 5 --r
     if (ret != SGX_SUCCESS)
         abort();
 
+    set_up_ssl();
     if(recovery){
         auto start_time = std::chrono::high_resolution_clock::now();
-        set_up_ssl();
         create_channels();
         share_lost_keys();
         generate_polynomial_and_broadcast();
