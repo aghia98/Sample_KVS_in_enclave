@@ -29,17 +29,25 @@
  *
  */
 
+#include <iostream>
+#include <cstring>
+#include <string>
+#include <errno.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+
 
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
 #include <chrono>
-
-
 # include <unistd.h>
 # include <pwd.h>
 #include <arpa/inet.h> //check if the grpc server port is open
+
+
 #define MAX_PATH FILENAME_MAX
 #define BATCH_SIZE_KEY 100
 
@@ -59,15 +67,18 @@
 
 #include "../../HRW_hashing_module/hrw.h"
 
-#include <fstream>
-#include "../../json/json.hpp"
-using json = nlohmann::json;
-
 
 #include "Enclave_u.h"
 #include <thread>
 #include <chrono>
 #include <csignal>
+#include <mutex>
+
+#include <fstream>
+#include "../../json/json.hpp"
+using json = nlohmann::json;
+
+std::mutex store_polynomial_share_mutex_;
 
 
 
@@ -78,6 +89,7 @@ int n_global;
 vector<int> S_up_ids; 
 
 grpc::SslCredentialsOptions ssl_opts_;
+std::shared_ptr<grpc::ChannelCredentials> channel_creds;
 std::string server_cert = "server.crt";
 
 map<int, string> id_to_address_map;
@@ -185,6 +197,63 @@ static sgx_errlist_t sgx_errlist[] = {
         NULL
     },
 };
+
+
+std::string getLocalIPAddress()
+{
+    const char* google_dns_server = "8.8.8.8";
+    int dns_port = 53;
+
+    struct sockaddr_in serv;
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+    // Check if the socket could not be created
+    if(sock < 0)
+    {
+        std::cerr << "Socket error" << std::endl;
+        return "";
+    }
+
+    memset(&serv, 0, sizeof(serv));
+    serv.sin_family = AF_INET;
+    serv.sin_addr.s_addr = inet_addr(google_dns_server);
+    serv.sin_port = htons(dns_port);
+
+    int err = connect(sock, (const struct sockaddr*)&serv, sizeof(serv));
+    if (err < 0)
+    {
+        std::cerr << "Error number: " << errno
+                  << ". Error message: " << strerror(errno) << std::endl;
+        close(sock);
+        return "";
+    }
+
+    struct sockaddr_in name;
+    socklen_t namelen = sizeof(name);
+    err = getsockname(sock, (struct sockaddr*)&name, &namelen);
+    if (err < 0)
+    {
+        std::cerr << "Error number: " << errno
+                  << ". Error message: " << strerror(errno) << std::endl;
+        close(sock);
+        return "";
+    }
+
+    char buffer[80];
+    const char* p = inet_ntop(AF_INET, &name.sin_addr, buffer, sizeof(buffer));
+    close(sock);
+
+    if(p != NULL)
+    {
+        return std::string(buffer);
+    }
+    else
+    {
+        std::cerr << "Error number: " << errno
+                  << ". Error message: " << strerror(errno) << std::endl;
+        return "";
+    }
+}
 
 string readFile(const std::string& filename) {
     std::ifstream file(filename);
@@ -467,7 +536,7 @@ class KVSServiceImpl {
 
                 void broadcast_polynomial_shares(int* s_up_ids, int* values, int size){
                     //int sent = 0;
-                    printf("size: %d\n", size);
+                    //printf("size: %d\n", size);
                     CompletionQueue cq;
                     vector<keyvaluestore::Value> responses(size);
                     vector<ClientContext> contexts(size);
@@ -476,14 +545,10 @@ class KVSServiceImpl {
                     
                     keyvaluestore::New_id_with_polynomial request;
                     request.set_new_id(node_id_global); //current node
-                    
-                    std::string server_cert = "server.crt";
-                    //grpc::SslCredentialsOptions ssl_opts_;
-                    //ssl_opts_.pem_root_certs = readFile(server_cert);
+
                     
                     for(int i=0; i<size; i++){
                         grpc::ChannelArguments channel_args;
-                        auto channel_creds = grpc::SslCredentials(ssl_opts_);
                         channel_args.SetInt("channel_number", i);
                         channel_args.SetSslTargetNameOverride("server");
 
@@ -530,7 +595,10 @@ class KVSServiceImpl {
                         sgx_status_t ret = SGX_ERROR_UNEXPECTED;
                         int s_new = request_.new_id();
                         int value = request_.polynomial();
-                        ret = ecall_store_polynomial_share(global_eid, &s_new, &value);
+                        {
+                            std::lock_guard<std::mutex> lock(store_polynomial_share_mutex_);
+                            ret = ecall_store_polynomial_share(global_eid, &s_new, &value);
+                        }
                         if (ret != SGX_SUCCESS) abort();
 
                         reply_.set_value("POLYNOMIAL_SHARE_STORAGE_SUCCESS");
@@ -914,7 +982,8 @@ class KVSServiceImpl {
 
 
         void Run(uint16_t port) {
-            std::string server_address = absl::StrFormat("10.0.0.15:%d", port);
+            string localIP = getLocalIPAddress();
+            std::string server_address = absl::StrFormat("%s:%d", localIP, port);
 
             grpc::ServerBuilder builder;
             //*************************Special TLS****************************************************
@@ -1420,7 +1489,7 @@ void ocall_delete_last_share(int* node_id, const char* key){
 
 void set_up_ssl(){
     ssl_opts_.pem_root_certs = readFile(server_cert);
-    //channel_creds = grpc::SslCredentials(ssl_opts_);
+    channel_creds = grpc::SslCredentials(ssl_opts_);
 }
 
 void create_channels(){
@@ -1434,19 +1503,13 @@ void create_channels(){
             }
         }
     }
-
-
     
     int cpt = 0;
 
-    //std::string server_cert = "server.crt";
-    //grpc::SslCredentialsOptions ssl_opts_;
-    //ssl_opts_.pem_root_certs = readFile(server_cert);
 
     for(int s_up_id : S_up_ids){
         cpt++;
         grpc::ChannelArguments channel_args;
-        auto channel_creds = grpc::SslCredentials(ssl_opts_);
         channel_args.SetInt("channel_number", cpt);
         channel_args.SetSslTargetNameOverride("server");
         stubs[s_up_id] = keyvaluestore::KVS::NewStub(grpc::CreateCustomChannel(id_to_address_map[s_up_id]+":"+to_string(default_sms_port), channel_creds, channel_args));
@@ -1546,6 +1609,7 @@ ABSL_FLAG(uint16_t, recovery, 0, "recovery of shares");
 
 int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 1 --t 3 --n 5 --recovery 0
 
+    
     id_to_address_map = parse_json("network.json");
 
     if(initialize_enclave() < 0){
