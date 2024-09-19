@@ -543,8 +543,8 @@ class KVSServiceImpl {
                     vector<Status> statuses(size);
                     std::unique_ptr<grpc::ClientAsyncResponseReader<keyvaluestore::Value>> rpc;
                     
-                    keyvaluestore::New_id_with_polynomial request;
-                    request.set_new_id(node_id_global); //current node
+                    keyvaluestore::Id_with_polynomial request;
+                    request.set_id(node_id_global); //current node
 
                     
                     for(int i=0; i<size; i++){
@@ -593,7 +593,7 @@ class KVSServiceImpl {
                         createNew<Store_polynomial_shareRequest>(parent_, service_kvs, cq_);
                         
                         sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-                        int s_new = request_.new_id();
+                        int s_new = request_.id();
                         int value = request_.polynomial();
                         {
                             std::lock_guard<std::mutex> lock(store_polynomial_share_mutex_);
@@ -613,7 +613,7 @@ class KVSServiceImpl {
                 }
 
             private:
-                keyvaluestore::New_id_with_polynomial request_;
+                keyvaluestore::Id_with_polynomial request_;
                 keyvaluestore::Value reply_;
                 grpc::ServerAsyncResponseWriter<keyvaluestore::Value> responder_{&ctx_};
                 enum CallStatus { CREATE, FINISH };

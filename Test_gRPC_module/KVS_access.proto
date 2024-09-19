@@ -24,7 +24,7 @@ service KVS {
   rpc Delete (Key) returns (Value) {}
   rpc Generate_polynomial_and_broadcast (New_id_with_S_up_ids) returns (Value) {}
   rpc Share_lost_keys (New_id_with_S_up_ids) returns (stream Lost_keys) {}
-  rpc Store_polynomial_share (New_id_with_polynomial) returns (Value) {}
+  rpc Store_polynomial_share (Id_with_polynomial) returns (Value) {}
   rpc get_keys_shares (New_id_with_polynomial) returns (stream Keys_and_shares) {}
 }
 
@@ -50,6 +50,11 @@ message Lost_keys {
 message New_id_with_S_up_ids {
   int32 new_id = 1;
   repeated int32 S_up_ids = 2; 
+}
+
+message Id_with_polynomial {
+  int32 id = 1;
+  int32 polynomial = 2; 
 }
 
 message New_id_with_polynomial {

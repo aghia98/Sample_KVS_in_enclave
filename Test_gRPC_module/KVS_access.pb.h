@@ -45,6 +45,9 @@ struct TableStruct_KVS_5faccess_2eproto {
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_KVS_5faccess_2eproto;
 namespace keyvaluestore {
+class Id_with_polynomial;
+struct Id_with_polynomialDefaultTypeInternal;
+extern Id_with_polynomialDefaultTypeInternal _Id_with_polynomial_default_instance_;
 class KV_pair;
 struct KV_pairDefaultTypeInternal;
 extern KV_pairDefaultTypeInternal _KV_pair_default_instance_;
@@ -68,6 +71,7 @@ struct ValueDefaultTypeInternal;
 extern ValueDefaultTypeInternal _Value_default_instance_;
 }  // namespace keyvaluestore
 PROTOBUF_NAMESPACE_OPEN
+template<> ::keyvaluestore::Id_with_polynomial* Arena::CreateMaybeMessage<::keyvaluestore::Id_with_polynomial>(Arena*);
 template<> ::keyvaluestore::KV_pair* Arena::CreateMaybeMessage<::keyvaluestore::KV_pair>(Arena*);
 template<> ::keyvaluestore::Key* Arena::CreateMaybeMessage<::keyvaluestore::Key>(Arena*);
 template<> ::keyvaluestore::Keys_and_shares* Arena::CreateMaybeMessage<::keyvaluestore::Keys_and_shares>(Arena*);
@@ -885,6 +889,165 @@ class New_id_with_S_up_ids final :
 };
 // -------------------------------------------------------------------
 
+class Id_with_polynomial final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:keyvaluestore.Id_with_polynomial) */ {
+ public:
+  inline Id_with_polynomial() : Id_with_polynomial(nullptr) {}
+  ~Id_with_polynomial() override;
+  explicit PROTOBUF_CONSTEXPR Id_with_polynomial(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Id_with_polynomial(const Id_with_polynomial& from);
+  Id_with_polynomial(Id_with_polynomial&& from) noexcept
+    : Id_with_polynomial() {
+    *this = ::std::move(from);
+  }
+
+  inline Id_with_polynomial& operator=(const Id_with_polynomial& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Id_with_polynomial& operator=(Id_with_polynomial&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Id_with_polynomial& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Id_with_polynomial* internal_default_instance() {
+    return reinterpret_cast<const Id_with_polynomial*>(
+               &_Id_with_polynomial_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    5;
+
+  friend void swap(Id_with_polynomial& a, Id_with_polynomial& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Id_with_polynomial* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Id_with_polynomial* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Id_with_polynomial* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Id_with_polynomial>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Id_with_polynomial& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const Id_with_polynomial& from) {
+    Id_with_polynomial::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Id_with_polynomial* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "keyvaluestore.Id_with_polynomial";
+  }
+  protected:
+  explicit Id_with_polynomial(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kIdFieldNumber = 1,
+    kPolynomialFieldNumber = 2,
+  };
+  // int32 id = 1;
+  void clear_id();
+  int32_t id() const;
+  void set_id(int32_t value);
+  private:
+  int32_t _internal_id() const;
+  void _internal_set_id(int32_t value);
+  public:
+
+  // int32 polynomial = 2;
+  void clear_polynomial();
+  int32_t polynomial() const;
+  void set_polynomial(int32_t value);
+  private:
+  int32_t _internal_polynomial() const;
+  void _internal_set_polynomial(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:keyvaluestore.Id_with_polynomial)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int32_t id_;
+    int32_t polynomial_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_KVS_5faccess_2eproto;
+};
+// -------------------------------------------------------------------
+
 class New_id_with_polynomial final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:keyvaluestore.New_id_with_polynomial) */ {
  public:
@@ -933,7 +1096,7 @@ class New_id_with_polynomial final :
                &_New_id_with_polynomial_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    6;
 
   friend void swap(New_id_with_polynomial& a, New_id_with_polynomial& b) {
     a.Swap(&b);
@@ -1092,7 +1255,7 @@ class Keys_and_shares final :
                &_Keys_and_shares_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    7;
 
   friend void swap(Keys_and_shares& a, Keys_and_shares& b) {
     a.Swap(&b);
@@ -1541,6 +1704,50 @@ New_id_with_S_up_ids::mutable_s_up_ids() {
 
 // -------------------------------------------------------------------
 
+// Id_with_polynomial
+
+// int32 id = 1;
+inline void Id_with_polynomial::clear_id() {
+  _impl_.id_ = 0;
+}
+inline int32_t Id_with_polynomial::_internal_id() const {
+  return _impl_.id_;
+}
+inline int32_t Id_with_polynomial::id() const {
+  // @@protoc_insertion_point(field_get:keyvaluestore.Id_with_polynomial.id)
+  return _internal_id();
+}
+inline void Id_with_polynomial::_internal_set_id(int32_t value) {
+  
+  _impl_.id_ = value;
+}
+inline void Id_with_polynomial::set_id(int32_t value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:keyvaluestore.Id_with_polynomial.id)
+}
+
+// int32 polynomial = 2;
+inline void Id_with_polynomial::clear_polynomial() {
+  _impl_.polynomial_ = 0;
+}
+inline int32_t Id_with_polynomial::_internal_polynomial() const {
+  return _impl_.polynomial_;
+}
+inline int32_t Id_with_polynomial::polynomial() const {
+  // @@protoc_insertion_point(field_get:keyvaluestore.Id_with_polynomial.polynomial)
+  return _internal_polynomial();
+}
+inline void Id_with_polynomial::_internal_set_polynomial(int32_t value) {
+  
+  _impl_.polynomial_ = value;
+}
+inline void Id_with_polynomial::set_polynomial(int32_t value) {
+  _internal_set_polynomial(value);
+  // @@protoc_insertion_point(field_set:keyvaluestore.Id_with_polynomial.polynomial)
+}
+
+// -------------------------------------------------------------------
+
 // New_id_with_polynomial
 
 // int32 new_id = 1;
@@ -1665,6 +1872,8 @@ Keys_and_shares::mutable_keys_and_shares() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

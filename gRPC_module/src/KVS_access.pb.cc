@@ -89,6 +89,20 @@ struct New_id_with_S_up_idsDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 New_id_with_S_up_idsDefaultTypeInternal _New_id_with_S_up_ids_default_instance_;
+PROTOBUF_CONSTEXPR Id_with_polynomial::Id_with_polynomial(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.id_)*/0
+  , /*decltype(_impl_.polynomial_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct Id_with_polynomialDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR Id_with_polynomialDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~Id_with_polynomialDefaultTypeInternal() {}
+  union {
+    Id_with_polynomial _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Id_with_polynomialDefaultTypeInternal _Id_with_polynomial_default_instance_;
 PROTOBUF_CONSTEXPR New_id_with_polynomial::New_id_with_polynomial(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.new_id_)*/0
@@ -117,7 +131,7 @@ struct Keys_and_sharesDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Keys_and_sharesDefaultTypeInternal _Keys_and_shares_default_instance_;
 }  // namespace keyvaluestore
-static ::_pb::Metadata file_level_metadata_KVS_5faccess_2eproto[7];
+static ::_pb::Metadata file_level_metadata_KVS_5faccess_2eproto[8];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_KVS_5faccess_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_KVS_5faccess_2eproto = nullptr;
 
@@ -160,6 +174,14 @@ const uint32_t TableStruct_KVS_5faccess_2eproto::offsets[] PROTOBUF_SECTION_VARI
   PROTOBUF_FIELD_OFFSET(::keyvaluestore::New_id_with_S_up_ids, _impl_.new_id_),
   PROTOBUF_FIELD_OFFSET(::keyvaluestore::New_id_with_S_up_ids, _impl_.s_up_ids_),
   ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::keyvaluestore::Id_with_polynomial, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::keyvaluestore::Id_with_polynomial, _impl_.id_),
+  PROTOBUF_FIELD_OFFSET(::keyvaluestore::Id_with_polynomial, _impl_.polynomial_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::keyvaluestore::New_id_with_polynomial, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -181,8 +203,9 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 14, -1, -1, sizeof(::keyvaluestore::KV_pair)},
   { 22, -1, -1, sizeof(::keyvaluestore::Lost_keys)},
   { 29, -1, -1, sizeof(::keyvaluestore::New_id_with_S_up_ids)},
-  { 37, -1, -1, sizeof(::keyvaluestore::New_id_with_polynomial)},
-  { 45, -1, -1, sizeof(::keyvaluestore::Keys_and_shares)},
+  { 37, -1, -1, sizeof(::keyvaluestore::Id_with_polynomial)},
+  { 45, -1, -1, sizeof(::keyvaluestore::New_id_with_polynomial)},
+  { 53, -1, -1, sizeof(::keyvaluestore::Keys_and_shares)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -191,6 +214,7 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::keyvaluestore::_KV_pair_default_instance_._instance,
   &::keyvaluestore::_Lost_keys_default_instance_._instance,
   &::keyvaluestore::_New_id_with_S_up_ids_default_instance_._instance,
+  &::keyvaluestore::_Id_with_polynomial_default_instance_._instance,
   &::keyvaluestore::_New_id_with_polynomial_default_instance_._instance,
   &::keyvaluestore::_Keys_and_shares_default_instance_._instance,
 };
@@ -201,29 +225,30 @@ const char descriptor_table_protodef_KVS_5faccess_2eproto[] PROTOBUF_SECTION_VAR
   "\007KV_pair\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"-\n\t"
   "Lost_keys\022 \n\004keys\030\001 \003(\0132\022.keyvaluestore."
   "Key\"8\n\024New_id_with_S_up_ids\022\016\n\006new_id\030\001 "
-  "\001(\005\022\020\n\010S_up_ids\030\002 \003(\005\"<\n\026New_id_with_pol"
-  "ynomial\022\016\n\006new_id\030\001 \001(\005\022\022\n\npolynomial\030\002 "
-  "\001(\005\"*\n\017Keys_and_shares\022\027\n\017keys_and_share"
-  "s\030\001 \003(\t2\224\004\n\003KVS\0221\n\003Get\022\022.keyvaluestore.K"
-  "ey\032\024.keyvaluestore.Value\"\000\0225\n\003Put\022\026.keyv"
-  "aluestore.KV_pair\032\024.keyvaluestore.Value\""
-  "\000\0224\n\006Delete\022\022.keyvaluestore.Key\032\024.keyval"
-  "uestore.Value\"\000\022`\n!Generate_polynomial_a"
-  "nd_broadcast\022#.keyvaluestore.New_id_with"
-  "_S_up_ids\032\024.keyvaluestore.Value\"\000\022T\n\017Sha"
-  "re_lost_keys\022#.keyvaluestore.New_id_with"
-  "_S_up_ids\032\030.keyvaluestore.Lost_keys\"\0000\001\022"
-  "W\n\026Store_polynomial_share\022%.keyvaluestor"
-  "e.New_id_with_polynomial\032\024.keyvaluestore"
-  ".Value\"\000\022\\\n\017get_keys_shares\022%.keyvaluest"
-  "ore.New_id_with_polynomial\032\036.keyvaluesto"
-  "re.Keys_and_shares\"\0000\001b\006proto3"
+  "\001(\005\022\020\n\010S_up_ids\030\002 \003(\005\"4\n\022Id_with_polynom"
+  "ial\022\n\n\002id\030\001 \001(\005\022\022\n\npolynomial\030\002 \001(\005\"<\n\026N"
+  "ew_id_with_polynomial\022\016\n\006new_id\030\001 \001(\005\022\022\n"
+  "\npolynomial\030\002 \001(\005\"*\n\017Keys_and_shares\022\027\n\017"
+  "keys_and_shares\030\001 \003(\t2\220\004\n\003KVS\0221\n\003Get\022\022.k"
+  "eyvaluestore.Key\032\024.keyvaluestore.Value\"\000"
+  "\0225\n\003Put\022\026.keyvaluestore.KV_pair\032\024.keyval"
+  "uestore.Value\"\000\0224\n\006Delete\022\022.keyvaluestor"
+  "e.Key\032\024.keyvaluestore.Value\"\000\022`\n!Generat"
+  "e_polynomial_and_broadcast\022#.keyvaluesto"
+  "re.New_id_with_S_up_ids\032\024.keyvaluestore."
+  "Value\"\000\022T\n\017Share_lost_keys\022#.keyvaluesto"
+  "re.New_id_with_S_up_ids\032\030.keyvaluestore."
+  "Lost_keys\"\0000\001\022S\n\026Store_polynomial_share\022"
+  "!.keyvaluestore.Id_with_polynomial\032\024.key"
+  "valuestore.Value\"\000\022\\\n\017get_keys_shares\022%."
+  "keyvaluestore.New_id_with_polynomial\032\036.k"
+  "eyvaluestore.Keys_and_shares\"\0000\001b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_KVS_5faccess_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_KVS_5faccess_2eproto = {
-    false, false, 870, descriptor_table_protodef_KVS_5faccess_2eproto,
+    false, false, 920, descriptor_table_protodef_KVS_5faccess_2eproto,
     "KVS_access.proto",
-    &descriptor_table_KVS_5faccess_2eproto_once, nullptr, 0, 7,
+    &descriptor_table_KVS_5faccess_2eproto_once, nullptr, 0, 8,
     schemas, file_default_instances, TableStruct_KVS_5faccess_2eproto::offsets,
     file_level_metadata_KVS_5faccess_2eproto, file_level_enum_descriptors_KVS_5faccess_2eproto,
     file_level_service_descriptors_KVS_5faccess_2eproto,
@@ -1302,6 +1327,217 @@ void New_id_with_S_up_ids::InternalSwap(New_id_with_S_up_ids* other) {
 
 // ===================================================================
 
+class Id_with_polynomial::_Internal {
+ public:
+};
+
+Id_with_polynomial::Id_with_polynomial(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:keyvaluestore.Id_with_polynomial)
+}
+Id_with_polynomial::Id_with_polynomial(const Id_with_polynomial& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  Id_with_polynomial* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.id_){}
+    , decltype(_impl_.polynomial_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.id_, &from._impl_.id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.polynomial_) -
+    reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.polynomial_));
+  // @@protoc_insertion_point(copy_constructor:keyvaluestore.Id_with_polynomial)
+}
+
+inline void Id_with_polynomial::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.id_){0}
+    , decltype(_impl_.polynomial_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+Id_with_polynomial::~Id_with_polynomial() {
+  // @@protoc_insertion_point(destructor:keyvaluestore.Id_with_polynomial)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void Id_with_polynomial::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void Id_with_polynomial::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void Id_with_polynomial::Clear() {
+// @@protoc_insertion_point(message_clear_start:keyvaluestore.Id_with_polynomial)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.polynomial_) -
+      reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.polynomial_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* Id_with_polynomial::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 polynomial = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.polynomial_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* Id_with_polynomial::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:keyvaluestore.Id_with_polynomial)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 id = 1;
+  if (this->_internal_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_id(), target);
+  }
+
+  // int32 polynomial = 2;
+  if (this->_internal_polynomial() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_polynomial(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:keyvaluestore.Id_with_polynomial)
+  return target;
+}
+
+size_t Id_with_polynomial::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:keyvaluestore.Id_with_polynomial)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // int32 id = 1;
+  if (this->_internal_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_id());
+  }
+
+  // int32 polynomial = 2;
+  if (this->_internal_polynomial() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_polynomial());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData Id_with_polynomial::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    Id_with_polynomial::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*Id_with_polynomial::GetClassData() const { return &_class_data_; }
+
+
+void Id_with_polynomial::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<Id_with_polynomial*>(&to_msg);
+  auto& from = static_cast<const Id_with_polynomial&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:keyvaluestore.Id_with_polynomial)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_id() != 0) {
+    _this->_internal_set_id(from._internal_id());
+  }
+  if (from._internal_polynomial() != 0) {
+    _this->_internal_set_polynomial(from._internal_polynomial());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void Id_with_polynomial::CopyFrom(const Id_with_polynomial& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:keyvaluestore.Id_with_polynomial)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Id_with_polynomial::IsInitialized() const {
+  return true;
+}
+
+void Id_with_polynomial::InternalSwap(Id_with_polynomial* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Id_with_polynomial, _impl_.polynomial_)
+      + sizeof(Id_with_polynomial::_impl_.polynomial_)
+      - PROTOBUF_FIELD_OFFSET(Id_with_polynomial, _impl_.id_)>(
+          reinterpret_cast<char*>(&_impl_.id_),
+          reinterpret_cast<char*>(&other->_impl_.id_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata Id_with_polynomial::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_KVS_5faccess_2eproto_getter, &descriptor_table_KVS_5faccess_2eproto_once,
+      file_level_metadata_KVS_5faccess_2eproto[5]);
+}
+
+// ===================================================================
+
 class New_id_with_polynomial::_Internal {
  public:
 };
@@ -1508,7 +1744,7 @@ void New_id_with_polynomial::InternalSwap(New_id_with_polynomial* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata New_id_with_polynomial::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_KVS_5faccess_2eproto_getter, &descriptor_table_KVS_5faccess_2eproto_once,
-      file_level_metadata_KVS_5faccess_2eproto[5]);
+      file_level_metadata_KVS_5faccess_2eproto[6]);
 }
 
 // ===================================================================
@@ -1698,7 +1934,7 @@ void Keys_and_shares::InternalSwap(Keys_and_shares* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata Keys_and_shares::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_KVS_5faccess_2eproto_getter, &descriptor_table_KVS_5faccess_2eproto_once,
-      file_level_metadata_KVS_5faccess_2eproto[6]);
+      file_level_metadata_KVS_5faccess_2eproto[7]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -1723,6 +1959,10 @@ Arena::CreateMaybeMessage< ::keyvaluestore::Lost_keys >(Arena* arena) {
 template<> PROTOBUF_NOINLINE ::keyvaluestore::New_id_with_S_up_ids*
 Arena::CreateMaybeMessage< ::keyvaluestore::New_id_with_S_up_ids >(Arena* arena) {
   return Arena::CreateMessageInternal< ::keyvaluestore::New_id_with_S_up_ids >(arena);
+}
+template<> PROTOBUF_NOINLINE ::keyvaluestore::Id_with_polynomial*
+Arena::CreateMaybeMessage< ::keyvaluestore::Id_with_polynomial >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::keyvaluestore::Id_with_polynomial >(arena);
 }
 template<> PROTOBUF_NOINLINE ::keyvaluestore::New_id_with_polynomial*
 Arena::CreateMaybeMessage< ::keyvaluestore::New_id_with_polynomial >(Arena* arena) {

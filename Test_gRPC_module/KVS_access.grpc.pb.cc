@@ -155,23 +155,23 @@ void KVS::Stub::async::Share_lost_keys(::grpc::ClientContext* context, const ::k
   return ::grpc::internal::ClientAsyncReaderFactory< ::keyvaluestore::Lost_keys>::Create(channel_.get(), cq, rpcmethod_Share_lost_keys_, context, request, false, nullptr);
 }
 
-::grpc::Status KVS::Stub::Store_polynomial_share(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial& request, ::keyvaluestore::Value* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::New_id_with_polynomial, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Store_polynomial_share_, context, request, response);
+::grpc::Status KVS::Stub::Store_polynomial_share(::grpc::ClientContext* context, const ::keyvaluestore::Id_with_polynomial& request, ::keyvaluestore::Value* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::Id_with_polynomial, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Store_polynomial_share_, context, request, response);
 }
 
-void KVS::Stub::async::Store_polynomial_share(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::New_id_with_polynomial, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Store_polynomial_share_, context, request, response, std::move(f));
+void KVS::Stub::async::Store_polynomial_share(::grpc::ClientContext* context, const ::keyvaluestore::Id_with_polynomial* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::Id_with_polynomial, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Store_polynomial_share_, context, request, response, std::move(f));
 }
 
-void KVS::Stub::async::Store_polynomial_share(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) {
+void KVS::Stub::async::Store_polynomial_share(::grpc::ClientContext* context, const ::keyvaluestore::Id_with_polynomial* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) {
   ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Store_polynomial_share_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::PrepareAsyncStore_polynomial_shareRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::Value, ::keyvaluestore::New_id_with_polynomial, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Store_polynomial_share_, context, request);
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::PrepareAsyncStore_polynomial_shareRaw(::grpc::ClientContext* context, const ::keyvaluestore::Id_with_polynomial& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::Value, ::keyvaluestore::Id_with_polynomial, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Store_polynomial_share_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::AsyncStore_polynomial_shareRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::AsyncStore_polynomial_shareRaw(::grpc::ClientContext* context, const ::keyvaluestore::Id_with_polynomial& request, ::grpc::CompletionQueue* cq) {
   auto* result =
     this->PrepareAsyncStore_polynomial_shareRaw(context, request, cq);
   result->StartCall();
@@ -248,10 +248,10 @@ KVS::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KVS_method_names[5],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< KVS::Service, ::keyvaluestore::New_id_with_polynomial, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< KVS::Service, ::keyvaluestore::Id_with_polynomial, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](KVS::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::keyvaluestore::New_id_with_polynomial* req,
+             const ::keyvaluestore::Id_with_polynomial* req,
              ::keyvaluestore::Value* resp) {
                return service->Store_polynomial_share(ctx, req, resp);
              }, this)));
@@ -305,7 +305,7 @@ KVS::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status KVS::Service::Store_polynomial_share(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_polynomial* request, ::keyvaluestore::Value* response) {
+::grpc::Status KVS::Service::Store_polynomial_share(::grpc::ServerContext* context, const ::keyvaluestore::Id_with_polynomial* request, ::keyvaluestore::Value* response) {
   (void) context;
   (void) request;
   (void) response;
