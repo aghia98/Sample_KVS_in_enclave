@@ -1054,4 +1054,5 @@ void ecall_generate_polynomial(int* s_new, int* s_up_ids_array, int* values, uns
 
 void ecall_store_polynomial_share(int* source_node, int* value){
     stored_polynomial_shares[*source_node] = *value;
+    printf("From node %d received polynomial share %d\n", *source_node, *value);
 }

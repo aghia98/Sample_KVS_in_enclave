@@ -77,6 +77,10 @@ int t_global;
 int n_global;
 vector<int> S_up_ids; 
 
+grpc::SslCredentialsOptions ssl_opts_;
+std::string server_cert = "server.crt";
+std::shared_ptr<grpc::ChannelCredentials> channel_creds;
+
 map<int, string> id_to_address_map;
 map<int , unique_ptr<keyvaluestore::KVS::Stub> >  stubs;
 map<string, string> myMap;
@@ -437,14 +441,13 @@ class KVSServiceImpl {
                         //prepare answer of ecall
                         int* values = (int*) malloc(size_s_up_ids * sizeof(int));
 
-                        //ecall_generate_polynomial([in] int* s_new, [in, count=cnt] int* s_up_ids_array, [out, count=cnt] int* values, unsigned cnt);
                         ret = ecall_generate_polynomial(global_eid, &s_new, s_up_ids, values, size_s_up_ids);
                         if (ret != SGX_SUCCESS) abort();
 
 
                         broadcast_polynomial_shares(s_up_ids, values, size_s_up_ids);
 
-                        reply_.set_value("POLYNOMIAL_GENERATION_SUCCESS");
+                        reply_.set_value("POLYNOMIAL_GENERATION_AND_BROADCAST_SUCCESS");
                         
                         state_ = FINISH;
                         responder_.Finish(reply_, Status::OK, this);
@@ -473,13 +476,10 @@ class KVSServiceImpl {
                     keyvaluestore::New_id_with_polynomial request;
                     request.set_new_id(node_id_global); //current node
 
-                    grpc::SslCredentialsOptions ssl_opts_;
-                    std::string server_cert = "server.crt";
-                    ssl_opts_.pem_root_certs = readFile(server_cert);
+                    
 
                     for(int i=0; i<size; i++){
                         grpc::ChannelArguments channel_args;
-                        auto channel_creds = grpc::SslCredentials(ssl_opts_);
                         channel_args.SetInt("channel_number", i);
                         channel_args.SetSslTargetNameOverride("server");
 
@@ -1408,6 +1408,13 @@ void ocall_delete_last_share(int* node_id, const char* key){
     delete kvs;
 }
 
+//*************************************************************************************************************************************
+
+void set_up_ssl(){
+    ssl_opts_.pem_root_certs = readFile(server_cert);
+    channel_creds = grpc::SslCredentials(ssl_opts_);
+}
+
 void create_channels(){
 
     //Check active nodes
@@ -1420,15 +1427,13 @@ void create_channels(){
         }
     }
 
-    grpc::SslCredentialsOptions ssl_opts_;
-    std::string server_cert = "server.crt";
-    ssl_opts_.pem_root_certs = readFile(server_cert);
+
+    
     int cpt = 0;
 
     for(int s_up_id : S_up_ids){
         cpt++;
         grpc::ChannelArguments channel_args;
-        auto channel_creds = grpc::SslCredentials(ssl_opts_);
         channel_args.SetInt("channel_number", cpt);
         channel_args.SetSslTargetNameOverride("server");
         stubs[s_up_id] = keyvaluestore::KVS::NewStub(grpc::CreateCustomChannel(id_to_address_map[s_up_id]+":"+to_string(default_sms_port), channel_creds, channel_args));
@@ -1474,6 +1479,8 @@ void share_lost_keys(){
         break; //*********************HARDCODED*****************************
     }
 }
+
+
 
 void generate_polynomial_and_broadcast(){
 
@@ -1549,6 +1556,7 @@ int SGX_CDECL main(int argc, char *argv[]){ // ./app --node_id 1 --t 3 --n 5 --r
 
     if(recovery){
         auto start_time = std::chrono::high_resolution_clock::now();
+        set_up_ssl();
         create_channels();
         share_lost_keys();
         generate_polynomial_and_broadcast();
