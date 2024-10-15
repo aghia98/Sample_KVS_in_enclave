@@ -229,7 +229,7 @@ const char descriptor_table_protodef_KVS_5faccess_2eproto[] PROTOBUF_SECTION_VAR
   "ial\022\n\n\002id\030\001 \001(\005\022\022\n\npolynomial\030\002 \001(\005\"<\n\026N"
   "ew_id_with_polynomial\022\016\n\006new_id\030\001 \001(\005\022\022\n"
   "\npolynomial\030\002 \001(\005\"*\n\017Keys_and_shares\022\027\n\017"
-  "keys_and_shares\030\001 \003(\t2\220\004\n\003KVS\0221\n\003Get\022\022.k"
+  "keys_and_shares\030\001 \003(\t2\363\003\n\003KVS\0221\n\003Get\022\022.k"
   "eyvaluestore.Key\032\024.keyvaluestore.Value\"\000"
   "\0225\n\003Put\022\026.keyvaluestore.KV_pair\032\024.keyval"
   "uestore.Value\"\000\0224\n\006Delete\022\022.keyvaluestor"
@@ -240,13 +240,13 @@ const char descriptor_table_protodef_KVS_5faccess_2eproto[] PROTOBUF_SECTION_VAR
   "re.New_id_with_S_up_ids\032\030.keyvaluestore."
   "Lost_keys\"\0000\001\022S\n\026Store_polynomial_share\022"
   "!.keyvaluestore.Id_with_polynomial\032\024.key"
-  "valuestore.Value\"\000\022\\\n\017get_keys_shares\022%."
-  "keyvaluestore.New_id_with_polynomial\032\036.k"
-  "eyvaluestore.Keys_and_shares\"\0000\001b\006proto3"
+  "valuestore.Value\"\000\022\?\n\021Get_blinded_share\022"
+  "\022.keyvaluestore.Key\032\024.keyvaluestore.Valu"
+  "e\"\000b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_KVS_5faccess_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_KVS_5faccess_2eproto = {
-    false, false, 920, descriptor_table_protodef_KVS_5faccess_2eproto,
+    false, false, 891, descriptor_table_protodef_KVS_5faccess_2eproto,
     "KVS_access.proto",
     &descriptor_table_KVS_5faccess_2eproto_once, nullptr, 0, 8,
     schemas, file_default_instances, TableStruct_KVS_5faccess_2eproto::offsets,

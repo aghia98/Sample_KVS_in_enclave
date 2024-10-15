@@ -45,11 +45,14 @@ enclave {
         public void ecall_get([in] char key[100], [in, out, string] char* share);
         public void ecall_delete([in] char key[100]);
         public void ecall_share_lost_keys([in] int* node_id, [in, count=cnt] int* s_up_ids_array, unsigned cnt, [in, out, string] char* lost_keys);  
-        public void ecall_add_lost_keys([in] char keys_with_last_share_owner[10000]); 
-        public void ecall_recover_lost_shares();
+        //public void ecall_add_lost_keys([in] char keys_with_last_share_owner[10000]); 
+        //public void ecall_recover_lost_shares();
         public void ecall_send_params_to_enclave([in] int* node_id, [in] int* t, [in] int* n);
         public void ecall_generate_polynomial([in] int* s_new, [in, count=cnt] int* s_up_ids_array, [out, count=cnt] int* values, unsigned cnt);
         public void ecall_store_polynomial_share([in] int* source_node, [in] int* value);
+        public void ecall_get_blinded_share([in] char key[100], [in, out, string] char* share);
+        public void ecall_store_blinded_share([in] char key[100], [in] char share[1032]);
+
         
         public void ecall_distributed_PI([in, string] const char *serialized_token);
         public void ecall_get_tokens([in] int* token_initiator_id, [in, out, string] char* serialized_token);

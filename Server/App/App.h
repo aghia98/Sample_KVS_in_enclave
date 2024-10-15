@@ -67,7 +67,7 @@ string get(string k);
 void delete_(string key);
 set<string> share_lost_keys(int node_id, vector<int> s_up_ids);
 void add_lost_keys_in_enclave(const set<string>& local_lost_keys_set);
-void recover_lost_shares();
+char* convertCString(string str);
 
 #if defined(__cplusplus)
 }

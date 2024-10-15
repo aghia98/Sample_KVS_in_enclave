@@ -62,23 +62,25 @@ char* convertCString(std::string str) {
     return cstr;
 }
 
-void put(string k, string v)
-{
+void put(string k, string v){
+
+    char* cstring_k = convertCString(k);
+    char* cstring_v = convertCString(v);
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     {
         std::lock_guard<std::mutex> lock(putMutex_);
-        ret = ecall_put(global_eid, convertCString(k), convertCString(v));
+        ret = ecall_put(global_eid, cstring_k, cstring_v);
     }
     if (ret != SGX_SUCCESS){
         sgx_destroy_enclave(global_eid);
         abort();
     }
-        
+    delete cstring_k;
+    delete cstring_v;   
 
 }
 
 string get(string k){
-    //char* value;
     char value[MAX_SIZE_VALUE];
     memset(value, 'A', MAX_SIZE_VALUE-1);
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
@@ -89,7 +91,6 @@ string get(string k){
     delete cstring_k;
 
     string value_string(value); 
-
     return value_string;
 }
 
@@ -135,7 +136,7 @@ set<string> share_lost_keys(int node_id, vector<int> s_up_ids){
     return keys;
 } 
 
-void add_lost_keys_in_enclave(const set<string>& local_lost_keys_set){
+/*void add_lost_keys_in_enclave(const set<string>& local_lost_keys_set){
     string lost_keys_string="";
     for (const auto& key_with_last_share_owner : local_lost_keys_set) {
         lost_keys_string += key_with_last_share_owner+"\n";
@@ -146,11 +147,5 @@ void add_lost_keys_in_enclave(const set<string>& local_lost_keys_set){
     ret = ecall_add_lost_keys(global_eid, convertCString(lost_keys_string)); 
     if (ret != SGX_SUCCESS)
         abort();
-}
+}*/
 
-void recover_lost_shares(){
-    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_recover_lost_shares(global_eid);
-    if (ret != SGX_SUCCESS)
-        abort(); 
-}

@@ -62,7 +62,7 @@ void copyString(string &source, char* destination) {
 	int y9 = R(coef, t, 9);
 
 	int size = 63;
-	int* result_array = (int*)malloc(size * sizeof(int));;
+	int* result_array = (int*)malloc(size * sizeof(int));
 	
 
 	add_shares("4EFAA3D2758CAFEB5218364B035E606B099C05912BA8G06841EE9AD67CA18B4BB3FF8E695FDA50DE623FA1C6781C20C1782A6F5E40B8F928D79643CE01F895", y3, result_array);

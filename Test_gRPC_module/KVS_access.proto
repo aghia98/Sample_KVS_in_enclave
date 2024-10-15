@@ -25,7 +25,7 @@ service KVS {
   rpc Generate_polynomial_and_broadcast (New_id_with_S_up_ids) returns (Value) {}
   rpc Share_lost_keys (New_id_with_S_up_ids) returns (stream Lost_keys) {}
   rpc Store_polynomial_share (Id_with_polynomial) returns (Value) {}
-  rpc get_keys_shares (New_id_with_polynomial) returns (stream Keys_and_shares) {}
+  rpc Get_blinded_share (Key) returns (Value) {}
 }
 
 // The request message containing the key

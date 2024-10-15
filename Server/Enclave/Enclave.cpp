@@ -52,12 +52,14 @@ using namespace std;
 using namespace token;
 // Declare myMap as a global variable
 map<string, string> myMap;
-set<string> lost_keys_with_potential_last_share_owner_and_t_shares_owners;
+//set<string> lost_keys_with_potential_last_share_owner_and_t_shares_owners;
 int t;
 int n;
 int node_id;
 int* poly_R;
 map<int, int> stored_polynomial_shares;
+
+map<string, vector<string>> blinded_shares;
 
 string temp_token;
 int prime = 257;
@@ -530,6 +532,33 @@ void trim_trailing_whitespace(char * str) {
 	}
 }
 
+int compute_sum_polynomial_shares(){
+    int sum=0;
+    for (auto it = stored_polynomial_shares.begin(); it != stored_polynomial_shares.end(); ++it) {
+        sum += it->second;
+    }
+
+    return sum;
+}
+
+void ecall_get_blinded_share(char key[], char* val){
+    string key_string(key);
+    auto iterator = myMap.find(key_string);
+
+    string share = iterator->second;
+    string share_without_metadata = share.substr(6);
+    const char* share_without_metadata_cstr = share_without_metadata.c_str();
+
+    int size_result = strlen(share_without_metadata_cstr)/2;
+    int* result_array = (int*)malloc(size_result * sizeof(int));
+    add_shares(share_without_metadata_cstr, compute_sum_polynomial_shares(), result_array);
+    char* blinded_share = convertToHex(result_array, size_result, node_id, t);
+
+    strncpy(val, blinded_share, strlen(val));
+    free(result_array);
+    free(blinded_share);
+}
+
 char * recover_share_from_share_strings(const char * string, int point, int t) {
 	char ** shares = static_cast<char**>(malloc(sizeof(char *) * 20));
 
@@ -570,7 +599,6 @@ char * recover_share_from_share_strings(const char * string, int point, int t) {
 }
 
 
-
 void copyString(std::string source, char* destination) {
     for (std::size_t i = 0; i < source.length(); ++i) {
         destination[i] = source[i];
@@ -578,10 +606,42 @@ void copyString(std::string source, char* destination) {
     destination[source.length()] = '\0'; // Append null character to terminate the string
 }
 
-/* 
- * printf: 
- *   Invokes OCALL to display the enclave buffer to the terminal.
- */
+void ecall_store_blinded_share(char key[], char blinded_share[]){
+    string key_string(key);
+    string val_string(blinded_share);
+    blinded_shares[key_string].push_back(val_string);
+
+    if(blinded_shares[key_string].size() == t){
+        string shares_string = "";
+        for(string& blinded_shares: blinded_shares[key_string]){
+            shares_string += blinded_shares+'\n';
+        }
+        char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
+        copyString(shares_string, combined_shares); 
+        char* share = recover_share_from_share_strings(combined_shares, node_id, t);
+        
+        string share_string(share);
+        myMap[key_string] = share_string;
+        
+        free(combined_shares);
+        free(share);
+    }else{
+        if(blinded_shares[key_string].size() == n){
+            blinded_shares.erase(key_string);
+        }
+    }
+    
+
+    
+}
+
+void ecall_process_end_of_recovery(){
+    blinded_shares.clear();
+    stored_polynomial_shares.clear();
+    free(poly_R);
+}
+
+
 int printf(const char *fmt, ...)
 {
     char buf[BUFSIZ] = {'\0'};
@@ -604,7 +664,8 @@ void ecall_send_params_to_enclave(int* node, int* t_, int *n_){
 void ecall_put(char key[], char val[]){
     string key_string(key);
     string val_string(val);
-    myMap[key_string]=val;
+    myMap[key_string]=val_string;
+    //printf("%s\n", myMap[key_string].c_str());
 }
 
 void ecall_get(char key[], char* val){
@@ -614,14 +675,13 @@ void ecall_get(char key[], char* val){
   string source;
   if(iterator != myMap.end()){
     source = iterator->second;
-    //char destination[410];
-    //copyString(source, destination); 
-    
     strncpy(val, source.c_str(), strlen(val));
   }else{
     strncpy(val, "NOT_FOUND", strlen(val));
   } 
 }
+
+
 
 
 void ecall_delete(char key[]){
@@ -777,7 +837,7 @@ void ecall_share_lost_keys(int* node_id, int* s_up_ids_array, unsigned cnt, char
     //printf(lost_keys);
 }
 
-void ecall_add_lost_keys(char keys_with_last_share_owner[]){
+/*void ecall_add_lost_keys(char keys_with_last_share_owner[]){
 
     if(strcmp(keys_with_last_share_owner,"null\n")!=0){
         string line;
@@ -794,7 +854,7 @@ void ecall_add_lost_keys(char keys_with_last_share_owner[]){
             keys_with_last_share_owner++;
         }
     }    
-}
+}*/
 //*****************************************************************************************
 vector<string> splitString(const string& input, char delimiter) {
     vector<string> result;
@@ -969,8 +1029,8 @@ void delete_last_share(int potential_last_share_owner, string key){
 
 
 
-void ecall_recover_lost_shares(){
-    /*vector<string> splitted_key_potential_last_share_owner_t_shares_owners;
+/*void ecall_recover_lost_shares(){
+    vector<string> splitted_key_potential_last_share_owner_t_shares_owners;
     string key;
     string potential_last_share_owner;
     vector<int> t_shares_owners;
@@ -1011,8 +1071,8 @@ void ecall_recover_lost_shares(){
     }
     //lost_keys_with_potential_last_share_owner_and_t_shares_owners.clear(); //commented because of not using add_lost_keys();
     ocall_flush_lost_keys_list();
-  */  
-}
+  
+}*/
 
 void ecall_get_tokens(int* token_initiator_id, char* serialized_token){
    

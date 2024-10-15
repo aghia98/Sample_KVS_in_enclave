@@ -28,7 +28,7 @@ static const char* KVS_method_names[] = {
   "/keyvaluestore.KVS/Generate_polynomial_and_broadcast",
   "/keyvaluestore.KVS/Share_lost_keys",
   "/keyvaluestore.KVS/Store_polynomial_share",
-  "/keyvaluestore.KVS/get_keys_shares",
+  "/keyvaluestore.KVS/Get_blinded_share",
 };
 
 std::unique_ptr< KVS::Stub> KVS::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -44,7 +44,7 @@ KVS::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const
   , rpcmethod_Generate_polynomial_and_broadcast_(KVS_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Share_lost_keys_(KVS_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
   , rpcmethod_Store_polynomial_share_(KVS_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_get_keys_shares_(KVS_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
+  , rpcmethod_Get_blinded_share_(KVS_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status KVS::Stub::Get(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response) {
@@ -178,20 +178,27 @@ void KVS::Stub::async::Store_polynomial_share(::grpc::ClientContext* context, co
   return result;
 }
 
-::grpc::ClientReader< ::keyvaluestore::Keys_and_shares>* KVS::Stub::get_keys_sharesRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial& request) {
-  return ::grpc::internal::ClientReaderFactory< ::keyvaluestore::Keys_and_shares>::Create(channel_.get(), rpcmethod_get_keys_shares_, context, request);
+::grpc::Status KVS::Stub::Get_blinded_share(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::keyvaluestore::Value* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::keyvaluestore::Key, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Get_blinded_share_, context, request, response);
 }
 
-void KVS::Stub::async::get_keys_shares(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial* request, ::grpc::ClientReadReactor< ::keyvaluestore::Keys_and_shares>* reactor) {
-  ::grpc::internal::ClientCallbackReaderFactory< ::keyvaluestore::Keys_and_shares>::Create(stub_->channel_.get(), stub_->rpcmethod_get_keys_shares_, context, request, reactor);
+void KVS::Stub::async::Get_blinded_share(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::keyvaluestore::Key, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Get_blinded_share_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncReader< ::keyvaluestore::Keys_and_shares>* KVS::Stub::Asyncget_keys_sharesRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial& request, ::grpc::CompletionQueue* cq, void* tag) {
-  return ::grpc::internal::ClientAsyncReaderFactory< ::keyvaluestore::Keys_and_shares>::Create(channel_.get(), cq, rpcmethod_get_keys_shares_, context, request, true, tag);
+void KVS::Stub::async::Get_blinded_share(::grpc::ClientContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Get_blinded_share_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncReader< ::keyvaluestore::Keys_and_shares>* KVS::Stub::PrepareAsyncget_keys_sharesRaw(::grpc::ClientContext* context, const ::keyvaluestore::New_id_with_polynomial& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncReaderFactory< ::keyvaluestore::Keys_and_shares>::Create(channel_.get(), cq, rpcmethod_get_keys_shares_, context, request, false, nullptr);
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::PrepareAsyncGet_blinded_shareRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::keyvaluestore::Value, ::keyvaluestore::Key, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Get_blinded_share_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::keyvaluestore::Value>* KVS::Stub::AsyncGet_blinded_shareRaw(::grpc::ClientContext* context, const ::keyvaluestore::Key& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGet_blinded_shareRaw(context, request, cq);
+  result->StartCall();
+  return result;
 }
 
 KVS::Service::Service() {
@@ -257,13 +264,13 @@ KVS::Service::Service() {
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       KVS_method_names[6],
-      ::grpc::internal::RpcMethod::SERVER_STREAMING,
-      new ::grpc::internal::ServerStreamingHandler< KVS::Service, ::keyvaluestore::New_id_with_polynomial, ::keyvaluestore::Keys_and_shares>(
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< KVS::Service, ::keyvaluestore::Key, ::keyvaluestore::Value, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](KVS::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::keyvaluestore::New_id_with_polynomial* req,
-             ::grpc::ServerWriter<::keyvaluestore::Keys_and_shares>* writer) {
-               return service->get_keys_shares(ctx, req, writer);
+             const ::keyvaluestore::Key* req,
+             ::keyvaluestore::Value* resp) {
+               return service->Get_blinded_share(ctx, req, resp);
              }, this)));
 }
 
@@ -312,10 +319,10 @@ KVS::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status KVS::Service::get_keys_shares(::grpc::ServerContext* context, const ::keyvaluestore::New_id_with_polynomial* request, ::grpc::ServerWriter< ::keyvaluestore::Keys_and_shares>* writer) {
+::grpc::Status KVS::Service::Get_blinded_share(::grpc::ServerContext* context, const ::keyvaluestore::Key* request, ::keyvaluestore::Value* response) {
   (void) context;
   (void) request;
-  (void) writer;
+  (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
