@@ -1410,7 +1410,6 @@ void generate_polynomial_and_broadcast(){
       }
       num_responses_received++;
     }
-    printf("End of\n");
 }
 
 //********************************************************************************************************************************
@@ -1468,6 +1467,7 @@ void recover_lost_shares(){
         string lost_key = parsed.key;
         string potential_last_share_owner = parsed.last_share_owner_id;
         vector<int> t_shares_owners = parsed.share_owner_ids;
+        //cout << "lost_key outside :" << lost_key << endl;
 
         int sent = 0;
         CompletionQueue cq;
@@ -1509,6 +1509,12 @@ void recover_lost_shares(){
             }
             num_responses_received++;
         }
+    }
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+    ret = ecall_process_end_of_recovery(global_eid);
+    if (ret != SGX_SUCCESS){
+        cout << "Enclave crashed in ecall_process_end_of_recovery()" << endl;
+        abort();
     }
 }
 //********************************************************************************************************************************

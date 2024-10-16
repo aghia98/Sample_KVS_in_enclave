@@ -60,6 +60,7 @@ int* poly_R;
 map<int, int> stored_polynomial_shares;
 
 map<string, vector<string>> blinded_shares;
+set<std::string> completed_keys;
 
 string temp_token;
 int prime = 257;
@@ -353,7 +354,7 @@ void intToHex(int num, char *hex) {
 }
 
 char* convertToHex(int* input, int size_input, int x_share, int t) {
-    char* result = (char*)malloc(sizeof(char) * size_input * 2 + 5);  // Allocate memory for the result string
+    char* result = (char*)malloc(sizeof(char) * size_input * 2 + 7);  // Allocate memory for the result string
     
     if (result) {
         char hex[3];
@@ -607,36 +608,39 @@ void copyString(std::string source, char* destination) {
 }
 
 void ecall_store_blinded_share(char key[], char blinded_share[]){
-    string key_string(key);
-    string val_string(blinded_share);
-    blinded_shares[key_string].push_back(val_string);
 
-    if(blinded_shares[key_string].size() == t){
-        string shares_string = "";
-        for(string& blinded_shares: blinded_shares[key_string]){
-            shares_string += blinded_shares+'\n';
-        }
-        char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
-        copyString(shares_string, combined_shares); 
-        char* share = recover_share_from_share_strings(combined_shares, node_id, t);
-        
-        string share_string(share);
-        myMap[key_string] = share_string;
-        
-        free(combined_shares);
-        free(share);
-    }else{
-        if(blinded_shares[key_string].size() == n){
+    string key_string(key);
+
+    if( completed_keys.find(key_string) == completed_keys.end() ){
+        string val_string(blinded_share);
+        blinded_shares[key_string].push_back(val_string);
+
+        if(blinded_shares[key_string].size() == t){
+            string shares_string = "";
+            for(string& blinded_shares: blinded_shares[key_string]){
+                shares_string += blinded_shares+'\n';
+            }
+            char* combined_shares = static_cast<char*>(malloc((shares_string.length()+1)*sizeof(char)));
+            copyString(shares_string, combined_shares); 
+            char* share = recover_share_from_share_strings(combined_shares, node_id, t);
+            
+            string share_string(share);
+            //printf("reconstructed share: ( %s,%s )\n", key_string.c_str(), share_string.c_str());
+            myMap[key_string] = share_string;
+            
+            free(combined_shares);
+            free(share);
+
             blinded_shares.erase(key_string);
+            completed_keys.insert(key_string);
         }
     }
-    
-
     
 }
 
 void ecall_process_end_of_recovery(){
     blinded_shares.clear();
+    completed_keys.clear();
     stored_polynomial_shares.clear();
     free(poly_R);
 }

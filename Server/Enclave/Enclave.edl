@@ -52,7 +52,7 @@ enclave {
         public void ecall_store_polynomial_share([in] int* source_node, [in] int* value);
         public void ecall_get_blinded_share([in] char key[100], [in, out, string] char* share);
         public void ecall_store_blinded_share([in] char key[100], [in] char share[1032]);
-
+        public void ecall_process_end_of_recovery();
         
         public void ecall_distributed_PI([in, string] const char *serialized_token);
         public void ecall_get_tokens([in] int* token_initiator_id, [in, out, string] char* serialized_token);
