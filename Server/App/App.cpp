@@ -97,14 +97,22 @@ map<int , unique_ptr<keyvaluestore::KVS::Stub> >  stubs;
 map<string, string> myMap;
 
 set<string> keys_set;
-set<string> lost_keys_with_potential_last_share_owner_and_t_shares_owners; 
+set<string> lost_keys_with_potential_last_share_owner_and_n_shares_owners; 
 set<string>::iterator it_lost_keys;
 
 int cpt = 0;
 
 int default_sms_port = 50000;
 
+vector<int> get_all_nodes_id(){
+    std::vector<int> keys;
 
+    for (const auto& pair : id_to_address_map) {
+        keys.push_back(pair.first);
+    }
+
+    return keys;
+}
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
@@ -680,6 +688,14 @@ class KVSServiceImpl {
                         cout << "number of keys: " << keys_set.size() << endl;
                         cout << "begin send" << endl;
                         createNew<Share_lost_keysRequest>(parent_, service_kvs, cq_);
+                        //********************************************
+                        replacement = true;
+                        s_ids_with_s_new = get_all_nodes_id();
+                        if(find(s_ids_with_s_new.begin(), s_ids_with_s_new.end(), request_.new_id()) == s_ids_with_s_new.end()){
+                            s_ids_with_s_new.push_back(request_.new_id());
+                            replacement = false;
+                        }
+                        //*******************************************
                         it = keys_set.begin();
                         if(it == keys_set.end()){ //empty set
                             state_ = FINISH;
@@ -735,13 +751,16 @@ class KVSServiceImpl {
                 keyvaluestore::New_id_with_S_up_ids request_;
                 keyvaluestore::Lost_keys reply_;
                 vector<int> s_up_ids;
+                vector<int> s_ids_with_s_new;
+                bool replacement;
 
                 set<string> share_lost_keys(int node_id, int n_records){
                     vector<string> strings_with_id_of_N_active;
                     vector<pair<string, uint32_t>> ordered_strings_with_id_to_hash;
                     string word = "server";
                     string keys="";
-                    strings_with_id_of_N_active = convert_ids_to_strings_with_id(s_up_ids, word);
+                    
+                    strings_with_id_of_N_active = convert_ids_to_strings_with_id(s_ids_with_s_new, word);
                     set<string> to_return;
 
                     int cpt = 0;
@@ -751,38 +770,42 @@ class KVSServiceImpl {
                     for (it_local = it; it_local != keys_set.end(); it_local++){
                         string  k = *it_local; //Secret_n
                         ordered_strings_with_id_to_hash = order_HRW(strings_with_id_of_N_active,k); //Order according to HRW
+                        
                         string spawned_node_id = word+to_string(node_id); //serverX
                         string spawned_node_to_hash = spawned_node_id+k; //ServerX+k
                         uint32_t spawned_node_hash_wrt_k = jenkinsHash(spawned_node_to_hash);
-                        uint32_t n_th_node_hash;
+                        
+                        uint32_t n_th_node_hash = ordered_strings_with_id_to_hash[n_global-1].second;;
                         string potential_last_share_owner_id;
-                        if(cnt<n_global){
-                            n_th_node_hash = 0;
-                            potential_last_share_owner_id = "null"; // number of active nodes is smaller than n
-                        }else{
-                            n_th_node_hash = ordered_strings_with_id_to_hash[n_global-1].second;
-                            potential_last_share_owner_id = to_string(extractNumber(ordered_strings_with_id_to_hash[n_global-1].first));
-                        }
-
-                        if(spawned_node_hash_wrt_k > n_th_node_hash){ //spawned_node is a neighbour for k
-                            //gather at least t share owners
-                            string t_shares_owners = "";
-
-                            for(int i=0; i<t_global; i++){
-                                t_shares_owners += to_string(extractNumber(ordered_strings_with_id_to_hash[i].first));
-                                if(i<t_global-1){
-                                    t_shares_owners +=",";
-                                }
+             
+                        if(spawned_node_hash_wrt_k >= n_th_node_hash){ //among top-n
+                            potential_last_share_owner_id = "null";
+                            if( !replacement ){
+                                potential_last_share_owner_id = to_string(extractNumber(ordered_strings_with_id_to_hash[n_global].first));
                             }
-                            keys += k+"|"+potential_last_share_owner_id+"|"+t_shares_owners;
-                        }else{
-                            cout << "NOT SENT!!! " << spawned_node_hash_wrt_k << endl;
+                            string n_shares_owners = "";
+                            int share_owner;
+                            int max_index;
+                            if(replacement){
+                                max_index = n_global;
+                            }else{
+                                max_index = n_global+1;
+                            }
+                            for(int i=0; i < max_index ; i++){
+                                share_owner = extractNumber(ordered_strings_with_id_to_hash[i].first);
+                                if(find(s_up_ids.begin(), s_up_ids.end(), share_owner) != s_up_ids.end()){
+                                    n_shares_owners += to_string(share_owner)+",";
+                                } 
+                            }
+                            n_shares_owners.pop_back();
+                            keys = k + "|" + potential_last_share_owner_id + "|" + n_shares_owners;
                         }
                         to_return.insert(keys);
                         keys = "";
 
                         cpt++;
                         if(cpt == n_records) break;
+
                     }
 
                     if(it_local != keys_set.end()){
@@ -1220,7 +1243,7 @@ int initialize_enclave(void)
 /* OCall functions */
 
 void ocall_get_size_keys(int* size_keys){
-    *size_keys = lost_keys_with_potential_last_share_owner_and_t_shares_owners.size();
+    *size_keys = lost_keys_with_potential_last_share_owner_and_n_shares_owners.size();
 }
 
 void ocall_get_lost_key(char* lost_key){
@@ -1230,7 +1253,7 @@ void ocall_get_lost_key(char* lost_key){
 }
 
 void ocall_flush_lost_keys_list(){
-    lost_keys_with_potential_last_share_owner_and_t_shares_owners.clear();
+    lost_keys_with_potential_last_share_owner_and_n_shares_owners.clear();
 }
 
 
@@ -1357,12 +1380,12 @@ void share_lost_keys(){
             for (const auto& key : response_local.keys()) {
                 lost_key = key.key();
 
-                lost_keys_with_potential_last_share_owner_and_t_shares_owners.insert(lost_key);
+                lost_keys_with_potential_last_share_owner_and_n_shares_owners.insert(lost_key);
                 cpt++;
             }
         }
         Status status = reader->Finish();
-        it_lost_keys = lost_keys_with_potential_last_share_owner_and_t_shares_owners.begin();
+        it_lost_keys = lost_keys_with_potential_last_share_owner_and_n_shares_owners.begin();
         cout << "Recieved: " << cpt << " keys"<< endl;
         
 
@@ -1461,32 +1484,36 @@ ParsedData parseShareString(const string& share_string) {
 }
 
 void recover_lost_shares(){
-    for(string lost_key_with_potential_last_share_owner_and_t_shares_owners : lost_keys_with_potential_last_share_owner_and_t_shares_owners){
-        ParsedData parsed = parseShareString(lost_key_with_potential_last_share_owner_and_t_shares_owners);
+    for(string lost_key_with_potential_last_share_owner_and_n_shares_owners : lost_keys_with_potential_last_share_owner_and_n_shares_owners){
+        ParsedData parsed = parseShareString(lost_key_with_potential_last_share_owner_and_n_shares_owners);
         
         string lost_key = parsed.key;
         string potential_last_share_owner = parsed.last_share_owner_id;
-        vector<int> t_shares_owners = parsed.share_owner_ids;
+        vector<int> n_shares_owners = parsed.share_owner_ids;
         //cout << "lost_key outside :" << lost_key << endl;
+        //cout << "potential last share owner :" << potential_last_share_owner << endl;
+        /*for(int share_owner: n_shares_owners){
+            cout << "share_owner:" << share_owner << endl;
+        }*/
 
         int sent = 0;
         CompletionQueue cq;
         keyvaluestore::Key request;
-        vector<keyvaluestore::Value> responses(t_shares_owners.size());
-        vector<ClientContext> contexts(t_shares_owners.size());
-        vector<Status> statuses(t_shares_owners.size());
+        vector<keyvaluestore::Value> responses(n_shares_owners.size());
+        vector<ClientContext> contexts(n_shares_owners.size());
+        vector<Status> statuses(n_shares_owners.size());
         std::unique_ptr<grpc::ClientAsyncResponseReader<keyvaluestore::Value>> rpc;
         
         request.set_key(lost_key);
        
-        for(int share_owner_id : t_shares_owners){
+        for(int share_owner_id : n_shares_owners){
             rpc = stubs[share_owner_id]->AsyncGet_blinded_share(&contexts[sent], request, &cq);
             rpc->Finish(&responses[sent], &statuses[sent], (void*)(sent+1));
             sent++;
         }
 
         int num_responses_received = 0;
-        while (num_responses_received < t_shares_owners.size()){
+        while (num_responses_received < n_shares_owners.size()){
             void* got_tag;
             bool ok = false;
             cq.Next(&got_tag, &ok);
